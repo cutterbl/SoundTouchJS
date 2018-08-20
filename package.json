@@ -4,12 +4,23 @@
   "description": "A library for manipulating Web Audio Contexts",
   "main": "dist/soundtouch.js",
   "module": "dist/soundtouch.js",
+  "keywords": [
+    "audio",
+    "WebAudio",
+    "JavaScript",
+    "es2015"
+  ],
   "scripts": {
     "build": "rollup -c",
     "example": "node ./server.js"
   },
   "author": "Steve 'Cutter' Blades",
   "license": "LGPL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cutterbl/SoundTouchJS.git"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-plugin-external-helpers": "^6.22.0",
