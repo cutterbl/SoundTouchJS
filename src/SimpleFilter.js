@@ -21,10 +21,12 @@
 */
 
 import FilterSupport from './FilterSupport';
+import noop from './noop';
 
 export default class SimpleFilter extends FilterSupport {
-    constructor(sourceSound, pipe) {
+    constructor(sourceSound, pipe, callback = noop) {
         super(pipe);
+        this.callback = callback;
         this.sourceSound = sourceSound;
         //this.bufferDuration = sourceSound.buffer.duration;
         this.historyBufferSize = 22050;
@@ -56,6 +58,10 @@ export default class SimpleFilter extends FilterSupport {
     set sourcePosition(sourcePosition) {
         this.clear();
         this._sourcePosition = sourcePosition;
+    }
+
+    onEnd() {
+        this.callback();
     }
 
     fillInputBuffer(numFrames = 0) {

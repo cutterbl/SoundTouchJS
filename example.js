@@ -55,7 +55,7 @@ const play = function () {
     shifter.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     intervalId = setInterval(function () {
-        currTime.innerHTML = shifter.timePlayed;
+        currTime.innerHTML = shifter.formattedTimePlayed;
         progressMeter.value = shifter.percentagePlayed;
     }, 1000);
     is_playing = true;
@@ -96,7 +96,6 @@ progressMeter.addEventListener('click', function (event) {
     const pos = event.target.getBoundingClientRect();
     const relX = event.pageX - pos.x;
     const perc = relX / event.target.offsetWidth;
-    console.log('perc', perc);
     pause(is_playing);
     shifter.percentagePlayed = perc;
     progressMeter.value = (100 * perc);

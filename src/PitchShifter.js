@@ -25,12 +25,13 @@ import getWebAudioNode from './getWebAudioNode';
 import SoundTouch from './SoundTouch';
 import SimpleFilter from './SimpleFilter';
 import minsSecs from './minsSecs';
+import noop from './noop';
 
 export default class PitchShifter {
-    constructor(context, buffer, bufferSize) {
+    constructor(context, buffer, bufferSize, onEnd = noop) {
         this._soundtouch = new SoundTouch();
         const source = new WebAudioBufferSource(buffer);
-        this._filter = new SimpleFilter(source, this._soundtouch, bufferSize);
+        this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
         this._node = getWebAudioNode(context, this._filter);
         this.tempo = 1;
         this.rate = 1;
@@ -43,8 +44,16 @@ export default class PitchShifter {
         return minsSecs(dur);
     }
 
+    get formattedTimePlayed() {
+        return minsSecs(this.timePlayed);
+    }
+
     get timePlayed() {
-        return minsSecs(this._filter.sourcePosition / this.sampleRate());
+        return this._filter.sourcePosition / this.sampleRate();
+    }
+
+    get sourcePosition() {
+        return this._filter.sourcePosition;
     }
 
     get percentagePlayed() {

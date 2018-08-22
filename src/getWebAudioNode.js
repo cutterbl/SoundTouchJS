@@ -19,7 +19,7 @@ const getWebAudioNode = function (context, filter, bufferSize) {
         let right = event.outputBuffer.getChannelData(1);
         let framesExtracted = filter.extract(samples, BUFFER_SIZE);
         if (framesExtracted === 0) {
-            node.disconnect();
+            filter.onEnd();
         }
         let i = 0;
         for (; i < framesExtracted; i++) {

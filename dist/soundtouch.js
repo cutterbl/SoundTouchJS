@@ -384,11 +384,17 @@ var FilterSupport = function () {
     return FilterSupport;
 }();
 
+var noop = function noop() {
+    return;
+};
+
 var SimpleFilter = function (_FilterSupport) {
     inherits(SimpleFilter, _FilterSupport);
     function SimpleFilter(sourceSound, pipe) {
+        var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : noop;
         classCallCheck(this, SimpleFilter);
         var _this = possibleConstructorReturn(this, (SimpleFilter.__proto__ || Object.getPrototypeOf(SimpleFilter)).call(this, pipe));
+        _this.callback = callback;
         _this.sourceSound = sourceSound;
         _this.historyBufferSize = 22050;
         _this._sourcePosition = 0;
@@ -397,6 +403,11 @@ var SimpleFilter = function (_FilterSupport) {
         return _this;
     }
     createClass(SimpleFilter, [{
+        key: 'onEnd',
+        value: function onEnd() {
+            this.callback();
+        }
+    }, {
         key: 'fillInputBuffer',
         value: function fillInputBuffer() {
             var numFrames = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
@@ -926,7 +937,7 @@ var getWebAudioNode = function getWebAudioNode(context, filter, bufferSize) {
         var right = event.outputBuffer.getChannelData(1);
         var framesExtracted = filter.extract(samples, BUFFER_SIZE);
         if (framesExtracted === 0) {
-            node.disconnect();
+            filter.onEnd();
         }
         var i = 0;
         for (; i < framesExtracted; i++) {
@@ -950,10 +961,11 @@ var minsSecs = function minsSecs(secs) {
 
 var PitchShifter = function () {
     function PitchShifter(context, buffer, bufferSize) {
+        var onEnd = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : noop;
         classCallCheck(this, PitchShifter);
         this._soundtouch = new SoundTouch();
         var source = new WebAudioBufferSource(buffer);
-        this._filter = new SimpleFilter(source, this._soundtouch, bufferSize);
+        this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
         this._node = getWebAudioNode(context, this._filter);
         this.tempo = 1;
         this.rate = 1;
@@ -981,9 +993,19 @@ var PitchShifter = function () {
             return minsSecs(dur);
         }
     }, {
+        key: 'formattedTimePlayed',
+        get: function get$$1() {
+            return minsSecs(this.timePlayed);
+        }
+    }, {
         key: 'timePlayed',
         get: function get$$1() {
-            return minsSecs(this._filter.sourcePosition / this.sampleRate());
+            return this._filter.sourcePosition / this.sampleRate();
+        }
+    }, {
+        key: 'sourcePosition',
+        get: function get$$1() {
+            return this._filter.sourcePosition;
         }
     }, {
         key: 'percentagePlayed',
