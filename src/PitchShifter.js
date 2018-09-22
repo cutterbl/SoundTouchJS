@@ -27,70 +27,100 @@ import SimpleFilter from './SimpleFilter';
 import minsSecs from './minsSecs';
 import noop from './noop';
 
+const onUpdate = function(sourcePosition) {
+  const currentTimePlayed = this.timePlayed;
+  const sampleRate = this.sampleRate;
+  this.sourcePosition = sourcePosition;
+  this.timePlayed = sourcePosition / sampleRate;
+  if (currentTimePlayed !== this.timePlayed) {
+    const timePlayed = new CustomEvent('play', {
+      detail: {
+        timePlayed: this.timePlayed,
+        formattedTimePlayed: this.formattedTimePlayed,
+        percentagePlayed: this.percentagePlayed
+      }
+    });
+    this._node.dispatchEvent(timePlayed);
+  }
+};
+
 export default class PitchShifter {
-    constructor(context, buffer, bufferSize, onEnd = noop) {
-        this._soundtouch = new SoundTouch();
-        const source = new WebAudioBufferSource(buffer);
-        this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
-        this._node = getWebAudioNode(context, this._filter);
-        this.tempo = 1;
-        this.rate = 1;
-        this.duration = () => buffer.duration;
-        this.sampleRate = () => context.sampleRate;
-    }
+  constructor(context, buffer, bufferSize, onEnd = noop) {
+    this._soundtouch = new SoundTouch();
+    const source = new WebAudioBufferSource(buffer);
+    this.timePlayed = 0;
+    this.sourcePosition = 0;
+    this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
+    this._node = getWebAudioNode(context, this._filter, sourcePostion =>
+      onUpdate.call(this, sourcePostion)
+    );
+    this.tempo = 1;
+    this.rate = 1;
+    this.duration = buffer.duration;
+    this.sampleRate = context.sampleRate;
+    this.listeners = [];
+  }
 
-    get formattedDuration() {
-        const dur = this.duration() || 0;
-        return minsSecs(dur);
-    }
+  get formattedDuration() {
+    return minsSecs(this.duration);
+  }
 
-    get formattedTimePlayed() {
-        return minsSecs(this.timePlayed);
-    }
+  get formattedTimePlayed() {
+    return minsSecs(this.timePlayed);
+  }
 
-    get timePlayed() {
-        return this._filter.sourcePosition / this.sampleRate();
-    }
+  get percentagePlayed() {
+    return (
+      (100 * this._filter.sourcePosition) / (this.duration * this.sampleRate)
+    );
+  }
 
-    get sourcePosition() {
-        return this._filter.sourcePosition;
-    }
+  set percentagePlayed(perc) {
+    this._filter.sourcePosition = parseInt(
+      perc * this.duration * this.sampleRate
+    );
+  }
 
-    get percentagePlayed() {
-        const dur = this.duration() || 0;
-        return (100 * this._filter.sourcePosition / (dur * this.sampleRate()));
-    }
+  get node() {
+    return this._node;
+  }
 
-    set percentagePlayed(perc) {
-        const dur = this.duration() || 0;
-        this._filter.sourcePosition = parseInt(perc * dur * this.sampleRate());
-    }
+  set pitch(pitch) {
+    this._soundtouch.pitch = pitch;
+  }
 
-    get node() {
-        return this._node;
-    }
+  set pitchSemitones(semitone) {
+    this._soundtouch.pitchSemitones = semitone;
+  }
 
-    set pitch(pitch) {
-        this._soundtouch.pitch = pitch;
-    }
+  set rate(rate) {
+    this._soundtouch.rate = rate;
+  }
 
-    set pitchSemitones(semitone) {
-        this._soundtouch.pitchSemitones = semitone;
-    }
+  set tempo(tempo) {
+    this._soundtouch.tempo = tempo;
+  }
 
-    set rate(rate) {
-        this._soundtouch.rate = rate;
-    }
+  connect(toNode) {
+    this._node.connect(toNode);
+  }
 
-    set tempo(tempo) {
-        this._soundtouch.tempo = tempo;
-    }
+  disconnect() {
+    this._node.disconnect();
+  }
 
-    connect(toNode) {
-        this._node.connect(toNode);
-    }
+  on(eventName, cb) {
+    this.listeners.push({ name: eventName, cb: cb });
+    this._node.addEventListener(eventName, event => cb(event.detail));
+  }
 
-    disconnect() {
-        this._node.disconnect();
+  off(eventName = null) {
+    let listeners = this.listeners;
+    if (eventName) {
+      listeners = listeners.filter(e => e.name === eventName);
     }
+    listeners.forEach(e => {
+      this._node.removeEventListener(e.name, event => e.cb(event.detail));
+    });
+  }
 }

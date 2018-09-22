@@ -1,0 +1,7 @@
+# Change Log
+
+## 22 September, 2018
+
+- Custom Event dispatch from the PitchShifter, to broadcast 'play' event
+- Add `PitchShifter.on()` and `PitchShifter.off()` methods for registering and destroying event listener on audio node
+- **Breaking Changes: ** change PitchShifter.sampleRate and PitchShifter.duration from functions to variables

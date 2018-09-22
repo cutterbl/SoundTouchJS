@@ -30,8 +30,16 @@ const gainNode = audioCtx.createGain();
 let shifter;
 
 // here you retrieved your file with 'fetch' or a new instance of the 'FileReader', and from the data...
+    if (shifter) {
+        shifter.off(); // remove any current listeners
+    }
     audioCtx.decodeAudioData(buffer, audioBuffer => {
         shifter = new PitchShifter(audioCtx, audioBuffer, 1024);
+        shifter.on('play', (detail) => {
+            // do something with detail.timePlayed;
+            // do something with detail.formattedTimePlayed;
+            // do something with detail.percentagePlayed
+        });
         shifter.tempo = 1;
         shifter.pitch = 1;
     });

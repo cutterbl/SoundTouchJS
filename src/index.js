@@ -29,4 +29,13 @@ import WebAudioBufferSource from './WebAudioBufferSource';
 import PitchShifter from './PitchShifter';
 import getWebAudioNode from './getWebAudioNode';
 
-export {AbstractFifoSamplePipe, RateTransposer, SimpleFilter, Stretch, SoundTouch, WebAudioBufferSource, PitchShifter, getWebAudioNode};
+export {
+  AbstractFifoSamplePipe,
+  RateTransposer,
+  SimpleFilter,
+  Stretch,
+  SoundTouch,
+  WebAudioBufferSource,
+  PitchShifter,
+  getWebAudioNode
+};
