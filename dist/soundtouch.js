@@ -1,5 +1,5 @@
 /*
- * SoundTouch JS v0.1.2 audio processing library
+ * SoundTouch JS v0.1.4 audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
  * Copyright (c) Jakub Fiala
