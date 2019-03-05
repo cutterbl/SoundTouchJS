@@ -1,5 +1,10 @@
 # Change Log
 
+## 5 March, 2018
+
+- Updated dependencies to resolve security issue with their dependencies
+- Updated the 'example.js' to account for autoplay policy changes in Chrome. Big Thanks to Colin Hill for reporting it.
+
 ## 22 September, 2018
 
 - Custom Event dispatch from the PitchShifter, to broadcast 'play' event
