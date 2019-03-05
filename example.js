@@ -60,8 +60,10 @@ let is_playing = false;
 const play = function() {
   shifter.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-  is_playing = true;
-  this.setAttribute('disabled', 'disabled');
+  audioCtx.resume().then(() => {
+    is_playing = true;
+    this.setAttribute('disabled', 'disabled');
+  });
 };
 
 const pause = function(playing = false) {

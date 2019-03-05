@@ -6,9 +6,11 @@ import { eslint } from 'rollup-plugin-eslint';
 import cleanup from 'rollup-plugin-cleanup';
 import pkg from './package.json';
 
-export default [{
+export default [
+  {
     input: 'src/index.js',
-    output: [{
+    output: [
+      {
         file: pkg.module,
         format: 'es',
         banner: `/*
@@ -34,31 +36,22 @@ export default [{
  */\n`,
         sourcemap: true,
         exports: 'named'
-    }],
+      }
+    ],
     plugins: [
-        clear({
-            targets: ['dist'],
-            watch: true
-        }),
-        resolve({
-            browser: true
-        }),
-        commonjs(),
-        eslint(),
-        babel({
-            plugins: ['external-helpers'],
-            presets: [
-                [
-                    'env',
-                    {
-                        modules: false,
-                        targets: {
-                            browsers: ['last 2 versions']
-                        }
-                    }
-                ]
-            ]
-        }),
-        cleanup()
+      clear({
+        targets: ['dist'],
+        watch: true
+      }),
+      resolve({
+        browser: true
+      }),
+      commonjs(),
+      eslint(),
+      babel({
+        runtimeHelpers: true
+      }),
+      cleanup()
     ]
-}];
+  }
+];

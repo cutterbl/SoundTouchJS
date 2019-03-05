@@ -1,5 +1,5 @@
 /*
- * SoundTouch JS v0.1.4 audio processing library
+ * SoundTouch JS v0.1.5 audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
  * Copyright (c) Jakub Fiala
@@ -20,87 +20,114 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var classCallCheck = function (instance, Constructor) {
+function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
   }
-};
+}
 
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
   }
+}
 
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  return Constructor;
+}
 
-var get = function get(object, property, receiver) {
-  if (object === null) object = Function.prototype;
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-
-    if (getter === undefined) {
-      return undefined;
-    }
-
-    return getter.call(receiver);
-  }
-};
-
-var inherits = function (subClass, superClass) {
+function _inherits(subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    throw new TypeError("Super expression must either be null or a function");
   }
 
   subClass.prototype = Object.create(superClass && superClass.prototype, {
     constructor: {
       value: subClass,
-      enumerable: false,
       writable: true,
       configurable: true
     }
   });
-  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
 
-var possibleConstructorReturn = function (self, call) {
-  if (!self) {
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
   }
 
-  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-};
+  return self;
+}
 
-var FifoSampleBuffer = function () {
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _superPropBase(object, property) {
+  while (!Object.prototype.hasOwnProperty.call(object, property)) {
+    object = _getPrototypeOf(object);
+    if (object === null) break;
+  }
+
+  return object;
+}
+
+function _get(target, property, receiver) {
+  if (typeof Reflect !== "undefined" && Reflect.get) {
+    _get = Reflect.get;
+  } else {
+    _get = function _get(target, property, receiver) {
+      var base = _superPropBase(target, property);
+
+      if (!base) return;
+      var desc = Object.getOwnPropertyDescriptor(base, property);
+
+      if (desc.get) {
+        return desc.get.call(receiver);
+      }
+
+      return desc.value;
+    };
+  }
+
+  return _get(target, property, receiver || target);
+}
+
+var FifoSampleBuffer =
+function () {
   function FifoSampleBuffer() {
-    classCallCheck(this, FifoSampleBuffer);
+    _classCallCheck(this, FifoSampleBuffer);
     this._vector = new Float32Array();
     this._position = 0;
     this._frameCount = 0;
   }
-  createClass(FifoSampleBuffer, [{
+  _createClass(FifoSampleBuffer, [{
     key: "clear",
     value: function clear() {
       this.receive(this._frameCount);
@@ -193,36 +220,37 @@ var FifoSampleBuffer = function () {
     }
   }, {
     key: "vector",
-    get: function get$$1() {
+    get: function get() {
       return this._vector;
     }
   }, {
     key: "position",
-    get: function get$$1() {
+    get: function get() {
       return this._position;
     }
   }, {
     key: "startIndex",
-    get: function get$$1() {
+    get: function get() {
       return this._position * 2;
     }
   }, {
     key: "frameCount",
-    get: function get$$1() {
+    get: function get() {
       return this._frameCount;
     }
   }, {
     key: "endIndex",
-    get: function get$$1() {
+    get: function get() {
       return (this._position + this._frameCount) * 2;
     }
   }]);
   return FifoSampleBuffer;
 }();
 
-var AbstractFifoSamplePipe = function () {
+var AbstractFifoSamplePipe =
+function () {
   function AbstractFifoSamplePipe(createBuffers) {
-    classCallCheck(this, AbstractFifoSamplePipe);
+    _classCallCheck(this, AbstractFifoSamplePipe);
     if (createBuffers) {
       this._inputBuffer = new FifoSampleBuffer();
       this._outputBuffer = new FifoSampleBuffer();
@@ -230,57 +258,59 @@ var AbstractFifoSamplePipe = function () {
       this._inputBuffer = this._outputBuffer = null;
     }
   }
-  createClass(AbstractFifoSamplePipe, [{
-    key: 'clear',
+  _createClass(AbstractFifoSamplePipe, [{
+    key: "clear",
     value: function clear() {
       this._inputBuffer.clear();
       this._outputBuffer.clear();
     }
   }, {
-    key: 'inputBuffer',
-    get: function get$$1() {
+    key: "inputBuffer",
+    get: function get() {
       return this._inputBuffer;
     },
-    set: function set$$1(inputBuffer) {
+    set: function set(inputBuffer) {
       this._inputBuffer = inputBuffer;
     }
   }, {
-    key: 'outputBuffer',
-    get: function get$$1() {
+    key: "outputBuffer",
+    get: function get() {
       return this._outputBuffer;
     },
-    set: function set$$1(outputBuffer) {
+    set: function set(outputBuffer) {
       this._outputBuffer = outputBuffer;
     }
   }]);
   return AbstractFifoSamplePipe;
 }();
 
-var RateTransposer = function (_AbstractFifoSamplePi) {
-  inherits(RateTransposer, _AbstractFifoSamplePi);
+var RateTransposer =
+function (_AbstractFifoSamplePi) {
+  _inherits(RateTransposer, _AbstractFifoSamplePi);
   function RateTransposer(createBuffers) {
-    classCallCheck(this, RateTransposer);
-    var _this = possibleConstructorReturn(this, (RateTransposer.__proto__ || Object.getPrototypeOf(RateTransposer)).call(this, createBuffers));
+    var _this;
+    _classCallCheck(this, RateTransposer);
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(RateTransposer).call(this, createBuffers));
     _this.reset();
     _this._rate = 1;
     return _this;
   }
-  createClass(RateTransposer, [{
-    key: 'reset',
+  _createClass(RateTransposer, [{
+    key: "reset",
     value: function reset() {
       this.slopeCount = 0;
       this.prevSampleL = 0;
       this.prevSampleR = 0;
     }
   }, {
-    key: 'clone',
+    key: "clone",
     value: function clone() {
       var result = new RateTransposer();
       result.rate = this._rate;
       return result;
     }
   }, {
-    key: 'process',
+    key: "process",
     value: function process() {
       var numFrames = this._inputBuffer.frameCount;
       this._outputBuffer.ensureAdditionalCapacity(numFrames / this._rate + 1);
@@ -289,7 +319,7 @@ var RateTransposer = function (_AbstractFifoSamplePi) {
       this._outputBuffer.put(numFramesOutput);
     }
   }, {
-    key: 'transpose',
+    key: "transpose",
     value: function transpose() {
       var numFrames = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       if (numFrames === 0) {
@@ -329,26 +359,28 @@ var RateTransposer = function (_AbstractFifoSamplePi) {
       return i;
     }
   }, {
-    key: 'rate',
-    set: function set$$1(rate) {
+    key: "rate",
+    set: function set(rate) {
       this._rate = rate;
     }
   }]);
   return RateTransposer;
 }(AbstractFifoSamplePipe);
 
-var FilterSupport = function () {
+var FilterSupport =
+function () {
   function FilterSupport(pipe) {
-    classCallCheck(this, FilterSupport);
+    _classCallCheck(this, FilterSupport);
     this._pipe = pipe;
   }
-  createClass(FilterSupport, [{
-    key: 'fillInputBuffer',
-    value: function fillInputBuffer()              {
+  _createClass(FilterSupport, [{
+    key: "fillInputBuffer",
+    value: function fillInputBuffer()
+    {
       throw new Error('fillInputBuffer() not overridden');
     }
   }, {
-    key: 'fillOutputBuffer',
+    key: "fillOutputBuffer",
     value: function fillOutputBuffer() {
       var numFrames = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       while (this.outputBuffer.frameCount < numFrames) {
@@ -361,23 +393,23 @@ var FilterSupport = function () {
       }
     }
   }, {
-    key: 'clear',
+    key: "clear",
     value: function clear() {
       this._pipe.clear();
     }
   }, {
-    key: 'pipe',
-    get: function get$$1() {
+    key: "pipe",
+    get: function get() {
       return this._pipe;
     }
   }, {
-    key: 'inputBuffer',
-    get: function get$$1() {
+    key: "inputBuffer",
+    get: function get() {
       return this._pipe.inputBuffer;
     }
   }, {
-    key: 'outputBuffer',
-    get: function get$$1() {
+    key: "outputBuffer",
+    get: function get() {
       return this._pipe.outputBuffer;
     }
   }]);
@@ -388,12 +420,14 @@ var noop = function noop() {
   return;
 };
 
-var SimpleFilter = function (_FilterSupport) {
-  inherits(SimpleFilter, _FilterSupport);
+var SimpleFilter =
+function (_FilterSupport) {
+  _inherits(SimpleFilter, _FilterSupport);
   function SimpleFilter(sourceSound, pipe) {
+    var _this;
     var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : noop;
-    classCallCheck(this, SimpleFilter);
-    var _this = possibleConstructorReturn(this, (SimpleFilter.__proto__ || Object.getPrototypeOf(SimpleFilter)).call(this, pipe));
+    _classCallCheck(this, SimpleFilter);
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(SimpleFilter).call(this, pipe));
     _this.callback = callback;
     _this.sourceSound = sourceSound;
     _this.historyBufferSize = 22050;
@@ -402,13 +436,13 @@ var SimpleFilter = function (_FilterSupport) {
     _this._position = 0;
     return _this;
   }
-  createClass(SimpleFilter, [{
-    key: 'onEnd',
+  _createClass(SimpleFilter, [{
+    key: "onEnd",
     value: function onEnd() {
       this.callback();
     }
   }, {
-    key: 'fillInputBuffer',
+    key: "fillInputBuffer",
     value: function fillInputBuffer() {
       var numFrames = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var samples = new Float32Array(numFrames * 2);
@@ -417,7 +451,7 @@ var SimpleFilter = function (_FilterSupport) {
       this.inputBuffer.putSamples(samples, 0, numFramesExtracted);
     }
   }, {
-    key: 'extract',
+    key: "extract",
     value: function extract(target) {
       var numFrames = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       this.fillOutputBuffer(this.outputBufferPosition + numFrames);
@@ -430,22 +464,22 @@ var SimpleFilter = function (_FilterSupport) {
       return numFramesExtracted;
     }
   }, {
-    key: 'handleSampleData',
+    key: "handleSampleData",
     value: function handleSampleData(event) {
       this.extract(event.data, 4096);
     }
   }, {
-    key: 'clear',
+    key: "clear",
     value: function clear() {
-      get(SimpleFilter.prototype.__proto__ || Object.getPrototypeOf(SimpleFilter.prototype), 'clear', this).call(this);
+      _get(_getPrototypeOf(SimpleFilter.prototype), "clear", this).call(this);
       this.outputBufferPosition = 0;
     }
   }, {
-    key: 'position',
-    get: function get$$1() {
+    key: "position",
+    get: function get() {
       return this._position;
     },
-    set: function set$$1(position) {
+    set: function set(position) {
       if (position > this._position) {
         throw new RangeError('New position may not be greater than current position');
       }
@@ -457,11 +491,11 @@ var SimpleFilter = function (_FilterSupport) {
       this._position = position;
     }
   }, {
-    key: 'sourcePosition',
-    get: function get$$1() {
+    key: "sourcePosition",
+    get: function get() {
       return this._sourcePosition;
     },
-    set: function set$$1(sourcePosition) {
+    set: function set(sourcePosition) {
       this.clear();
       this._sourcePosition = sourcePosition;
     }
@@ -485,11 +519,13 @@ var AUTOSEEK_AT_MIN = 25.0;
 var AUTOSEEK_AT_MAX = 15.0;
 var AUTOSEEK_K = (AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW);
 var AUTOSEEK_C = AUTOSEEK_AT_MIN - AUTOSEEK_K * AUTOSEQ_TEMPO_LOW;
-var Stretch = function (_AbstractFifoSamplePi) {
-  inherits(Stretch, _AbstractFifoSamplePi);
+var Stretch =
+function (_AbstractFifoSamplePi) {
+  _inherits(Stretch, _AbstractFifoSamplePi);
   function Stretch(createBuffers) {
-    classCallCheck(this, Stretch);
-    var _this = possibleConstructorReturn(this, (Stretch.__proto__ || Object.getPrototypeOf(Stretch)).call(this, createBuffers));
+    var _this;
+    _classCallCheck(this, Stretch);
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Stretch).call(this, createBuffers));
     _this._quickSeek = true;
     _this.midBufferDirty = false;
     _this.midBuffer = null;
@@ -500,14 +536,14 @@ var Stretch = function (_AbstractFifoSamplePi) {
     _this.setParameters(44100, DEFAULT_SEQUENCE_MS, DEFAULT_SEEKWINDOW_MS, DEFAULT_OVERLAP_MS);
     return _this;
   }
-  createClass(Stretch, [{
-    key: 'clear',
+  _createClass(Stretch, [{
+    key: "clear",
     value: function clear() {
-      get(Stretch.prototype.__proto__ || Object.getPrototypeOf(Stretch.prototype), 'clear', this).call(this);
+      _get(_getPrototypeOf(Stretch.prototype), "clear", this).call(this);
       this.clearMidBuffer();
     }
   }, {
-    key: 'clearMidBuffer',
+    key: "clearMidBuffer",
     value: function clearMidBuffer() {
       if (this.midBufferDirty) {
         this.midBufferDirty = false;
@@ -515,7 +551,7 @@ var Stretch = function (_AbstractFifoSamplePi) {
       }
     }
   }, {
-    key: 'setParameters',
+    key: "setParameters",
     value: function setParameters(sampleRate, sequenceMs, seekWindowMs, overlapMs) {
       if (sampleRate > 0) {
         this.sampleRate = sampleRate;
@@ -540,10 +576,10 @@ var Stretch = function (_AbstractFifoSamplePi) {
       this.tempo = this._tempo;
     }
   }, {
-    key: 'calculateOverlapLength',
+    key: "calculateOverlapLength",
     value: function calculateOverlapLength() {
       var overlapInMsec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      var newOvl = void 0;
+      var newOvl;
       newOvl = this.sampleRate * overlapInMsec / 1000;
       newOvl = newOvl < 16 ? 16 : newOvl;
       newOvl -= newOvl % 8;
@@ -552,15 +588,15 @@ var Stretch = function (_AbstractFifoSamplePi) {
       this.midBuffer = new Float32Array(this.overlapLength * 2);
     }
   }, {
-    key: 'checkLimits',
+    key: "checkLimits",
     value: function checkLimits(x, mi, ma) {
       return x < mi ? mi : x > ma ? ma : x;
     }
   }, {
-    key: 'calculateSequenceParameters',
+    key: "calculateSequenceParameters",
     value: function calculateSequenceParameters() {
-      var seq = void 0;
-      var seek = void 0;
+      var seq;
+      var seek;
       if (this.autoSeqSetting) {
         seq = AUTOSEQ_C + AUTOSEQ_K * this._tempo;
         seq = this.checkLimits(seq, AUTOSEQ_AT_MAX, AUTOSEQ_AT_MIN);
@@ -575,7 +611,7 @@ var Stretch = function (_AbstractFifoSamplePi) {
       this.seekLength = Math.floor(this.sampleRate * this.seekWindowMs / 1000);
     }
   }, {
-    key: 'clone',
+    key: "clone",
     value: function clone() {
       var result = new Stretch();
       result.tempo = this._tempo;
@@ -583,16 +619,16 @@ var Stretch = function (_AbstractFifoSamplePi) {
       return result;
     }
   }, {
-    key: 'seekBestOverlapPosition',
+    key: "seekBestOverlapPosition",
     value: function seekBestOverlapPosition() {
       return this._quickSeek ? this.seekBestOverlapPositionStereoQuick() : this.seekBestOverlapPositionStereo();
     }
   }, {
-    key: 'seekBestOverlapPositionStereo',
+    key: "seekBestOverlapPositionStereo",
     value: function seekBestOverlapPositionStereo() {
-      var bestOffset = void 0;
-      var bestCorrelation = void 0;
-      var correlation = void 0;
+      var bestOffset;
+      var bestCorrelation;
+      var correlation;
       var i = 0;
       this.preCalculateCorrelationReferenceStereo();
       bestOffset = 0;
@@ -607,14 +643,14 @@ var Stretch = function (_AbstractFifoSamplePi) {
       return bestOffset;
     }
   }, {
-    key: 'seekBestOverlapPositionStereoQuick',
+    key: "seekBestOverlapPositionStereoQuick",
     value: function seekBestOverlapPositionStereoQuick() {
-      var bestOffset = void 0;
-      var bestCorrelation = void 0;
-      var correlation = void 0;
+      var bestOffset;
+      var bestCorrelation;
+      var correlation;
       var scanCount = 0;
-      var correlationOffset = void 0;
-      var tempOffset = void 0;
+      var correlationOffset;
+      var tempOffset;
       this.preCalculateCorrelationReferenceStereo();
       bestCorrelation = Number.MIN_VALUE;
       bestOffset = 0;
@@ -639,11 +675,11 @@ var Stretch = function (_AbstractFifoSamplePi) {
       return bestOffset;
     }
   }, {
-    key: 'preCalculateCorrelationReferenceStereo',
+    key: "preCalculateCorrelationReferenceStereo",
     value: function preCalculateCorrelationReferenceStereo() {
       var i = 0;
-      var context = void 0;
-      var temp = void 0;
+      var context;
+      var temp;
       for (; i < this.overlapLength; i = i + 1) {
         temp = i * (this.overlapLength - i);
         context = i * 2;
@@ -652,14 +688,14 @@ var Stretch = function (_AbstractFifoSamplePi) {
       }
     }
   }, {
-    key: 'calculateCrossCorrelationStereo',
+    key: "calculateCrossCorrelationStereo",
     value: function calculateCrossCorrelationStereo(mixingPosition, compare) {
       var mixing = this._inputBuffer.vector;
       mixingPosition += this._inputBuffer.startIndex;
       var correlation = 0;
       var i = 2;
       var calcLength = 2 * this.overlapLength;
-      var mixingOffset = void 0;
+      var mixingOffset;
       for (; i < calcLength; i = i + 2) {
         mixingOffset = i + mixingPosition;
         correlation += mixing[mixingOffset] * compare[i] + mixing[mixingOffset + 1] * compare[i + 1];
@@ -667,24 +703,24 @@ var Stretch = function (_AbstractFifoSamplePi) {
       return correlation;
     }
   }, {
-    key: 'overlap',
+    key: "overlap",
     value: function overlap(overlapPosition) {
       this.overlapStereo(2 * overlapPosition);
     }
   }, {
-    key: 'overlapStereo',
+    key: "overlapStereo",
     value: function overlapStereo(inputPosition) {
       var input = this._inputBuffer.vector;
       inputPosition += this._inputBuffer.startIndex;
       var output = this._outputBuffer.vector;
       var outputPosition = this._outputBuffer.endIndex;
       var i = 0;
-      var context = void 0;
-      var tempFrame = void 0;
+      var context;
+      var tempFrame;
       var frameScale = 1 / this.overlapLength;
-      var fi = void 0;
-      var inputOffset = void 0;
-      var outputOffset = void 0;
+      var fi;
+      var inputOffset;
+      var outputOffset;
       for (; i < this.overlapLength; i = i + 1) {
         tempFrame = (this.overlapLength - i) * frameScale;
         fi = i * frameScale;
@@ -696,11 +732,11 @@ var Stretch = function (_AbstractFifoSamplePi) {
       }
     }
   }, {
-    key: 'process',
+    key: "process",
     value: function process() {
-      var offset = void 0;
-      var temp = void 0;
-      var overlapSkip = void 0;
+      var offset;
+      var temp;
+      var overlapSkip;
       if (this.midBuffer === null) {
         if (this._inputBuffer.frameCount < this.overlapLength) {
           return;
@@ -726,9 +762,9 @@ var Stretch = function (_AbstractFifoSamplePi) {
       }
     }
   }, {
-    key: 'tempo',
-    set: function set$$1(newTempo) {
-      var intskip = void 0;
+    key: "tempo",
+    set: function set(newTempo) {
+      var intskip;
       this._tempo = newTempo;
       this.calculateSequenceParameters();
       this.nominalSkip = this._tempo * (this.seekWindowLength - this.overlapLength);
@@ -736,22 +772,22 @@ var Stretch = function (_AbstractFifoSamplePi) {
       intskip = Math.floor(this.nominalSkip + 0.5);
       this.sampleReq = Math.max(intskip + this.overlapLength, this.seekWindowLength) + this.seekLength;
     },
-    get: function get$$1() {
+    get: function get() {
       return this._tempo;
     }
   }, {
-    key: 'inputChunkSize',
-    get: function get$$1() {
+    key: "inputChunkSize",
+    get: function get() {
       return this.sampleReq;
     }
   }, {
-    key: 'outputChunkSize',
-    get: function get$$1() {
+    key: "outputChunkSize",
+    get: function get() {
       return this.overlapLength + Math.max(0, this.seekWindowLength - 2 * this.overlapLength);
     }
   }, {
-    key: 'quickSeek',
-    set: function set$$1(enable) {
+    key: "quickSeek",
+    set: function set(enable) {
       this._quickSeek = enable;
     }
   }]);
@@ -762,9 +798,10 @@ var testFloatEqual = function testFloatEqual(a, b) {
   return (a > b ? a - b : b - a) > 1e-10;
 };
 
-var SoundTouch = function () {
+var SoundTouch =
+function () {
   function SoundTouch() {
-    classCallCheck(this, SoundTouch);
+    _classCallCheck(this, SoundTouch);
     this.transposer = new RateTransposer(false);
     this.stretch = new Stretch(false);
     this._inputBuffer = new FifoSampleBuffer();
@@ -777,14 +814,14 @@ var SoundTouch = function () {
     this.virtualTempo = 1.0;
     this.calculateEffectiveRateAndTempo();
   }
-  createClass(SoundTouch, [{
-    key: 'clear',
+  _createClass(SoundTouch, [{
+    key: "clear",
     value: function clear() {
       this.transposer.clear();
       this.stretch.clear();
     }
   }, {
-    key: 'clone',
+    key: "clone",
     value: function clone() {
       var result = new SoundTouch();
       result.rate = this.rate;
@@ -792,7 +829,7 @@ var SoundTouch = function () {
       return result;
     }
   }, {
-    key: 'calculateEffectiveRateAndTempo',
+    key: "calculateEffectiveRateAndTempo",
     value: function calculateEffectiveRateAndTempo() {
       var previousTempo = this._tempo;
       var previousRate = this._rate;
@@ -821,7 +858,7 @@ var SoundTouch = function () {
       }
     }
   }, {
-    key: 'process',
+    key: "process",
     value: function process() {
       if (this._rate > 1.0) {
         this.stretch.process();
@@ -832,71 +869,72 @@ var SoundTouch = function () {
       }
     }
   }, {
-    key: 'rate',
-    get: function get$$1() {
+    key: "rate",
+    get: function get() {
       return this._rate;
     },
-    set: function set$$1(rate) {
+    set: function set(rate) {
       this.virtualRate = rate;
       this.calculateEffectiveRateAndTempo();
     }
   }, {
-    key: 'rateChange',
-    set: function set$$1(rateChange) {
+    key: "rateChange",
+    set: function set(rateChange) {
       this._rate = 1.0 + 0.01 * rateChange;
     }
   }, {
-    key: 'tempo',
-    get: function get$$1() {
+    key: "tempo",
+    get: function get() {
       return this._tempo;
     },
-    set: function set$$1(tempo) {
+    set: function set(tempo) {
       this.virtualTempo = tempo;
       this.calculateEffectiveRateAndTempo();
     }
   }, {
-    key: 'tempoChange',
-    set: function set$$1(tempoChange) {
+    key: "tempoChange",
+    set: function set(tempoChange) {
       this.tempo = 1.0 + 0.01 * tempoChange;
     }
   }, {
-    key: 'pitch',
-    set: function set$$1(pitch) {
+    key: "pitch",
+    set: function set(pitch) {
       this.virtualPitch = pitch;
       this.calculateEffectiveRateAndTempo();
     }
   }, {
-    key: 'pitchOctaves',
-    set: function set$$1(pitchOctaves) {
+    key: "pitchOctaves",
+    set: function set(pitchOctaves) {
       this.pitch = Math.exp(0.69314718056 * pitchOctaves);
       this.calculateEffectiveRateAndTempo();
     }
   }, {
-    key: 'pitchSemitones',
-    set: function set$$1(pitchSemitones) {
+    key: "pitchSemitones",
+    set: function set(pitchSemitones) {
       this.pitchOctaves = pitchSemitones / 12.0;
     }
   }, {
-    key: 'inputBuffer',
-    get: function get$$1() {
+    key: "inputBuffer",
+    get: function get() {
       return this._inputBuffer;
     }
   }, {
-    key: 'outputBuffer',
-    get: function get$$1() {
+    key: "outputBuffer",
+    get: function get() {
       return this._outputBuffer;
     }
   }]);
   return SoundTouch;
 }();
 
-var WebAudioBufferSource = function () {
+var WebAudioBufferSource =
+function () {
   function WebAudioBufferSource(buffer) {
-    classCallCheck(this, WebAudioBufferSource);
+    _classCallCheck(this, WebAudioBufferSource);
     this.buffer = buffer;
     this._position = 0;
   }
-  createClass(WebAudioBufferSource, [{
+  _createClass(WebAudioBufferSource, [{
     key: "extract",
     value: function extract(target) {
       var numFrames = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
@@ -913,15 +951,15 @@ var WebAudioBufferSource = function () {
     }
   }, {
     key: "dualChannel",
-    get: function get$$1() {
+    get: function get() {
       return this.buffer.numberOfChannels > 1;
     }
   }, {
     key: "position",
-    get: function get$$1() {
+    get: function get() {
       return this._position;
     },
-    set: function set$$1(value) {
+    set: function set(value) {
       this._position = value;
     }
   }]);
@@ -958,7 +996,7 @@ var pad = function pad(n, width, z) {
 var minsSecs = function minsSecs(secs) {
   var mins = Math.floor(secs / 60);
   var seconds = secs - mins * 60;
-  return mins + ':' + pad(parseInt(seconds), 2);
+  return "".concat(mins, ":").concat(pad(parseInt(seconds), 2));
 };
 
 var onUpdate = function onUpdate(sourcePosition) {
@@ -977,11 +1015,12 @@ var onUpdate = function onUpdate(sourcePosition) {
     this._node.dispatchEvent(timePlayed);
   }
 };
-var PitchShifter = function () {
+var PitchShifter =
+function () {
   function PitchShifter(context, buffer, bufferSize) {
     var _this = this;
     var onEnd = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : noop;
-    classCallCheck(this, PitchShifter);
+    _classCallCheck(this, PitchShifter);
     this._soundtouch = new SoundTouch();
     var source = new WebAudioBufferSource(buffer);
     this.timePlayed = 0;
@@ -996,26 +1035,29 @@ var PitchShifter = function () {
     this.sampleRate = context.sampleRate;
     this.listeners = [];
   }
-  createClass(PitchShifter, [{
-    key: 'connect',
+  _createClass(PitchShifter, [{
+    key: "connect",
     value: function connect(toNode) {
       this._node.connect(toNode);
     }
   }, {
-    key: 'disconnect',
+    key: "disconnect",
     value: function disconnect() {
       this._node.disconnect();
     }
   }, {
-    key: 'on',
+    key: "on",
     value: function on(eventName, cb) {
-      this.listeners.push({ name: eventName, cb: cb });
+      this.listeners.push({
+        name: eventName,
+        cb: cb
+      });
       this._node.addEventListener(eventName, function (event) {
         return cb(event.detail);
       });
     }
   }, {
-    key: 'off',
+    key: "off",
     value: function off() {
       var _this2 = this;
       var eventName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
@@ -1032,46 +1074,46 @@ var PitchShifter = function () {
       });
     }
   }, {
-    key: 'formattedDuration',
-    get: function get$$1() {
+    key: "formattedDuration",
+    get: function get() {
       return minsSecs(this.duration);
     }
   }, {
-    key: 'formattedTimePlayed',
-    get: function get$$1() {
+    key: "formattedTimePlayed",
+    get: function get() {
       return minsSecs(this.timePlayed);
     }
   }, {
-    key: 'percentagePlayed',
-    get: function get$$1() {
+    key: "percentagePlayed",
+    get: function get() {
       return 100 * this._filter.sourcePosition / (this.duration * this.sampleRate);
     },
-    set: function set$$1(perc) {
+    set: function set(perc) {
       this._filter.sourcePosition = parseInt(perc * this.duration * this.sampleRate);
     }
   }, {
-    key: 'node',
-    get: function get$$1() {
+    key: "node",
+    get: function get() {
       return this._node;
     }
   }, {
-    key: 'pitch',
-    set: function set$$1(pitch) {
+    key: "pitch",
+    set: function set(pitch) {
       this._soundtouch.pitch = pitch;
     }
   }, {
-    key: 'pitchSemitones',
-    set: function set$$1(semitone) {
+    key: "pitchSemitones",
+    set: function set(semitone) {
       this._soundtouch.pitchSemitones = semitone;
     }
   }, {
-    key: 'rate',
-    set: function set$$1(rate) {
+    key: "rate",
+    set: function set(rate) {
       this._soundtouch.rate = rate;
     }
   }, {
-    key: 'tempo',
-    set: function set$$1(tempo) {
+    key: "tempo",
+    set: function set(tempo) {
       this._soundtouch.tempo = tempo;
     }
   }]);
