@@ -1120,5 +1120,5 @@ function () {
   return PitchShifter;
 }();
 
-export { AbstractFifoSamplePipe, RateTransposer, SimpleFilter, Stretch, SoundTouch, WebAudioBufferSource, PitchShifter, getWebAudioNode };
+export { AbstractFifoSamplePipe, PitchShifter, RateTransposer, SimpleFilter, SoundTouch, Stretch, WebAudioBufferSource, getWebAudioNode };
 //# sourceMappingURL=soundtouch.js.map
