@@ -51,8 +51,11 @@ export default class PitchShifter {
     this.timePlayed = 0;
     this.sourcePosition = 0;
     this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
-    this._node = getWebAudioNode(context, this._filter, sourcePostion =>
-      onUpdate.call(this, sourcePostion)
+    this._node = getWebAudioNode(
+      context,
+      this._filter,
+      sourcePostion => onUpdate.call(this, sourcePostion),
+      bufferSize
     );
     this.tempo = 1;
     this.rate = 1;
