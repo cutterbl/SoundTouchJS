@@ -1,5 +1,5 @@
 /*
- * SoundTouch JS v0.1.6 audio processing library
+ * SoundTouch JS v0.1.7 audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
  * Copyright (c) Jakub Fiala
@@ -1028,7 +1028,7 @@ function () {
     this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
     this._node = getWebAudioNode(context, this._filter, function (sourcePostion) {
       return onUpdate.call(_this, sourcePostion);
-    });
+    }, bufferSize);
     this.tempo = 1;
     this.rate = 1;
     this.duration = buffer.duration;
