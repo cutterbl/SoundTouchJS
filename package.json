@@ -1,6 +1,6 @@
 {
   "name": "soundtouchjs",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A library for manipulating Web Audio Contexts",
   "main": "dist/soundtouch.js",
   "module": "dist/soundtouch.js",
