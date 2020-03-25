@@ -1,5 +1,5 @@
 /*
- * SoundTouch JS v0.1.8 audio processing library
+ * SoundTouch JS v0.1.9 audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
  * Copyright (c) Jakub Fiala
@@ -73,6 +73,19 @@ function _setPrototypeOf(o, p) {
   return _setPrototypeOf(o, p);
 }
 
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -87,6 +100,23 @@ function _possibleConstructorReturn(self, call) {
   }
 
   return _assertThisInitialized(self);
+}
+
+function _createSuper(Derived) {
+  return function () {
+    var Super = _getPrototypeOf(Derived),
+        result;
+
+    if (_isNativeReflectConstruct()) {
+      var NewTarget = _getPrototypeOf(this).constructor;
+
+      result = Reflect.construct(Super, arguments, NewTarget);
+    } else {
+      result = Super.apply(this, arguments);
+    }
+
+    return _possibleConstructorReturn(this, result);
+  };
 }
 
 function _superPropBase(object, property) {
@@ -119,8 +149,7 @@ function _get(target, property, receiver) {
   return _get(target, property, receiver || target);
 }
 
-var FifoSampleBuffer =
-function () {
+var FifoSampleBuffer = function () {
   function FifoSampleBuffer() {
     _classCallCheck(this, FifoSampleBuffer);
     this._vector = new Float32Array();
@@ -247,8 +276,7 @@ function () {
   return FifoSampleBuffer;
 }();
 
-var AbstractFifoSamplePipe =
-function () {
+var AbstractFifoSamplePipe = function () {
   function AbstractFifoSamplePipe(createBuffers) {
     _classCallCheck(this, AbstractFifoSamplePipe);
     if (createBuffers) {
@@ -284,13 +312,13 @@ function () {
   return AbstractFifoSamplePipe;
 }();
 
-var RateTransposer =
-function (_AbstractFifoSamplePi) {
+var RateTransposer = function (_AbstractFifoSamplePi) {
   _inherits(RateTransposer, _AbstractFifoSamplePi);
+  var _super = _createSuper(RateTransposer);
   function RateTransposer(createBuffers) {
     var _this;
     _classCallCheck(this, RateTransposer);
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(RateTransposer).call(this, createBuffers));
+    _this = _super.call(this, createBuffers);
     _this.reset();
     _this._rate = 1;
     return _this;
@@ -367,8 +395,7 @@ function (_AbstractFifoSamplePi) {
   return RateTransposer;
 }(AbstractFifoSamplePipe);
 
-var FilterSupport =
-function () {
+var FilterSupport = function () {
   function FilterSupport(pipe) {
     _classCallCheck(this, FilterSupport);
     this._pipe = pipe;
@@ -420,14 +447,14 @@ var noop = function noop() {
   return;
 };
 
-var SimpleFilter =
-function (_FilterSupport) {
+var SimpleFilter = function (_FilterSupport) {
   _inherits(SimpleFilter, _FilterSupport);
+  var _super = _createSuper(SimpleFilter);
   function SimpleFilter(sourceSound, pipe) {
     var _this;
     var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : noop;
     _classCallCheck(this, SimpleFilter);
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(SimpleFilter).call(this, pipe));
+    _this = _super.call(this, pipe);
     _this.callback = callback;
     _this.sourceSound = sourceSound;
     _this.historyBufferSize = 22050;
@@ -519,13 +546,13 @@ var AUTOSEEK_AT_MIN = 25.0;
 var AUTOSEEK_AT_MAX = 15.0;
 var AUTOSEEK_K = (AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW);
 var AUTOSEEK_C = AUTOSEEK_AT_MIN - AUTOSEEK_K * AUTOSEQ_TEMPO_LOW;
-var Stretch =
-function (_AbstractFifoSamplePi) {
+var Stretch = function (_AbstractFifoSamplePi) {
   _inherits(Stretch, _AbstractFifoSamplePi);
+  var _super = _createSuper(Stretch);
   function Stretch(createBuffers) {
     var _this;
     _classCallCheck(this, Stretch);
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Stretch).call(this, createBuffers));
+    _this = _super.call(this, createBuffers);
     _this._quickSeek = true;
     _this.midBufferDirty = false;
     _this.midBuffer = null;
@@ -798,8 +825,7 @@ var testFloatEqual = function testFloatEqual(a, b) {
   return (a > b ? a - b : b - a) > 1e-10;
 };
 
-var SoundTouch =
-function () {
+var SoundTouch = function () {
   function SoundTouch() {
     _classCallCheck(this, SoundTouch);
     this.transposer = new RateTransposer(false);
@@ -927,8 +953,7 @@ function () {
   return SoundTouch;
 }();
 
-var WebAudioBufferSource =
-function () {
+var WebAudioBufferSource = function () {
   function WebAudioBufferSource(buffer) {
     _classCallCheck(this, WebAudioBufferSource);
     this.buffer = buffer;
@@ -1015,8 +1040,7 @@ var onUpdate = function onUpdate(sourcePosition) {
     this._node.dispatchEvent(timePlayed);
   }
 };
-var PitchShifter =
-function () {
+var PitchShifter = function () {
   function PitchShifter(context, buffer, bufferSize) {
     var _this = this;
     var onEnd = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : noop;
