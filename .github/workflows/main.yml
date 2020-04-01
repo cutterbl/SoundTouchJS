@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x]
+        node-version: [12.x]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -31,18 +31,18 @@ jobs:
     - run: npm install
 
     # Runs a set of commands using the runners shell
-    - name: Run the release script to update the package.json and CHANGELOG
-      env:
-        config_email: ${{secrets.GIT_CONFIG_EMAIL}}
-        config_un: ${{secrets.GIT_CONFIG_USERNAME}}
-      run: |
-        git config --local user.email "$config_email"
-        git config --local user.name "$config_un"
-        npm run release
+    #- name: Run the release script to update the package.json and CHANGELOG
+    #  env:
+    #    config_email: ${{secrets.GIT_CONFIG_EMAIL}}
+    #    config_un: ${{secrets.GIT_CONFIG_USERNAME}}
+    #  run: |
+    #    git config --local user.email "$config_email"
+    #    git config --local user.name "$config_un"
+    #    npm run release
      
     # Push the tag and updated files
-    - run: git push --follow-tags origin master
-    - run: npm run build
-    - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    #- run: git push --follow-tags origin master
+    #- run: npm run build
+    #- run: npm publish
+    #  env:
+    #    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
