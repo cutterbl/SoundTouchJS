@@ -1,4 +1,11 @@
 Changelog
+### 0.1.15 (2020-04-01)
+
+
+### Bug Fixes
+
+* action test step 11 ([a48aba2](https://github.com/cutterbl/SoundTouchJS/commit/a48aba209c2e0e35629bad5fb8a38b261a3457ee))
+
 ### 0.1.14 (2020-04-01)
 
 
