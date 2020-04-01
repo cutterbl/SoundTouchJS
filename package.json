@@ -1,7 +1,7 @@
 {
   "name": "soundtouchjs",
   "version": "0.1.16",
-  "description": "A library for manipulating Web Audio Contexts",
+  "description": "An ES2015 library for manipulating Web Audio Contexts",
   "main": "dist/soundtouch.js",
   "module": "dist/soundtouch.js",
   "keywords": [
@@ -10,12 +10,22 @@
     "JavaScript",
     "es2015"
   ],
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
   "scripts": {
     "build": "rollup -c scripts/rollup.config.js",
     "release": "standard-version",
     "start": "node scripts/server.js"
   },
   "author": "Steve 'Cutter' Blades",
+  "contributors": [
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)",
+    "Olli Parviainen <oparviai@iki.fi> (https://www.surina.net/soundtouch/)",
+    "Ryan Berdeen <ryan@ryanberdeen.com> (http://ryanberdeen.com/)",
+    "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
+    "Adria Holovaty (http://www.holovaty.com/)"
+  ],
   "license": "LGPL-2.1",
   "repository": {
     "type": "git",
