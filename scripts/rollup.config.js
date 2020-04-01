@@ -1,14 +1,15 @@
+import path from 'path';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 import clear from 'rollup-plugin-clear';
 import { eslint } from 'rollup-plugin-eslint';
 import cleanup from 'rollup-plugin-cleanup';
-import pkg from './package.json';
+import pkg from '../package.json';
 
 export default [
   {
-    input: 'src/index.js',
+    input: path.join(__dirname, '../src/index.js'),
     output: [
       {
         file: pkg.module,
@@ -35,23 +36,23 @@ export default [
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */\n`,
         sourcemap: true,
-        exports: 'named'
-      }
+        exports: 'named',
+      },
     ],
     plugins: [
       clear({
-        targets: ['dist'],
-        watch: true
+        targets: [path.join(__dirname, '../dist')],
+        watch: true,
       }),
       resolve({
-        browser: true
+        browser: true,
       }),
       commonjs(),
       eslint(),
       babel({
-        runtimeHelpers: true
+        runtimeHelpers: true,
       }),
-      cleanup()
-    ]
-  }
+      cleanup(),
+    ],
+  },
 ];

@@ -1,6 +1,3 @@
-Changelog
-### [0.1.12](https://github.com/cutterbl/SoundTouchJS/compare/v0.1.11...v0.1.12) (2020-04-01)
-
 # Change Log
 
 ## 5 March, 2018

@@ -1,0 +1,16 @@
+# Common hidden directories
+.idea
+.vscode
+
+# common development code stores
+src
+node_modules
+# various build configuration files
+.gitignore
+
+# TODO: add this when we add testing
+# Testing configurations
+# karma*
+# jest*
+# code coverage reports
+# coverage
