@@ -1,12 +1,10 @@
 # SoundTouchJS
 
-SoundTouchJS is a JavaScript audio time-stretching and pitch-shifting library, based on the C++ implementation of
-[Soundtouch](https://www.surina.net/soundtouch/). The earliest implementation in JavaScript was written by
-[Ryan Berdeen](https://github.com/also/soundtouch-js) and later expanded by [Jakub Faila](https://github.com/jakubfiala/soundtouch-js). I have further expanded this library into a distributable package, refactored for es2015 development.
-
-This package includes the `getWebAudioNode` utility written by [Adrian Holovaty](https://github.com/adrianholovaty), as well as the user-friendly `PitchShifter` wrapper from [Jakub Faila](https://github.com/jakubfiala/soundtouch-js).
+SoundTouchJS is an ES2015 library of audio context utilities, converted, expanded, and maintained by Cutter. [Read the backstory](#in-case-you-are-interested). To see it in action:
 
 [![Edit SoundTouchJS with React](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/soundtouchjs-with-react-qdci0?fontsize=14&hidenavigation=1&theme=dark)
+
+Or clone the repo and [Run The Example](#running-the-example)
 
 ## Installation
 
@@ -91,3 +89,27 @@ As long as you've installed all dependencies, you can run the build script to cr
 ```
 npm run build
 ```
+
+## Contributing
+
+If you want to contribute, Hooray! Just fork the repo, do your work in a branch, then submit a Pull Request when you're done. Code? Documentation? More Examples? Go for it!
+
+Or maybe you just like what's been done? [I accept cash](https://paypal.me/cutterbl?locale.x=en_US)
+
+### TODO
+
+* audio workers
+
+## In Case You Are Interested
+
+SoundTouchJS is based on the C++ implementation of [Soundtouch](https://www.surina.net/soundtouch/) by Olli Parviainen. The earliest implementation in JavaScript was written by [Ryan Berdeen](https://github.com/also/soundtouch-js) and later expanded by [Jakub Faila](https://github.com/jakubfiala/soundtouch-js). I have further expanded this library into a distributable package, refactored for es2015 development.
+
+This package includes the `getWebAudioNode` utility written by [Adrian Holovaty](https://github.com/adrianholovaty), as well as the user-friendly `PitchShifter` wrapper from [Jakub Faila](https://github.com/jakubfiala/soundtouch-js).
+
+## Contributors
+
+* [Steve 'Cutter' Blades](https://cutterscrossing.com)
+* [Olli Parviainen](https://www.surina.net/soundtouch/)
+* [Ray Berdeen](http://ryanberdeen.com)
+* [Jakub Faila](http://fiala.space)
+* [Adrian Holovaty](http://www.holovaty.com)
