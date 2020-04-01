@@ -34,7 +34,7 @@ jobs:
       env:
         config_email: ${{secrets.GIT_CONFIG_EMAIL}}
         config_un: ${{secrets.GIT_CONFIG_USERNAME}}
-    - run: |
+      run: |
         git config --local user.email ${config_email}
         git config --local user.name ${config_un}
     #- name: Run the release script to update the package.json and CHANGELOG
