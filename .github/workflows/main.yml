@@ -27,19 +27,17 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    # Install all dependencies
+    - run: npm install
+
+    - name: Setup git creds
       env:
         config_email: ${{secrets.GIT_CONFIG_EMAIL}}
         config_un: ${{secrets.GIT_CONFIG_USERNAME}}
-    # Install all dependencies
     - run: |
-        npm install
         git config --local user.email ${config_email}
         git config --local user.name ${config_un}
-        npm run release
     #- name: Run the release script to update the package.json and CHANGELOG
-    #  env:
-    #    config_email: ${{secrets.GIT_CONFIG_EMAIL}}
-    #    config_un: ${{secrets.GIT_CONFIG_USERNAME}}
     #  run: |
     #    git config --local user.email "$config_email"
     #    git config --local user.name "$config_un"
