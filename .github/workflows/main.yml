@@ -43,15 +43,6 @@ jobs:
       run: git push --follow-tags origin master
     - name: Build fresh for new package with updated version numbers
       run: npm run build
-    #- name: Run the release script to update the package.json and CHANGELOG
-    #  run: |
-    #    git config --local user.email "$config_email"
-    #    git config --local user.name "$config_un"
-    #    npm run release
-     
-    # Push the tag and updated files
-    #- run: git push --follow-tags origin master
-    #- run: npm run build
-    #- run: npm publish
-    #  env:
-    #    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: JS-DevTools/npm-publish@v1
+      with:
+        token: ${{secrets.NPM_TOKEN}}
