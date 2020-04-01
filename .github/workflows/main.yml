@@ -38,7 +38,6 @@ jobs:
         token: '${{ secrets.GITHUB_TOKEN }}'
     - run: |
         npm run release
-        git push --follow-tags origin master
     #- name: Run the release script to update the package.json and CHANGELOG
     #  env:
     #    config_email: ${{secrets.GIT_CONFIG_EMAIL}}
