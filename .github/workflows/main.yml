@@ -39,6 +39,8 @@ jobs:
         git config --local user.name ${config_un}
     - name: Create the release
       run: npm run release
+    - name: Push tag and file changes to repository
+      run: git push --follow-tags origin master
     #- name: Run the release script to update the package.json and CHANGELOG
     #  run: |
     #    git config --local user.email "$config_email"
