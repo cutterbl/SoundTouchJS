@@ -1,5 +1,5 @@
 /*
- * SoundTouch JS v0.1.9 audio processing library
+ * SoundTouch JS v0.1.10 audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
  * Copyright (c) Jakub Fiala
@@ -1114,6 +1114,8 @@ var PitchShifter = function () {
     },
     set: function set(perc) {
       this._filter.sourcePosition = parseInt(perc * this.duration * this.sampleRate);
+      this.sourcePosition = this._filter.sourcePosition;
+      this.timePlayed = this.sourcePosition / this.sampleRate;
     }
   }, {
     key: "node",
