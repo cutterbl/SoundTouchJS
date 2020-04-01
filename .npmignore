@@ -1,7 +1,7 @@
 # Common hidden directories
 .idea
 .vscode
-
+.github
 # common development code stores
 src
 node_modules
