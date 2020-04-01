@@ -1,6 +1,6 @@
 {
   "name": "soundtouchjs",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "A library for manipulating Web Audio Contexts",
   "main": "dist/soundtouch.js",
   "module": "dist/soundtouch.js",
@@ -11,8 +11,9 @@
     "es2015"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "example": "node ./server.js"
+    "build": "rollup -c scripts/rollup.config.js",
+    "release": "standard-version",
+    "start": "node scripts/server.js"
   },
   "author": "Steve 'Cutter' Blades",
   "license": "LGPL-2.1",
@@ -20,21 +21,117 @@
     "type": "git",
     "url": "https://github.com/cutterbl/SoundTouchJS.git"
   },
+  "husky": {
+    "hooks": {
+      "commit-msg": "if git-branch-is master; then commitlint -E HUSKY_GIT_PARAMS; fi"
+    }
+  },
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "devDependencies": {
     "@babel/core": "7.9.0",
     "@babel/preset-env": "7.9.0",
-    "@rollup/plugin-commonjs": "^11.0.2",
-    "@rollup/plugin-node-resolve": "^7.1.1",
-    "connect": "^3.7.0",
-    "prettier": "^2.0.2",
-    "regenerator-runtime": "^0.13.5",
-    "rollup": "^2.2.0",
-    "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-cleanup": "^3.1.1",
-    "rollup-plugin-clear": "^2.0.7",
-    "rollup-plugin-eslint": "^7.0.0",
-    "serve-static": "^1.14.1"
+    "@commitlint/cli": "8.3.5",
+    "@commitlint/config-conventional": "8.3.4",
+    "@rollup/plugin-commonjs": "11.0.2",
+    "@rollup/plugin-node-resolve": "7.1.1",
+    "connect": "3.7.0",
+    "git-branch-is": "3.1.0",
+    "husky": "4.2.3",
+    "prettier": "2.0.2",
+    "regenerator-runtime": "0.13.5",
+    "rollup": "2.3.2",
+    "rollup-plugin-babel": "4.4.0",
+    "rollup-plugin-cleanup": "3.1.1",
+    "rollup-plugin-clear": "2.0.7",
+    "rollup-plugin-eslint": "7.0.0",
+    "serve-static": "1.14.1",
+    "standard-version": "7.1.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "prettier": {
+    "printWidth": 80,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "useTabs": false
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "standard-version": {
+    "header": "Changelog",
+    "types": [
+      {
+        "type": "feat",
+        "section": "Features"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes"
+      },
+      {
+        "type": "chore",
+        "hidden": true
+      },
+      {
+        "type": "docs",
+        "hidden": true
+      },
+      {
+        "type": "style",
+        "hidden": true
+      },
+      {
+        "type": "refactor",
+        "hidden": true
+      },
+      {
+        "type": "perf",
+        "hidden": true
+      },
+      {
+        "type": "test",
+        "hidden": true
+      }
+    ],
+    "commitUrlFormat": "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
+    "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
+    "issueUrlFormat": "{{host}}/{{owner}}/{{repository}}/issues/{{id}}",
+    "userUrlFormat": "{{host}}/{{user}}",
+    "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+    "issuePrefixes": [
+      "#"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "commonjs": true,
+      "es6": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "sourceType": "module"
+    },
+    "rules": {
+      "indent": [
+        "error",
+        2
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ]
+    }
+  }
 }
