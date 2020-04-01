@@ -33,8 +33,8 @@ jobs:
     # Install all dependencies
     - run: |
         npm install
-        git config --local user.email "$config_email"
-        git config --local user.name "$config_un"
+        git config --local user.email ${config_email}
+        git config --local user.name ${config_un}
         npm run release
     #- name: Run the release script to update the package.json and CHANGELOG
     #  env:
