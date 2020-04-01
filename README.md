@@ -6,6 +6,8 @@ SoundTouchJS is a JavaScript audio time-stretching and pitch-shifting library, b
 
 This package includes the `getWebAudioNode` utility written by [Adrian Holovaty](https://github.com/adrianholovaty), as well as the user-friendly `PitchShifter` wrapper from [Jakub Faila](https://github.com/jakubfiala/soundtouch-js).
 
+[![Edit SoundTouchJS with React](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/soundtouchjs-with-react-qdci0?fontsize=14&hidenavigation=1&theme=dark)
+
 ## Installation
 
 You can easily install **SoundTouchJS** for use in your project:
