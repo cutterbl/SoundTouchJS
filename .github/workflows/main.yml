@@ -35,7 +35,6 @@ jobs:
       with:
         name: 'Steve Cutter Blades'
         email: 'no.junk@cutterscrossing.com'
-        actor: 'cutterbl'
         token: '${{ secrets.GITHUB_TOKEN }}'
     - run: |
         npm run release
