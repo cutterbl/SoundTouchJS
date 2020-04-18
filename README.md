@@ -19,34 +19,34 @@ npm install soundtouchjs
 You can use whatever method you prefer to **get** your audio file, but once you have the data you must decode it into an [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer). Once you've decoded the data you can then create a new [PitchShifter](#PitchShifter).
 
 ```javascript
-import {PitchShifter} from 'soundtouchjs';
+import { PitchShifter } from 'soundtouchjs';
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const gainNode = audioCtx.createGain();
 let shifter;
 
 // here you retrieved your file with 'fetch' or a new instance of the 'FileReader', and from the data...
-    if (shifter) {
-        shifter.off(); // remove any current listeners
-    }
-    audioCtx.decodeAudioData(buffer, audioBuffer => {
-        shifter = new PitchShifter(audioCtx, audioBuffer, 1024);
-        shifter.on('play', (detail) => {
-            // do something with detail.timePlayed;
-            // do something with detail.formattedTimePlayed;
-            // do something with detail.percentagePlayed
-        });
-        shifter.tempo = 1;
-        shifter.pitch = 1;
-    });
+if (shifter) {
+  shifter.off(); // remove any current listeners
+}
+audioCtx.decodeAudioData(buffer, (audioBuffer) => {
+  shifter = new PitchShifter(audioCtx, audioBuffer, 1024);
+  shifter.on('play', (detail) => {
+    // do something with detail.timePlayed;
+    // do something with detail.formattedTimePlayed;
+    // do something with detail.percentagePlayed
+  });
+  shifter.tempo = 1;
+  shifter.pitch = 1;
+});
 ```
 
 To begin playback you connect the `PitchShifter` to the WebAudio destination (or another node), and disconnect it to pause. It's important to note that the `PitchShifter` is a pseudo-node, and cannot be connected to.
 
 ```javascript
 const play = function () {
-    shifter.connect(gainNode); // connect it to a GainNode to control the volume
-    gainNode.connect(audioCtx.destination); // attach the GainNode to the 'destination' to begin playback
+  shifter.connect(gainNode); // connect it to a GainNode to control the volume
+  gainNode.connect(audioCtx.destination); // attach the GainNode to the 'destination' to begin playback
 };
 ```
 
@@ -58,13 +58,13 @@ An example has been included with the package to see some basic functionality. P
 npm i
 ```
 
-If you've cloned the library, you need to build the code. 
+If you've cloned the library, you need to build the code.
 
 ```
 npm run build
 ```
 
-It has been written in pure javascript, but could easily be integrated with your favorite framework. 
+It has been written in pure javascript, but could easily be integrated with your favorite framework.
 
 **Note: Run the example in a modern browser, as it uses es2015 `import` syntax.**
 
@@ -98,7 +98,7 @@ Or maybe you just like what's been done? [I accept cash](https://paypal.me/cutte
 
 ### TODO
 
-* audio workers
+- audio worklets - (Thank You to [Janick Delot](https://github.com/watch-janick) for sponsoring this upcoming feature)
 
 ## In Case You Are Interested
 
@@ -108,8 +108,8 @@ This package includes the `getWebAudioNode` utility written by [Adrian Holovaty]
 
 ## Contributors
 
-* [Steve 'Cutter' Blades](https://cutterscrossing.com)
-* [Olli Parviainen](https://www.surina.net/soundtouch/)
-* [Ray Berdeen](http://ryanberdeen.com)
-* [Jakub Faila](http://fiala.space)
-* [Adrian Holovaty](http://www.holovaty.com)
+- [Steve 'Cutter' Blades](https://cutterscrossing.com)
+- [Olli Parviainen](https://www.surina.net/soundtouch/)
+- [Ray Berdeen](http://ryanberdeen.com)
+- [Jakub Faila](http://fiala.space)
+- [Adrian Holovaty](http://www.holovaty.com)
