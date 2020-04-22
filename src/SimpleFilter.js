@@ -1,24 +1,24 @@
 /*
-* SoundTouch JS audio processing library
-* Copyright (c) Olli Parviainen
-* Copyright (c) Ryan Berdeen
-* Copyright (c) Jakub Fiala
-* Copyright (c) Steve 'Cutter' Blades
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 2.1 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * SoundTouch JS audio processing library
+ * Copyright (c) Olli Parviainen
+ * Copyright (c) Ryan Berdeen
+ * Copyright (c) Jakub Fiala
+ * Copyright (c) Steve 'Cutter' Blades
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 import FilterSupport from './FilterSupport';
 import noop from './noop';
@@ -85,6 +85,16 @@ export default class SimpleFilter extends FilterSupport {
       numFrames,
       this.outputBuffer.frameCount - this.outputBufferPosition
     );
+    /*console.log(
+      '[Start Extract] buffer length: ',
+      this.outputBuffer.vector.length // 56812
+    );*/
+    //console.log('frames extracted: ', numFramesExtracted); // 16384
+    /*console.log(
+      'buffer: ',
+      this.outputBuffer.frameCount, // 28406
+      this.outputBufferPosition // 0
+    );*/
     this.outputBuffer.extract(
       target,
       this.outputBufferPosition,
@@ -92,12 +102,24 @@ export default class SimpleFilter extends FilterSupport {
     );
 
     const currentFrames = this.outputBufferPosition + numFramesExtracted;
+    /*console.log(
+      'currentFrames: ',
+      currentFrames, // 16384
+      ' history: ',
+      this.historyBufferSize // 22050
+    );*/
     this.outputBufferPosition = Math.min(this.historyBufferSize, currentFrames);
+    //console.log('opBufferPos: ', this.outputBufferPosition); // 16384
     this.outputBuffer.receive(
       Math.max(currentFrames - this.historyBufferSize, 0)
     );
 
     this._position += numFramesExtracted;
+    //console.log('pos: ', this._position); // 16384
+    /*console.log(
+      '[END Extract] buffer length: ',
+      this.outputBuffer.vector.length // 56812
+    );*/
     return numFramesExtracted;
   }
 
