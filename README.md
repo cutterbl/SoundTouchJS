@@ -1,10 +1,12 @@
 # SoundTouchJS
 
+**[Note]: Check out the [AudioWorklet implementation of SoundTouchJS](https://github.com/cutterbl/soundtouchjs-audio-worklet)**
+
 SoundTouchJS is an ES2015 library of audio context utilities, converted, expanded, and maintained by Cutter. [Read the backstory](#in-case-you-are-interested). To see it in action:
 
 [![Edit SoundTouchJS with React](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/soundtouchjs-with-react-qdci0?fontsize=14&hidenavigation=1&theme=dark)
 
-Or clone the repo and [Run The Example](#running-the-example)
+Or, clone the repo and [Run The Example](#running-the-example).
 
 ## Installation
 
