@@ -55,7 +55,7 @@
     "rollup-plugin-clear": "2.0.7",
     "rollup-plugin-eslint": "7.0.0",
     "serve-static": "1.14.1",
-    "standard-version": "7.1.0"
+    "standard-version": "8.0.1"
   },
   "dependencies": {},
   "prettier": {
