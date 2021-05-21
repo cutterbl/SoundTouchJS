@@ -20,8 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import FilterSupport from './FilterSupport';
-import noop from './noop';
+import FilterSupport from './FilterSupport.js';
+import noop from './noop.js';
 
 export default class SimpleFilter extends FilterSupport {
   constructor(sourceSound, pipe, callback = noop) {
@@ -29,7 +29,7 @@ export default class SimpleFilter extends FilterSupport {
     this.callback = callback;
     this.sourceSound = sourceSound;
     //this.bufferDuration = sourceSound.buffer.duration;
-    this.historyBufferSize = 22050;
+    this.historyBufferSize = 22_050;
     this._sourcePosition = 0;
     this.outputBufferPosition = 0;
     this._position = 0;
@@ -102,7 +102,7 @@ export default class SimpleFilter extends FilterSupport {
   }
 
   handleSampleData(event) {
-    this.extract(event.data, 4096);
+    this.extract(event.data, 4_096);
   }
 
   clear() {

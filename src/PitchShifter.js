@@ -20,14 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import WebAudioBufferSource from './WebAudioBufferSource';
-import getWebAudioNode from './getWebAudioNode';
-import SoundTouch from './SoundTouch';
-import SimpleFilter from './SimpleFilter';
-import minsSecs from './minsSecs';
-import noop from './noop';
+import WebAudioBufferSource from './WebAudioBufferSource.js';
+import getWebAudioNode from './getWebAudioNode.js';
+import SoundTouch from './SoundTouch.js';
+import SimpleFilter from './SimpleFilter.js';
+import minsSecs from './minsSecs.js';
+import noop from './noop.js';
 
-const onUpdate = function (sourcePosition) {
+function onUpdate(sourcePosition) {
   const currentTimePlayed = this.timePlayed;
   const sampleRate = this.sampleRate;
   this.sourcePosition = sourcePosition;
@@ -42,7 +42,7 @@ const onUpdate = function (sourcePosition) {
     });
     this._node.dispatchEvent(timePlayed);
   }
-};
+}
 
 export default class PitchShifter {
   constructor(context, buffer, bufferSize, onEnd = noop) {
@@ -115,7 +115,7 @@ export default class PitchShifter {
   }
 
   on(eventName, cb) {
-    this.listeners.push({ name: eventName, cb: cb });
+    this.listeners.push({ name: eventName, cb });
     this._node.addEventListener(eventName, (event) => cb(event.detail));
   }
 

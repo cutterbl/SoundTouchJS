@@ -4,6 +4,7 @@
   "description": "An ES2015 library for manipulating Web Audio Contexts",
   "main": "dist/soundtouch.js",
   "module": "dist/soundtouch.js",
+  "type": "module",
   "keywords": [
     "audio",
     "WebAudio",

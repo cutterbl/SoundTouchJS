@@ -1,5 +1,5 @@
-const noop = function() {
+function noop() {
   return;
-};
+}
 
 export default noop;

@@ -1,26 +1,26 @@
 /*
-* SoundTouch JS audio processing library
-* Copyright (c) Olli Parviainen
-* Copyright (c) Ryan Berdeen
-* Copyright (c) Jakub Fiala
-* Copyright (c) Steve 'Cutter' Blades
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 2.1 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * SoundTouch JS audio processing library
+ * Copyright (c) Olli Parviainen
+ * Copyright (c) Ryan Berdeen
+ * Copyright (c) Jakub Fiala
+ * Copyright (c) Steve 'Cutter' Blades
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-import AbstractFifoSamplePipe from './AbstractFifoSamplePipe';
+import AbstractFifoSamplePipe from './AbstractFifoSamplePipe.js';
 
 /**
  * Giving this value for the sequence length sets automatic parameter value
@@ -94,15 +94,15 @@ const _SCAN_OFFSETS = [
     868,
     930,
     992,
-    1054,
-    1116,
-    1178,
-    1240,
-    1302,
-    1364,
-    1426,
-    1488,
-    0
+    1_054,
+    1_116,
+    1_178,
+    1_240,
+    1_302,
+    1_364,
+    1_426,
+    1_488,
+    0,
   ],
   [
     -100,
@@ -128,7 +128,7 @@ const _SCAN_OFFSETS = [
     0,
     0,
     0,
-    0
+    0,
   ],
   [
     -20,
@@ -154,26 +154,26 @@ const _SCAN_OFFSETS = [
     0,
     0,
     0,
-    0
+    0,
   ],
-  [-4, -3, -2, -1, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [-4, -3, -2, -1, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
 // Adjust tempo param according to tempo, so that variating processing sequence length is used
 // at varius tempo settings, between the given low...top limits
 const AUTOSEQ_TEMPO_LOW = 0.5; // auto setting low tempo range (-50%)
-const AUTOSEQ_TEMPO_TOP = 2.0; // auto setting top tempo range (+100%)
+const AUTOSEQ_TEMPO_TOP = 2; // auto setting top tempo range (+100%)
 
 // sequence-ms setting values at above low & top tempo
-const AUTOSEQ_AT_MIN = 125.0;
-const AUTOSEQ_AT_MAX = 50.0;
+const AUTOSEQ_AT_MIN = 125;
+const AUTOSEQ_AT_MAX = 50;
 const AUTOSEQ_K =
   (AUTOSEQ_AT_MAX - AUTOSEQ_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW);
 const AUTOSEQ_C = AUTOSEQ_AT_MIN - AUTOSEQ_K * AUTOSEQ_TEMPO_LOW;
 
 // seek-window-ms setting values at above low & top tempo
-const AUTOSEEK_AT_MIN = 25.0;
-const AUTOSEEK_AT_MAX = 15.0;
+const AUTOSEEK_AT_MIN = 25;
+const AUTOSEEK_AT_MAX = 15;
 const AUTOSEEK_K =
   (AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW);
 const AUTOSEEK_C = AUTOSEEK_AT_MIN - AUTOSEEK_K * AUTOSEQ_TEMPO_LOW;
@@ -192,7 +192,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
 
     this._tempo = 1;
     this.setParameters(
-      44100,
+      44_100,
       DEFAULT_SEQUENCE_MS,
       DEFAULT_SEEKWINDOW_MS,
       DEFAULT_OVERLAP_MS
@@ -301,7 +301,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
     let newOvl;
 
     // TODO assert(overlapInMsec >= 0);
-    newOvl = (this.sampleRate * overlapInMsec) / 1000;
+    newOvl = (this.sampleRate * overlapInMsec) / 1_000;
     newOvl = newOvl < 16 ? 16 : newOvl;
 
     // must be divisible by 8
@@ -314,6 +314,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
   }
 
   checkLimits(x, mi, ma) {
+    // rome-ignore lint/js/noNestedTernary
     return x < mi ? mi : x > ma ? ma : x;
   }
 
@@ -338,9 +339,9 @@ export default class Stretch extends AbstractFifoSamplePipe {
 
     // Update seek window lengths
     this.seekWindowLength = Math.floor(
-      (this.sampleRate * this.sequenceMs) / 1000
+      (this.sampleRate * this.sequenceMs) / 1_000
     );
-    this.seekLength = Math.floor((this.sampleRate * this.seekWindowMs) / 1000);
+    this.seekLength = Math.floor((this.sampleRate * this.seekWindowMs) / 1_000);
   }
 
   /**

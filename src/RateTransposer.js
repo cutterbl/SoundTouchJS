@@ -1,26 +1,26 @@
 /*
-* SoundTouch JS audio processing library
-* Copyright (c) Olli Parviainen
-* Copyright (c) Ryan Berdeen
-* Copyright (c) Jakub Fiala
-* Copyright (c) Steve 'Cutter' Blades
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 2.1 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * SoundTouch JS audio processing library
+ * Copyright (c) Olli Parviainen
+ * Copyright (c) Ryan Berdeen
+ * Copyright (c) Jakub Fiala
+ * Copyright (c) Steve 'Cutter' Blades
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-import AbstractFifoSamplePipe from './AbstractFifoSamplePipe';
+import AbstractFifoSamplePipe from './AbstractFifoSamplePipe.js';
 
 export default class RateTransposer extends AbstractFifoSamplePipe {
   constructor(createBuffers) {
@@ -69,24 +69,24 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
     let used = 0;
     let i = 0;
 
-    while (this.slopeCount < 1.0) {
+    while (this.slopeCount < 1) {
       dest[destOffset + 2 * i] =
-        (1.0 - this.slopeCount) * this.prevSampleL +
+        (1 - this.slopeCount) * this.prevSampleL +
         this.slopeCount * src[srcOffset];
       dest[destOffset + 2 * i + 1] =
-        (1.0 - this.slopeCount) * this.prevSampleR +
+        (1 - this.slopeCount) * this.prevSampleR +
         this.slopeCount * src[srcOffset + 1];
       i = i + 1;
       this.slopeCount += this._rate;
     }
 
-    this.slopeCount -= 1.0;
+    this.slopeCount -= 1;
 
     if (numFrames !== 1) {
       // eslint-disable-next-line no-constant-condition
       out: while (true) {
-        while (this.slopeCount > 1.0) {
-          this.slopeCount -= 1.0;
+        while (this.slopeCount > 1) {
+          this.slopeCount -= 1;
           used = used + 1;
           if (used >= numFrames - 1) {
             break out;
@@ -95,10 +95,10 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
 
         const srcIndex = srcOffset + 2 * used;
         dest[destOffset + 2 * i] =
-          (1.0 - this.slopeCount) * src[srcIndex] +
+          (1 - this.slopeCount) * src[srcIndex] +
           this.slopeCount * src[srcIndex + 2];
         dest[destOffset + 2 * i + 1] =
-          (1.0 - this.slopeCount) * src[srcIndex + 1] +
+          (1 - this.slopeCount) * src[srcIndex + 1] +
           this.slopeCount * src[srcIndex + 3];
 
         i = i + 1;

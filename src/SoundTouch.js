@@ -1,29 +1,29 @@
 /*
-* SoundTouch JS audio processing library
-* Copyright (c) Olli Parviainen
-* Copyright (c) Ryan Berdeen
-* Copyright (c) Jakub Fiala
-* Copyright (c) Steve 'Cutter' Blades
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 2.1 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * SoundTouch JS audio processing library
+ * Copyright (c) Olli Parviainen
+ * Copyright (c) Ryan Berdeen
+ * Copyright (c) Jakub Fiala
+ * Copyright (c) Steve 'Cutter' Blades
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-import RateTransposer from './RateTransposer';
-import Stretch from './Stretch';
-import FifoSampleBuffer from './FifoSampleBuffer';
-import testFloatEqual from './testFloatEqual';
+import RateTransposer from './RateTransposer.js';
+import Stretch from './Stretch.js';
+import FifoSampleBuffer from './FifoSampleBuffer.js';
+import testFloatEqual from './testFloatEqual.js';
 
 export default class SoundTouch {
   constructor() {
@@ -37,9 +37,9 @@ export default class SoundTouch {
     this._rate = 0;
     this._tempo = 0;
 
-    this.virtualPitch = 1.0;
-    this.virtualRate = 1.0;
-    this.virtualTempo = 1.0;
+    this.virtualPitch = 1;
+    this.virtualRate = 1;
+    this.virtualTempo = 1;
 
     this.calculateEffectiveRateAndTempo();
   }
@@ -66,7 +66,7 @@ export default class SoundTouch {
   }
 
   set rateChange(rateChange) {
-    this._rate = 1.0 + 0.01 * rateChange;
+    this._rate = 1 + 0.01 * rateChange;
   }
 
   get tempo() {
@@ -79,7 +79,7 @@ export default class SoundTouch {
   }
 
   set tempoChange(tempoChange) {
-    this.tempo = 1.0 + 0.01 * tempoChange;
+    this.tempo = 1 + 0.01 * tempoChange;
   }
 
   set pitch(pitch) {
@@ -93,7 +93,7 @@ export default class SoundTouch {
   }
 
   set pitchSemitones(pitchSemitones) {
-    this.pitchOctaves = pitchSemitones / 12.0;
+    this.pitchOctaves = pitchSemitones / 12;
   }
 
   get inputBuffer() {
@@ -118,8 +118,8 @@ export default class SoundTouch {
       this.transposer.rate = this._rate;
     }
 
-    if (this._rate > 1.0) {
-      if (this._outputBuffer != this.transposer.outputBuffer) {
+    if (this._rate > 1) {
+      if (this._outputBuffer !== this.transposer.outputBuffer) {
         this.stretch.inputBuffer = this._inputBuffer;
         this.stretch.outputBuffer = this._intermediateBuffer;
 
@@ -127,6 +127,7 @@ export default class SoundTouch {
         this.transposer.outputBuffer = this._outputBuffer;
       }
     } else {
+      // rome-ignore lint/js/noDoubleEquals
       if (this._outputBuffer != this.stretch.outputBuffer) {
         this.transposer.inputBuffer = this._inputBuffer;
         this.transposer.outputBuffer = this._intermediateBuffer;
@@ -138,7 +139,7 @@ export default class SoundTouch {
   }
 
   process() {
-    if (this._rate > 1.0) {
+    if (this._rate > 1) {
       this.stretch.process();
       this.transposer.process();
     } else {

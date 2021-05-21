@@ -1,20 +1,25 @@
-import path from 'path';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import babel from 'rollup-plugin-babel';
-import clear from 'rollup-plugin-clear';
-import { eslint } from 'rollup-plugin-eslint';
-import cleanup from 'rollup-plugin-cleanup';
-import pkg from '../package.json';
+import path from "path";
+// rome-ignore lint/js/useDefaultImportBasename
+import resolve from "@rollup/plugin-node-resolve";
+// rome-ignore lint/js/useDefaultImportBasename
+import commonjs from "@rollup/plugin-commonjs";
+// rome-ignore lint/js/useDefaultImportBasename
+import babel from "rollup-plugin-babel";
+// rome-ignore lint/js/useDefaultImportBasename
+import clear from "rollup-plugin-clear";
+import {eslint} from "rollup-plugin-eslint";
+// rome-ignore lint/js/useDefaultImportBasename
+import cleanup from "rollup-plugin-cleanup";
+import pkg from "../package.json";
 
 export default [
-  {
-    input: path.join(__dirname, '../src/index.js'),
-    output: [
-      {
-        file: pkg.module,
-        format: 'es',
-        banner: `/*
+	{
+		input: path.join(__dirname, "../src/index.js"),
+		output: [
+			{
+				file: pkg.module,
+				format: "es",
+				banner: `/*
  * SoundTouch JS v${pkg.version} audio processing library
  * Copyright (c) Olli Parviainen
  * Copyright (c) Ryan Berdeen
@@ -35,24 +40,24 @@ export default [
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */\n`,
-        sourcemap: true,
-        exports: 'named',
-      },
-    ],
-    plugins: [
-      clear({
-        targets: [path.join(__dirname, '../dist')],
-        watch: true,
-      }),
-      resolve({
-        browser: true,
-      }),
-      commonjs(),
-      eslint(),
-      babel({
-        runtimeHelpers: true,
-      }),
-      cleanup(),
-    ],
-  },
+				sourcemap: true,
+				exports: "named",
+			},
+		],
+		plugins: [
+			clear({
+				targets: [path.join(__dirname, "../dist")],
+				watch: true,
+			}),
+			resolve({
+				browser: true,
+			}),
+			commonjs(),
+			eslint(),
+			babel({
+				runtimeHelpers: true,
+			}),
+			cleanup(),
+		],
+	},
 ];

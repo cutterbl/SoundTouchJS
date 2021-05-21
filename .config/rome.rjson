@@ -1,0 +1,9 @@
+// For configuration documentation see http://romefrontend.dev/#project-configuration
+name: "SoundTouchJS"
+lint: {
+	ignore: [
+		"node_modules"
+		"dist"
+]
+}
+root: true
