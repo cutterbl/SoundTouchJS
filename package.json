@@ -13,11 +13,6 @@
   "bugs": {
     "url": "https://github.com/cutterbl/SoundTouchJS/issues"
   },
-  "scripts": {
-    "build": "rollup -c scripts/rollup.config.js",
-    "release": "standard-version",
-    "start": "node scripts/server.js"
-  },
   "author": "Steve 'Cutter' Blades",
   "contributors": [
     "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)",
@@ -31,12 +26,12 @@
     "type": "git",
     "url": "https://github.com/cutterbl/SoundTouchJS.git"
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "if git-branch-is master; then commitlint -E HUSKY_GIT_PARAMS; fi"
-    }
-  },
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "scripts": {
+    "build": "rollup -c scripts/rollup.config.js",
+    "release": "standard-version",
+    "start": "node scripts/server.js"
+  },
   "devDependencies": {
     "@babel/core": "7.15.8",
     "@babel/preset-env": "7.15.8",
