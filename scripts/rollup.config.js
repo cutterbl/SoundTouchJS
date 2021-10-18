@@ -1,7 +1,7 @@
 import path from 'path';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import babel from 'rollup-plugin-babel';
+import { babel } from '@rollup/plugin-babel';
 import clear from 'rollup-plugin-clear';
 import { eslint } from 'rollup-plugin-eslint';
 import cleanup from 'rollup-plugin-cleanup';
@@ -50,7 +50,8 @@ export default [
       commonjs(),
       eslint(),
       babel({
-        runtimeHelpers: true,
+        babelHelpers: 'bundled',
+        exclude: ['/node_modules/**'],
       }),
       cleanup(),
     ],
