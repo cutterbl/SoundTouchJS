@@ -1,24 +1,24 @@
 /*
-* SoundTouch JS audio processing library
-* Copyright (c) Olli Parviainen
-* Copyright (c) Ryan Berdeen
-* Copyright (c) Jakub Fiala
-* Copyright (c) Steve 'Cutter' Blades
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 2.1 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * SoundTouch JS audio processing library
+ * Copyright (c) Olli Parviainen
+ * Copyright (c) Ryan Berdeen
+ * Copyright (c) Jakub Fiala
+ * Copyright (c) Steve 'Cutter' Blades
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 import AbstractFifoSamplePipe from './AbstractFifoSamplePipe';
 
@@ -53,7 +53,7 @@ const USE_AUTO_SEEKWINDOW_LEN = 0;
  * optimal joining location when mixing the sound sequences back together.
  *
  * The bigger this window setting is, the higher the possibility to find a better mixing
- * position will become, but at the same time large values may cause a "drifting" artifact
+ * position will become, but at the same time large values may cause a 'drifting' artifact
  * because consequent sequences will be taken at more uneven intervals.
  *
  * If there's a disturbing artifact that sounds as if a constant frequency was drifting
@@ -79,84 +79,18 @@ const DEFAULT_OVERLAP_MS = 8;
 // Table for the hierarchical mixing position seeking algorithm
 const _SCAN_OFFSETS = [
   [
-    124,
-    186,
-    248,
-    310,
-    372,
-    434,
-    496,
-    558,
-    620,
-    682,
-    744,
-    806,
-    868,
-    930,
-    992,
-    1054,
-    1116,
-    1178,
-    1240,
-    1302,
-    1364,
-    1426,
-    1488,
-    0
+    124, 186, 248, 310, 372, 434, 496, 558, 620, 682, 744, 806, 868, 930, 992,
+    1054, 1116, 1178, 1240, 1302, 1364, 1426, 1488, 0,
   ],
   [
-    -100,
-    -75,
-    -50,
-    -25,
-    25,
-    50,
-    75,
-    100,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    -100, -75, -50, -25, 25, 50, 75, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0,
   ],
   [
-    -20,
-    -15,
-    -10,
-    -5,
-    5,
-    10,
-    15,
-    20,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    -20, -15, -10, -5, 5, 10, 15, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0,
   ],
-  [-4, -3, -2, -1, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [-4, -3, -2, -1, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
 // Adjust tempo param according to tempo, so that variating processing sequence length is used
