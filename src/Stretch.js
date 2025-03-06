@@ -95,8 +95,8 @@ const _SCAN_OFFSETS = [
 
 // Adjust tempo param according to tempo, so that variating processing sequence length is used
 // at varius tempo settings, between the given low...top limits
-const AUTOSEQ_TEMPO_LOW = 0.5; // auto setting low tempo range (-50%)
-const AUTOSEQ_TEMPO_TOP = 2.0; // auto setting top tempo range (+100%)
+const AUTOSEQ_TEMPO_LOW = 0.25; // auto setting low tempo range (-25%)
+const AUTOSEQ_TEMPO_TOP = 4.0; // auto setting top tempo range (+100%)
 
 // sequence-ms setting values at above low & top tempo
 const AUTOSEQ_AT_MIN = 125.0;

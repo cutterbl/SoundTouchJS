@@ -1,4 +1,4 @@
-const noop = function() {
+const noop = function () {
   return;
 };
 

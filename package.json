@@ -24,126 +24,33 @@
   "license": "LGPL-2.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cutterbl/SoundTouchJS.git"
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git"
   },
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "scripts": {
-    "build": "rollup -c scripts/rollup.config.js",
-    "release": "standard-version",
-    "start": "node scripts/server.js"
+    "build": "rollup -c scripts/rollup.config.mjs",
+    "prettier": "prettier --write 'src/**/*.js'",
+    "release": "commit-and-tag-version",
+    "start": "node scripts/server.cjs"
   },
   "devDependencies": {
-    "@babel/core": "7.17.10",
-    "@babel/preset-env": "7.17.10",
-    "@commitlint/cli": "16.2.4",
-    "@commitlint/config-conventional": "16.2.4",
-    "@rollup/plugin-babel": "5.3.1",
-    "@rollup/plugin-commonjs": "22.0.0",
-    "@rollup/plugin-node-resolve": "13.3.0",
+    "@babel/core": "7.26.9",
+    "@babel/preset-env": "7.26.9",
+    "@commitlint/cli": "19.7.1",
+    "@commitlint/config-conventional": "19.7.1",
+    "@rollup/plugin-babel": "6.0.4",
+    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-node-resolve": "16.0.0",
+    "commit-and-tag-version": "12.5.0",
     "connect": "3.7.0",
     "localip": "1.0.0",
-    "open": "8.4.0",
-    "prettier": "2.6.2",
-    "regenerator-runtime": "0.13.9",
-    "rollup": "2.71.1",
+    "open": "8.4.2",
+    "prettier": "3.5.3",
+    "regenerator-runtime": "0.14.1",
+    "rollup": "4.34.9",
     "rollup-plugin-cleanup": "3.2.1",
     "rollup-plugin-clear": "2.0.7",
     "rollup-plugin-eslint": "7.0.0",
-    "serve-static": "1.15.0",
-    "standard-version": "9.3.2"
-  },
-  "dependencies": {},
-  "prettier": {
-    "printWidth": 80,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "useTabs": false
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ],
-    "rules": {
-      "subject-case": [
-        2,
-        "always",
-        "sentence-case"
-      ]
-    }
-  },
-  "standard-version": {
-    "header": "Changelog",
-    "types": [
-      {
-        "type": "feat",
-        "section": "Features"
-      },
-      {
-        "type": "fix",
-        "section": "Bug Fixes"
-      },
-      {
-        "type": "chore",
-        "hidden": true
-      },
-      {
-        "type": "docs",
-        "hidden": true
-      },
-      {
-        "type": "style",
-        "hidden": true
-      },
-      {
-        "type": "refactor",
-        "hidden": true
-      },
-      {
-        "type": "perf",
-        "hidden": true
-      },
-      {
-        "type": "test",
-        "hidden": true
-      }
-    ],
-    "commitUrlFormat": "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
-    "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
-    "issueUrlFormat": "{{host}}/{{owner}}/{{repository}}/issues/{{id}}",
-    "userUrlFormat": "{{host}}/{{user}}",
-    "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
-    "issuePrefixes": [
-      "#"
-    ]
-  },
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "commonjs": true,
-      "es6": true,
-      "node": true
-    },
-    "extends": "eslint:recommended",
-    "parserOptions": {
-      "sourceType": "module"
-    },
-    "rules": {
-      "indent": [
-        "error",
-        2
-      ],
-      "linebreak-style": [
-        "error",
-        "unix"
-      ],
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "semi": [
-        "error",
-        "always"
-      ]
-    }
+    "serve-static": "1.16.2"
   }
 }
