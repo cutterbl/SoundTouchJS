@@ -1,11 +1,14 @@
 import path from 'path';
+import * as url from 'url';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { babel } from '@rollup/plugin-babel';
 import clear from 'rollup-plugin-clear';
 import { eslint } from 'rollup-plugin-eslint';
 import cleanup from 'rollup-plugin-cleanup';
-import pkg from '../package.json';
+import pkg from '../package.json' with { type: 'json' };
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export default [
   {
