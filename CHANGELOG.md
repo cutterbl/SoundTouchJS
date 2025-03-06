@@ -1,4 +1,15 @@
 Changelog
+## 0.2.0 (2025-03-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Updates to build dependencies and process (#32)
+
+### Features
+
+* Updates to build dependencies and process ([#32](https://github.com/cutterbl/SoundTouchJS/issues/32)) ([97fc28c](https://github.com/cutterbl/SoundTouchJS/commit/97fc28c839457e2792751060321357342e7e7d34))
+
 ### 0.1.30 (2022-05-03)
 
 ### 0.1.29 (2021-10-18)
