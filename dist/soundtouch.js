@@ -333,9 +333,7 @@ class Stretch extends AbstractFifoSamplePipe {
   }
   clearMidBuffer() {
     this.midBufferDirty = false;
-    if (this.midBuffer) {
-      this.midBuffer.fill(0);
-    }
+    this.midBuffer = null;
     if (this.refMidBuffer) {
       this.refMidBuffer.fill(0);
     }

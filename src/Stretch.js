@@ -139,17 +139,20 @@ export default class Stretch extends AbstractFifoSamplePipe {
   }
 
   clearMidBuffer() {
-    // Always zero the buffers to prevent stale audio from bleeding through
-    // (not just when midBufferDirty is true)
     this.midBufferDirty = false;
 
-    // Zero midBuffer (overlap samples from previous sequence)
-    if (this.midBuffer) {
-      this.midBuffer.fill(0);
-    }
+    // Set midBuffer to null to trigger proper reinitialization in process()
+    // When midBuffer is null, process() will:
+    // 1. Create a fresh Float32Array
+    // 2. Fill it with actual audio samples from input buffer
+    // 3. This ensures overlap calculations use real audio, not zeros
+    // Note: Zeroing midBuffer doesn't work because the null check in process()
+    // would be false, skipping the critical initialization that populates
+    // midBuffer with real audio samples for clean crossfade calculations.
+    this.midBuffer = null;
 
-    // Zero refMidBuffer (correlation reference buffer) - this was previously never cleared,
-    // causing buzz/artifacts when reusing SoundTouch instances after seeking
+    // Zero refMidBuffer to clear stale correlation data
+    // (will be recalculated from new midBuffer in seekBestOverlapPosition)
     if (this.refMidBuffer) {
       this.refMidBuffer.fill(0);
     }
