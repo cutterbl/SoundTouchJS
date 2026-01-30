@@ -139,10 +139,23 @@ export default class Stretch extends AbstractFifoSamplePipe {
   }
 
   clearMidBuffer() {
-    if (this.midBufferDirty) {
-      this.midBufferDirty = false;
-      this.midBuffer = null;
+    // Always zero the buffers to prevent stale audio from bleeding through
+    // (not just when midBufferDirty is true)
+    this.midBufferDirty = false;
+
+    // Zero midBuffer (overlap samples from previous sequence)
+    if (this.midBuffer) {
+      this.midBuffer.fill(0);
     }
+
+    // Zero refMidBuffer (correlation reference buffer) - this was previously never cleared,
+    // causing buzz/artifacts when reusing SoundTouch instances after seeking
+    if (this.refMidBuffer) {
+      this.refMidBuffer.fill(0);
+    }
+
+    // Reset skip fraction to prevent drift artifacts
+    this.skipFract = 0;
   }
 
   /**

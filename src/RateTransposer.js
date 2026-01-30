@@ -40,6 +40,11 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
     this.prevSampleR = 0;
   }
 
+  clear() {
+    super.clear();
+    this.reset();
+  }
+
   clone() {
     const result = new RateTransposer();
     result.rate = this._rate;
