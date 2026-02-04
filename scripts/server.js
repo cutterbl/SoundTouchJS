@@ -1,8 +1,12 @@
-const connect = require('connect');
-const path = require('path');
-const serveStatic = require('serve-static');
-const open = require('open');
-const ip = require('localip')();
+import connect from 'connect';
+import path from 'path';
+import serveStatic from 'serve-static';
+import open from 'open';
+import localip from 'localip';
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const ip = localip();
 const port = 8080;
 
 connect()

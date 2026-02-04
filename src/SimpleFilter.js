@@ -42,7 +42,7 @@ export default class SimpleFilter extends FilterSupport {
   set position(position) {
     if (position > this._position) {
       throw new RangeError(
-        'New position may not be greater than current position'
+        'New position may not be greater than current position',
       );
     }
     const newOutputBufferPosition =
@@ -72,7 +72,7 @@ export default class SimpleFilter extends FilterSupport {
     const numFramesExtracted = this.sourceSound.extract(
       samples,
       numFrames,
-      this._sourcePosition
+      this._sourcePosition,
     );
     this._sourcePosition += numFramesExtracted;
     this.inputBuffer.putSamples(samples, 0, numFramesExtracted);
@@ -83,18 +83,18 @@ export default class SimpleFilter extends FilterSupport {
 
     const numFramesExtracted = Math.min(
       numFrames,
-      this.outputBuffer.frameCount - this.outputBufferPosition
+      this.outputBuffer.frameCount - this.outputBufferPosition,
     );
     this.outputBuffer.extract(
       target,
       this.outputBufferPosition,
-      numFramesExtracted
+      numFramesExtracted,
     );
 
     const currentFrames = this.outputBufferPosition + numFramesExtracted;
     this.outputBufferPosition = Math.min(this.historyBufferSize, currentFrames);
     this.outputBuffer.receive(
-      Math.max(currentFrames - this.historyBufferSize, 0)
+      Math.max(currentFrames - this.historyBufferSize, 0),
     );
 
     this._position += numFramesExtracted;

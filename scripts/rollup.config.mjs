@@ -15,7 +15,7 @@ export default [
     input: path.join(__dirname, '../src/index.js'),
     output: [
       {
-        file: pkg.module,
+        file: pkg.main,
         format: 'es',
         banner: `/*
  * SoundTouch JS v${pkg.version} audio processing library
@@ -52,7 +52,7 @@ export default [
       }),
       commonjs(),
       eslint({
-        overrideConfigFile: path.join(__dirname, '../.eslintrc.js'),
+        overrideConfigFile: path.join(__dirname, '../.eslintrc.cjs'),
       }),
       babel({
         babelHelpers: 'bundled',
