@@ -71,7 +71,7 @@ export default class FifoSampleBuffer {
     const destOffset = this.endIndex;
     this.vector.set(
       samples.subarray(sourceOffset, sourceOffset + numSamples),
-      destOffset
+      destOffset,
     );
 
     this._frameCount += numFrames;

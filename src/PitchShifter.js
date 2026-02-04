@@ -55,7 +55,7 @@ export default class PitchShifter {
       context,
       this._filter,
       (sourcePostion) => onUpdate.call(this, sourcePostion),
-      bufferSize
+      bufferSize,
     );
     this.tempo = 1;
     this.rate = 1;
@@ -80,7 +80,7 @@ export default class PitchShifter {
 
   set percentagePlayed(perc) {
     this._filter.sourcePosition = parseInt(
-      perc * this.duration * this.sampleRate
+      perc * this.duration * this.sampleRate,
     );
     this.sourcePosition = this._filter.sourcePosition;
     this.timePlayed = this.sourcePosition / this.sampleRate;

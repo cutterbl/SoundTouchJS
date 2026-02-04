@@ -129,7 +129,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
       44100,
       DEFAULT_SEQUENCE_MS,
       DEFAULT_SEEKWINDOW_MS,
-      DEFAULT_OVERLAP_MS
+      DEFAULT_OVERLAP_MS,
     );
   }
 
@@ -288,7 +288,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
 
     // Update seek window lengths
     this.seekWindowLength = Math.floor(
-      (this.sampleRate * this.sequenceMs) / 1000
+      (this.sampleRate * this.sequenceMs) / 1000,
     );
     this.seekLength = Math.floor((this.sampleRate * this.seekWindowMs) / 1000);
   }
@@ -307,7 +307,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
       this.sampleRate,
       this.sequenceMs,
       this.seekWindowMs,
-      this.overlapMs
+      this.overlapMs,
     );
     return result;
   }
@@ -346,7 +346,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
       // Calculates correlation value for the mixing position corresponding to 'i'
       correlation = this.calculateCrossCorrelationStereo(
         2 * i,
-        this.refMidBuffer
+        this.refMidBuffer,
       );
 
       // Checks for the highest correlation value
@@ -400,7 +400,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
         // Calculates correlation value for the mixing position corresponding to 'tempOffset'
         correlation = this.calculateCrossCorrelationStereo(
           2 * tempOffset,
-          this.refMidBuffer
+          this.refMidBuffer,
         );
 
         // Checks for the highest correlation value
@@ -529,7 +529,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
         this._outputBuffer.putBuffer(
           this._inputBuffer,
           offset + this.overlapLength,
-          temp
+          temp,
         );
       }
 
@@ -542,7 +542,10 @@ export default class Stretch extends AbstractFifoSamplePipe {
         this._inputBuffer.startIndex +
         2 * (offset + this.seekWindowLength - this.overlapLength);
       this.midBuffer.set(
-        this._inputBuffer.vector.subarray(start, start + 2 * this.overlapLength)
+        this._inputBuffer.vector.subarray(
+          start,
+          start + 2 * this.overlapLength,
+        ),
       );
 
       /**

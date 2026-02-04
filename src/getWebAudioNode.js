@@ -14,7 +14,7 @@ const getWebAudioNode = function (
   context,
   filter,
   sourcePositionCallback = noop,
-  bufferSize = 4096
+  bufferSize = 4096,
 ) {
   const node = context.createScriptProcessor(bufferSize, 2, 2);
   const samples = new Float32Array(bufferSize * 2);
