@@ -48,8 +48,10 @@ export default class FifoSampleBuffer {
   }
 
   clear() {
-    this.receive(this._frameCount);
-    this.rewind();
+    // Zero out the actual data to prevent stale audio from bleeding through
+    this._vector.fill(0);
+    this._position = 0;
+    this._frameCount = 0;
   }
 
   put(numFrames) {
