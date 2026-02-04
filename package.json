@@ -1,6 +1,6 @@
 {
   "name": "soundtouchjs",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "An ES2015 library for manipulating Web Audio Contexts",
   "type": "module",
   "main": "dist/soundtouch.js",

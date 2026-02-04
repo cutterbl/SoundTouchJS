@@ -1,4 +1,18 @@
-Changelog
+# Changelog
+
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## 0.3.0 (2026-02-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* Update all dependencies, and retool build configs for proper ESM outpu
+
+### Features
+
+* Refactor ([#36](https://github.com/cutterbl/SoundTouchJS/issues/36)) ([f3a1dfa](https://github.com/cutterbl/SoundTouchJS/commit/f3a1dfa419fa392327ebd40e606900794bfb68e1))
+
 ## 0.2.3 (2026-02-04)
 
 
