@@ -1,4 +1,11 @@
 Changelog
+## 0.2.2 (2026-02-04)
+
+
+### Bug Fixes
+
+* properly clear all internal buffers to prevent audio artifacts after seeking ([#34](https://github.com/cutterbl/SoundTouchJS/issues/34)) ([caab98d](https://github.com/cutterbl/SoundTouchJS/commit/caab98d0d6a8060f23429bdaaeb090f55efee989))
+
 ## 0.2.1 (2025-03-06)
 
 ## 0.2.0 (2025-03-06)
