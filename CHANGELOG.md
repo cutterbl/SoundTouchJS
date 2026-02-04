@@ -1,4 +1,11 @@
 Changelog
+## 0.2.3 (2026-02-04)
+
+
+### Bug Fixes
+
+* Try new build ([#35](https://github.com/cutterbl/SoundTouchJS/issues/35)) ([93ebb31](https://github.com/cutterbl/SoundTouchJS/commit/93ebb314a31669e44b3ce8f15ff16ffad3059888))
+
 ## 0.2.2 (2026-02-04)
 
 
