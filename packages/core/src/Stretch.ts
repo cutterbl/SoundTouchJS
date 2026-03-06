@@ -83,7 +83,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
   constructor(createBuffers?: boolean) {
     super(createBuffers);
     this._quickSeek = true;
-    this.midBufferDirty = false;
+    this.midBufferDirty = true;
 
     this.midBuffer = null;
     this.overlapLength = 0;
@@ -106,8 +106,11 @@ export default class Stretch extends AbstractFifoSamplePipe {
   }
 
   clearMidBuffer(): void {
-    this.midBufferDirty = false;
-    this.midBuffer = null;
+    this.midBufferDirty = true;
+
+    if (this.midBuffer) {
+      this.midBuffer.fill(0);
+    }
 
     if (this.refMidBuffer) {
       this.refMidBuffer.fill(0);
@@ -186,10 +189,19 @@ export default class Stretch extends AbstractFifoSamplePipe {
     // must be divisible by 8
     newOvl -= newOvl % 8;
 
-    this.overlapLength = newOvl;
+    if (newOvl === this.overlapLength && this.midBuffer !== null) {
+      return;
+    }
 
-    this.refMidBuffer = new Float32Array(this.overlapLength * 2);
-    this.midBuffer = new Float32Array(this.overlapLength * 2);
+    this.overlapLength = newOvl;
+    const needed = this.overlapLength * 2;
+
+    if (!this.refMidBuffer || this.refMidBuffer.length < needed) {
+      this.refMidBuffer = new Float32Array(needed);
+    }
+    if (!this.midBuffer || this.midBuffer.length < needed) {
+      this.midBuffer = new Float32Array(needed);
+    }
   }
 
   private checkLimits(x: number, mi: number, ma: number): number {
@@ -356,12 +368,16 @@ export default class Stretch extends AbstractFifoSamplePipe {
   }
 
   process(): void {
-    if (this.midBuffer === null) {
+    if (this.midBufferDirty) {
       if (this._inputBuffer!.frameCount < this.overlapLength) {
         return;
       }
-      this.midBuffer = new Float32Array(this.overlapLength * 2);
+      const needed = this.overlapLength * 2;
+      if (!this.midBuffer || this.midBuffer.length < needed) {
+        this.midBuffer = new Float32Array(needed);
+      }
       this._inputBuffer!.receiveSamples(this.midBuffer, this.overlapLength);
+      this.midBufferDirty = false;
     }
 
     while (this._inputBuffer!.frameCount >= this.sampleReq) {
@@ -383,7 +399,7 @@ export default class Stretch extends AbstractFifoSamplePipe {
       const start =
         this._inputBuffer!.startIndex +
         2 * (offset + this.seekWindowLength - this.overlapLength);
-      this.midBuffer.set(
+      this.midBuffer!.set(
         this._inputBuffer!.vector.subarray(
           start,
           start + 2 * this.overlapLength,

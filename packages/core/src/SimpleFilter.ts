@@ -33,6 +33,7 @@ export default class SimpleFilter extends FilterSupport {
   private _sourcePosition: number;
   private outputBufferPosition: number;
   private _position: number;
+  private _scratchBuffer: Float32Array;
 
   constructor(
     sourceSound: {
@@ -52,6 +53,7 @@ export default class SimpleFilter extends FilterSupport {
     this._sourcePosition = 0;
     this.outputBufferPosition = 0;
     this._position = 0;
+    this._scratchBuffer = new Float32Array(0);
   }
 
   get position(): number {
@@ -87,14 +89,17 @@ export default class SimpleFilter extends FilterSupport {
   }
 
   override fillInputBuffer(numFrames = 0): void {
-    const samples = new Float32Array(numFrames * 2);
+    const needed = numFrames * 2;
+    if (this._scratchBuffer.length < needed) {
+      this._scratchBuffer = new Float32Array(needed);
+    }
     const numFramesExtracted = this.sourceSound.extract(
-      samples,
+      this._scratchBuffer,
       numFrames,
       this._sourcePosition,
     );
     this._sourcePosition += numFramesExtracted;
-    this.inputBuffer!.putSamples(samples, 0, numFramesExtracted);
+    this.inputBuffer!.putSamples(this._scratchBuffer, 0, numFramesExtracted);
   }
 
   extract(target: Float32Array, numFrames = 0): number {

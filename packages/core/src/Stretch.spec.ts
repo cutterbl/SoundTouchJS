@@ -59,11 +59,11 @@ describe('Stretch', () => {
   });
 
   describe('clear', () => {
-    it('resets mid buffer state', () => {
+    it('zeros mid buffer and marks dirty', () => {
       const s = new Stretch(true);
-      s.midBuffer = new Float32Array(100);
+      s.midBuffer = new Float32Array([1, 2, 3, 4]);
       s.clear();
-      expect(s.midBuffer).toBeNull();
+      expect(s.midBuffer.every((v) => v === 0)).toBe(true);
     });
 
     it('resets buffers', () => {

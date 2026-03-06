@@ -20,13 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+const BYTES_PER_SAMPLE = 4;
+const SAMPLES_PER_FRAME = 2;
+const BYTES_PER_FRAME = BYTES_PER_SAMPLE * SAMPLES_PER_FRAME;
+const DEFAULT_MAX_FRAMES = 131072;
+
 export default class FifoSampleBuffer {
+  private _buffer: ArrayBuffer;
   private _vector: Float32Array;
   private _position: number;
   private _frameCount: number;
 
-  constructor() {
-    this._vector = new Float32Array();
+  constructor(maxFrames = DEFAULT_MAX_FRAMES) {
+    this._buffer = new ArrayBuffer(0, {
+      maxByteLength: maxFrames * BYTES_PER_FRAME,
+    });
+    this._vector = new Float32Array(this._buffer);
     this._position = 0;
     this._frameCount = 0;
   }
@@ -112,12 +121,24 @@ export default class FifoSampleBuffer {
   }
 
   ensureCapacity(numFrames = 0): void {
-    const minLength = Math.floor(numFrames * 2);
+    const minLength = Math.floor(numFrames * SAMPLES_PER_FRAME);
     if (this._vector.length < minLength) {
-      const newVector = new Float32Array(minLength);
-      newVector.set(this._vector.subarray(this.startIndex, this.endIndex));
-      this._vector = newVector;
-      this._position = 0;
+      const newByteLength = minLength * BYTES_PER_SAMPLE;
+      if (newByteLength <= this._buffer.maxByteLength) {
+        this.rewind();
+        this._buffer.resize(newByteLength);
+        this._vector = new Float32Array(this._buffer);
+      } else {
+        const newMaxBytes = newByteLength * 2;
+        const newBuffer = new ArrayBuffer(newByteLength, {
+          maxByteLength: newMaxBytes,
+        });
+        const newVector = new Float32Array(newBuffer);
+        newVector.set(this._vector.subarray(this.startIndex, this.endIndex));
+        this._buffer = newBuffer;
+        this._vector = newVector;
+        this._position = 0;
+      }
     } else {
       this.rewind();
     }
