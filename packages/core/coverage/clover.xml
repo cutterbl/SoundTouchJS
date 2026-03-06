@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1772828691162" clover="3.2.0">
+  <project timestamp="1772828691162" name="All files">
+    <metrics statements="430" coveredstatements="401" conditionals="111" coveredconditionals="90" methods="114" coveredmethods="109" elements="655" coveredelements="600" complexity="0" loc="430" ncloc="430" packages="1" files="13" classes="13"/>
+    <file name="AbstractFifoSamplePipe.ts" path="/Users/47056/st/packages/core/src/AbstractFifoSamplePipe.ts">
+      <metrics statements="11" coveredstatements="11" conditionals="2" coveredconditionals="2" methods="6" coveredmethods="6"/>
+      <line num="30" count="121" type="cond" truecount="2" falsecount="0"/>
+      <line num="31" count="24" type="stmt"/>
+      <line num="32" count="24" type="stmt"/>
+      <line num="34" count="97" type="stmt"/>
+      <line num="35" count="97" type="stmt"/>
+      <line num="40" count="20" type="stmt"/>
+      <line num="44" count="113" type="stmt"/>
+      <line num="48" count="119" type="stmt"/>
+      <line num="52" count="113" type="stmt"/>
+      <line num="56" count="13" type="stmt"/>
+      <line num="57" count="13" type="stmt"/>
+    </file>
+    <file name="FifoSampleBuffer.ts" path="/Users/47056/st/packages/core/src/FifoSampleBuffer.ts">
+      <metrics statements="45" coveredstatements="45" conditionals="26" coveredconditionals="25" methods="16" coveredmethods="16"/>
+      <line num="29" count="213" type="stmt"/>
+      <line num="30" count="213" type="stmt"/>
+      <line num="31" count="213" type="stmt"/>
+      <line num="35" count="1352" type="stmt"/>
+      <line num="39" count="37" type="stmt"/>
+      <line num="43" count="1400" type="stmt"/>
+      <line num="47" count="96" type="stmt"/>
+      <line num="51" count="218" type="stmt"/>
+      <line num="55" count="25" type="stmt"/>
+      <line num="56" count="25" type="stmt"/>
+      <line num="57" count="25" type="stmt"/>
+      <line num="61" count="38" type="stmt"/>
+      <line num="65" count="66" type="stmt"/>
+      <line num="66" count="66" type="cond" truecount="4" falsecount="0"/>
+      <line num="67" count="28" type="stmt"/>
+      <line num="69" count="66" type="stmt"/>
+      <line num="71" count="66" type="stmt"/>
+      <line num="73" count="66" type="stmt"/>
+      <line num="74" count="66" type="stmt"/>
+      <line num="79" count="66" type="stmt"/>
+      <line num="83" count="32" type="cond" truecount="4" falsecount="0"/>
+      <line num="84" count="1" type="stmt"/>
+      <line num="86" count="32" type="stmt"/>
+      <line num="90" count="48" type="cond" truecount="2" falsecount="0"/>
+      <line num="95" count="8" type="stmt"/>
+      <line num="97" count="48" type="stmt"/>
+      <line num="98" count="48" type="stmt"/>
+      <line num="102" count="3" type="stmt"/>
+      <line num="103" count="3" type="stmt"/>
+      <line num="104" count="3" type="stmt"/>
+      <line num="105" count="3" type="stmt"/>
+      <line num="109" count="6" type="stmt"/>
+      <line num="110" count="6" type="stmt"/>
+      <line num="111" count="6" type="stmt"/>
+      <line num="115" count="109" type="stmt"/>
+      <line num="116" count="109" type="cond" truecount="2" falsecount="0"/>
+      <line num="117" count="108" type="stmt"/>
+      <line num="118" count="108" type="stmt"/>
+      <line num="119" count="108" type="stmt"/>
+      <line num="120" count="108" type="stmt"/>
+      <line num="122" count="1" type="stmt"/>
+      <line num="127" count="37" type="stmt"/>
+      <line num="131" count="1" type="cond" truecount="1" falsecount="1"/>
+      <line num="132" count="1" type="stmt"/>
+      <line num="133" count="1" type="stmt"/>
+    </file>
+    <file name="FilterSupport.ts" path="/Users/47056/st/packages/core/src/FilterSupport.ts">
+      <metrics statements="12" coveredstatements="11" conditionals="3" coveredconditionals="2" methods="7" coveredmethods="7"/>
+      <line num="36" count="33" type="stmt"/>
+      <line num="40" count="1" type="stmt"/>
+      <line num="44" count="17" type="stmt"/>
+      <line num="48" count="24" type="stmt"/>
+      <line num="52" count="1" type="stmt"/>
+      <line num="56" count="5" type="stmt"/>
+      <line num="57" count="5" type="stmt"/>
+      <line num="59" count="5" type="stmt"/>
+      <line num="61" count="5" type="cond" truecount="1" falsecount="1"/>
+      <line num="62" count="0" type="stmt"/>
+      <line num="64" count="5" type="stmt"/>
+      <line num="69" count="4" type="stmt"/>
+    </file>
+    <file name="PitchShifter.ts" path="/Users/47056/st/packages/core/src/PitchShifter.ts">
+      <metrics statements="41" coveredstatements="31" conditionals="6" coveredconditionals="4" methods="20" coveredmethods="16"/>
+      <line num="43" count="0" type="stmt"/>
+      <line num="44" count="0" type="stmt"/>
+      <line num="45" count="0" type="stmt"/>
+      <line num="46" count="0" type="stmt"/>
+      <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="48" count="0" type="stmt"/>
+      <line num="55" count="0" type="stmt"/>
+      <line num="77" count="16" type="stmt"/>
+      <line num="78" count="16" type="stmt"/>
+      <line num="79" count="16" type="stmt"/>
+      <line num="80" count="16" type="stmt"/>
+      <line num="81" count="16" type="stmt"/>
+      <line num="82" count="16" type="stmt"/>
+      <line num="85" count="0" type="stmt"/>
+      <line num="88" count="16" type="stmt"/>
+      <line num="89" count="16" type="stmt"/>
+      <line num="90" count="16" type="stmt"/>
+      <line num="91" count="16" type="stmt"/>
+      <line num="92" count="16" type="stmt"/>
+      <line num="96" count="1" type="stmt"/>
+      <line num="100" count="1" type="stmt"/>
+      <line num="104" count="1" type="stmt"/>
+      <line num="110" count="1" type="stmt"/>
+      <line num="113" count="1" type="stmt"/>
+      <line num="114" count="1" type="stmt"/>
+      <line num="118" count="6" type="stmt"/>
+      <line num="122" count="1" type="stmt"/>
+      <line num="126" count="1" type="stmt"/>
+      <line num="130" count="17" type="stmt"/>
+      <line num="134" count="17" type="stmt"/>
+      <line num="138" count="1" type="stmt"/>
+      <line num="142" count="1" type="stmt"/>
+      <line num="146" count="5" type="stmt"/>
+      <line num="147" count="5" type="stmt"/>
+      <line num="149" count="0" type="stmt"/>
+      <line num="153" count="2" type="stmt"/>
+      <line num="154" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="155" count="2" type="stmt"/>
+      <line num="157" count="2" type="stmt"/>
+      <line num="158" count="3" type="stmt"/>
+      <line num="160" count="0" type="stmt"/>
+    </file>
+    <file name="RateTransposer.ts" path="/Users/47056/st/packages/core/src/RateTransposer.ts">
+      <metrics statements="48" coveredstatements="48" conditionals="7" coveredconditionals="6" methods="7" coveredmethods="7"/>
+      <line num="32" count="56" type="stmt"/>
+      <line num="33" count="56" type="stmt"/>
+      <line num="34" count="56" type="stmt"/>
+      <line num="35" count="56" type="stmt"/>
+      <line num="36" count="56" type="stmt"/>
+      <line num="40" count="66" type="stmt"/>
+      <line num="44" count="5" type="stmt"/>
+      <line num="45" count="5" type="stmt"/>
+      <line num="46" count="5" type="stmt"/>
+      <line num="50" count="5" type="stmt"/>
+      <line num="51" count="5" type="stmt"/>
+      <line num="55" count="1" type="stmt"/>
+      <line num="56" count="1" type="stmt"/>
+      <line num="57" count="1" type="stmt"/>
+      <line num="61" count="7" type="stmt"/>
+      <line num="62" count="7" type="stmt"/>
+      <line num="63" count="7" type="stmt"/>
+      <line num="64" count="7" type="stmt"/>
+      <line num="65" count="7" type="stmt"/>
+      <line num="69" count="11" type="cond" truecount="2" falsecount="0"/>
+      <line num="70" count="1" type="stmt"/>
+      <line num="73" count="10" type="stmt"/>
+      <line num="74" count="10" type="stmt"/>
+      <line num="76" count="10" type="stmt"/>
+      <line num="77" count="10" type="stmt"/>
+      <line num="79" count="10" type="stmt"/>
+      <line num="80" count="10" type="stmt"/>
+      <line num="82" count="10" type="stmt"/>
+      <line num="83" count="11" type="stmt"/>
+      <line num="86" count="11" type="stmt"/>
+      <line num="89" count="11" type="stmt"/>
+      <line num="90" count="11" type="stmt"/>
+      <line num="93" count="10" type="stmt"/>
+      <line num="95" count="10" type="cond" truecount="1" falsecount="1"/>
+      <line num="97" count="10" type="stmt"/>
+      <line num="98" count="121513" type="stmt"/>
+      <line num="99" count="107042" type="stmt"/>
+      <line num="100" count="107042" type="stmt"/>
+      <line num="101" count="107042" type="cond" truecount="2" falsecount="0"/>
+      <line num="102" count="10" type="stmt"/>
+      <line num="106" count="121503" type="stmt"/>
+      <line num="107" count="121503" type="stmt"/>
+      <line num="110" count="121503" type="stmt"/>
+      <line num="114" count="121503" type="stmt"/>
+      <line num="115" count="121503" type="stmt"/>
+      <line num="119" count="10" type="stmt"/>
+      <line num="120" count="10" type="stmt"/>
+      <line num="122" count="10" type="stmt"/>
+    </file>
+    <file name="SimpleFilter.ts" path="/Users/47056/st/packages/core/src/SimpleFilter.ts">
+      <metrics statements="34" coveredstatements="29" conditionals="7" coveredconditionals="4" methods="10" coveredmethods="10"/>
+      <line num="48" count="28" type="stmt"/>
+      <line num="49" count="28" type="stmt"/>
+      <line num="50" count="28" type="stmt"/>
+      <line num="51" count="28" type="stmt"/>
+      <line num="52" count="28" type="stmt"/>
+      <line num="53" count="28" type="stmt"/>
+      <line num="54" count="28" type="stmt"/>
+      <line num="58" count="3" type="stmt"/>
+      <line num="62" count="1" type="cond" truecount="1" falsecount="1"/>
+      <line num="63" count="1" type="stmt"/>
+      <line num="68" count="0" type="stmt"/>
+      <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="70" count="0" type="stmt"/>
+      <line num="72" count="0" type="stmt"/>
+      <line num="73" count="0" type="stmt"/>
+      <line num="77" count="6" type="stmt"/>
+      <line num="81" count="2" type="stmt"/>
+      <line num="82" count="2" type="stmt"/>
+      <line num="86" count="2" type="stmt"/>
+      <line num="90" count="5" type="stmt"/>
+      <line num="91" count="5" type="stmt"/>
+      <line num="96" count="5" type="stmt"/>
+      <line num="97" count="5" type="stmt"/>
+      <line num="101" count="4" type="stmt"/>
+      <line num="103" count="4" type="stmt"/>
+      <line num="107" count="4" type="stmt"/>
+      <line num="113" count="4" type="stmt"/>
+      <line num="114" count="4" type="stmt"/>
+      <line num="115" count="4" type="stmt"/>
+      <line num="119" count="4" type="stmt"/>
+      <line num="120" count="4" type="stmt"/>
+      <line num="124" count="1" type="stmt"/>
+      <line num="128" count="3" type="stmt"/>
+      <line num="129" count="3" type="stmt"/>
+    </file>
+    <file name="SoundTouch.ts" path="/Users/47056/st/packages/core/src/SoundTouch.ts">
+      <metrics statements="56" coveredstatements="56" conditionals="12" coveredconditionals="12" methods="16" coveredmethods="16"/>
+      <line num="44" count="45" type="stmt"/>
+      <line num="45" count="45" type="stmt"/>
+      <line num="47" count="45" type="stmt"/>
+      <line num="48" count="45" type="stmt"/>
+      <line num="49" count="45" type="stmt"/>
+      <line num="51" count="45" type="stmt"/>
+      <line num="52" count="45" type="stmt"/>
+      <line num="54" count="45" type="stmt"/>
+      <line num="55" count="45" type="stmt"/>
+      <line num="56" count="45" type="stmt"/>
+      <line num="58" count="45" type="stmt"/>
+      <line num="62" count="4" type="stmt"/>
+      <line num="63" count="4" type="stmt"/>
+      <line num="67" count="1" type="stmt"/>
+      <line num="68" count="1" type="stmt"/>
+      <line num="69" count="1" type="stmt"/>
+      <line num="70" count="1" type="stmt"/>
+      <line num="74" count="7" type="stmt"/>
+      <line num="78" count="24" type="stmt"/>
+      <line num="79" count="24" type="stmt"/>
+      <line num="83" count="1" type="stmt"/>
+      <line num="87" count="7" type="stmt"/>
+      <line num="91" count="23" type="stmt"/>
+      <line num="92" count="23" type="stmt"/>
+      <line num="96" count="1" type="stmt"/>
+      <line num="100" count="6" type="stmt"/>
+      <line num="101" count="6" type="stmt"/>
+      <line num="105" count="4" type="stmt"/>
+      <line num="106" count="4" type="stmt"/>
+      <line num="110" count="3" type="stmt"/>
+      <line num="114" count="17" type="stmt"/>
+      <line num="118" count="26" type="stmt"/>
+      <line num="122" count="102" type="stmt"/>
+      <line num="123" count="102" type="stmt"/>
+      <line num="125" count="102" type="stmt"/>
+      <line num="126" count="102" type="stmt"/>
+      <line num="128" count="102" type="cond" truecount="2" falsecount="0"/>
+      <line num="129" count="55" type="stmt"/>
+      <line num="131" count="102" type="cond" truecount="2" falsecount="0"/>
+      <line num="132" count="58" type="stmt"/>
+      <line num="135" count="102" type="cond" truecount="2" falsecount="0"/>
+      <line num="136" count="17" type="cond" truecount="2" falsecount="0"/>
+      <line num="137" count="11" type="stmt"/>
+      <line num="138" count="11" type="stmt"/>
+      <line num="140" count="11" type="stmt"/>
+      <line num="141" count="11" type="stmt"/>
+      <line num="144" count="85" type="cond" truecount="2" falsecount="0"/>
+      <line num="145" count="45" type="stmt"/>
+      <line num="146" count="45" type="stmt"/>
+      <line num="148" count="45" type="stmt"/>
+      <line num="149" count="45" type="stmt"/>
+      <line num="155" count="6" type="cond" truecount="2" falsecount="0"/>
+      <line num="156" count="1" type="stmt"/>
+      <line num="157" count="1" type="stmt"/>
+      <line num="159" count="5" type="stmt"/>
+      <line num="160" count="5" type="stmt"/>
+    </file>
+    <file name="Stretch.ts" path="/Users/47056/st/packages/core/src/Stretch.ts">
+      <metrics statements="151" coveredstatements="138" conditionals="35" coveredconditionals="22" methods="21" coveredmethods="20"/>
+      <line num="25" count="5" type="stmt"/>
+      <line num="26" count="5" type="stmt"/>
+      <line num="28" count="5" type="stmt"/>
+      <line num="29" count="5" type="stmt"/>
+      <line num="31" count="5" type="stmt"/>
+      <line num="33" count="5" type="stmt"/>
+      <line num="49" count="5" type="stmt"/>
+      <line num="50" count="5" type="stmt"/>
+      <line num="52" count="5" type="stmt"/>
+      <line num="53" count="5" type="stmt"/>
+      <line num="54" count="5" type="stmt"/>
+      <line num="56" count="5" type="stmt"/>
+      <line num="58" count="5" type="stmt"/>
+      <line num="59" count="5" type="stmt"/>
+      <line num="60" count="5" type="stmt"/>
+      <line num="62" count="5" type="stmt"/>
+      <line num="84" count="59" type="stmt"/>
+      <line num="85" count="59" type="stmt"/>
+      <line num="86" count="59" type="stmt"/>
+      <line num="88" count="59" type="stmt"/>
+      <line num="89" count="59" type="stmt"/>
+      <line num="91" count="59" type="stmt"/>
+      <line num="92" count="59" type="stmt"/>
+      <line num="94" count="59" type="stmt"/>
+      <line num="95" count="59" type="stmt"/>
+      <line num="104" count="6" type="stmt"/>
+      <line num="105" count="6" type="stmt"/>
+      <line num="109" count="6" type="stmt"/>
+      <line num="110" count="6" type="stmt"/>
+      <line num="112" count="6" type="cond" truecount="1" falsecount="1"/>
+      <line num="113" count="6" type="stmt"/>
+      <line num="116" count="6" type="stmt"/>
+      <line num="125" count="62" type="cond" truecount="1" falsecount="1"/>
+      <line num="126" count="62" type="stmt"/>
+      <line num="129" count="62" type="cond" truecount="1" falsecount="1"/>
+      <line num="130" count="62" type="stmt"/>
+      <line num="133" count="62" type="cond" truecount="2" falsecount="0"/>
+      <line num="134" count="2" type="stmt"/>
+      <line num="135" count="2" type="stmt"/>
+      <line num="137" count="60" type="stmt"/>
+      <line num="140" count="62" type="cond" truecount="2" falsecount="0"/>
+      <line num="141" count="2" type="stmt"/>
+      <line num="142" count="2" type="stmt"/>
+      <line num="144" count="60" type="stmt"/>
+      <line num="147" count="62" type="stmt"/>
+      <line num="148" count="62" type="stmt"/>
+      <line num="149" count="62" type="stmt"/>
+      <line num="153" count="124" type="stmt"/>
+      <line num="155" count="124" type="stmt"/>
+      <line num="157" count="124" type="stmt"/>
+      <line num="159" count="124" type="stmt"/>
+      <line num="160" count="124" type="stmt"/>
+      <line num="162" count="124" type="stmt"/>
+      <line num="168" count="3" type="stmt"/>
+      <line num="172" count="1" type="stmt"/>
+      <line num="176" count="1" type="stmt"/>
+      <line num="183" count="62" type="stmt"/>
+      <line num="184" count="62" type="cond" truecount="1" falsecount="1"/>
+      <line num="187" count="62" type="stmt"/>
+      <line num="189" count="62" type="stmt"/>
+      <line num="191" count="62" type="stmt"/>
+      <line num="192" count="62" type="stmt"/>
+      <line num="196" count="364" type="cond" truecount="2" falsecount="2"/>
+      <line num="200" count="186" type="cond" truecount="2" falsecount="0"/>
+      <line num="201" count="182" type="stmt"/>
+      <line num="202" count="182" type="stmt"/>
+      <line num="203" count="182" type="stmt"/>
+      <line num="206" count="186" type="cond" truecount="2" falsecount="0"/>
+      <line num="207" count="182" type="stmt"/>
+      <line num="208" count="182" type="stmt"/>
+      <line num="209" count="182" type="stmt"/>
+      <line num="212" count="186" type="stmt"/>
+      <line num="215" count="186" type="stmt"/>
+      <line num="219" count="2" type="stmt"/>
+      <line num="223" count="1" type="stmt"/>
+      <line num="224" count="1" type="stmt"/>
+      <line num="225" count="1" type="stmt"/>
+      <line num="231" count="1" type="stmt"/>
+      <line num="235" count="31" type="cond" truecount="1" falsecount="1"/>
+      <line num="245" count="0" type="stmt"/>
+      <line num="247" count="0" type="stmt"/>
+      <line num="248" count="0" type="stmt"/>
+      <line num="250" count="0" type="stmt"/>
+      <line num="251" count="0" type="stmt"/>
+      <line num="256" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="257" count="0" type="stmt"/>
+      <line num="258" count="0" type="stmt"/>
+      <line num="262" count="0" type="stmt"/>
+      <line num="272" count="31" type="stmt"/>
+      <line num="274" count="31" type="stmt"/>
+      <line num="275" count="31" type="stmt"/>
+      <line num="276" count="31" type="stmt"/>
+      <line num="278" count="31" type="stmt"/>
+      <line num="279" count="124" type="stmt"/>
+      <line num="280" count="124" type="stmt"/>
+      <line num="281" count="1240" type="stmt"/>
+      <line num="282" count="1240" type="cond" truecount="2" falsecount="0"/>
+      <line num="283" count="31" type="stmt"/>
+      <line num="286" count="1209" type="stmt"/>
+      <line num="291" count="1209" type="cond" truecount="2" falsecount="0"/>
+      <line num="292" count="117" type="stmt"/>
+      <line num="293" count="117" type="stmt"/>
+      <line num="295" count="1209" type="stmt"/>
+      <line num="297" count="124" type="stmt"/>
+      <line num="300" count="31" type="stmt"/>
+      <line num="304" count="31" type="stmt"/>
+      <line num="305" count="10912" type="stmt"/>
+      <line num="306" count="10912" type="stmt"/>
+      <line num="307" count="10912" type="stmt"/>
+      <line num="308" count="10912" type="stmt"/>
+      <line num="316" count="1209" type="stmt"/>
+      <line num="317" count="1209" type="stmt"/>
+      <line num="319" count="1209" type="stmt"/>
+      <line num="320" count="1209" type="stmt"/>
+      <line num="322" count="1209" type="stmt"/>
+      <line num="323" count="424359" type="stmt"/>
+      <line num="324" count="424359" type="stmt"/>
+      <line num="329" count="1209" type="stmt"/>
+      <line num="333" count="30" type="stmt"/>
+      <line num="337" count="30" type="stmt"/>
+      <line num="338" count="30" type="stmt"/>
+      <line num="340" count="30" type="stmt"/>
+      <line num="341" count="30" type="stmt"/>
+      <line num="343" count="30" type="stmt"/>
+      <line num="345" count="30" type="stmt"/>
+      <line num="346" count="10560" type="stmt"/>
+      <line num="347" count="10560" type="stmt"/>
+      <line num="348" count="10560" type="stmt"/>
+      <line num="349" count="10560" type="stmt"/>
+      <line num="350" count="10560" type="stmt"/>
+      <line num="351" count="10560" type="stmt"/>
+      <line num="353" count="10560" type="stmt"/>
+      <line num="359" count="8" type="cond" truecount="1" falsecount="1"/>
+      <line num="360" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="361" count="0" type="stmt"/>
+      <line num="363" count="0" type="stmt"/>
+      <line num="364" count="0" type="stmt"/>
+      <line num="367" count="8" type="stmt"/>
+      <line num="368" count="30" type="stmt"/>
+      <line num="370" count="30" type="stmt"/>
+      <line num="371" count="30" type="stmt"/>
+      <line num="372" count="30" type="stmt"/>
+      <line num="374" count="30" type="stmt"/>
+      <line num="375" count="30" type="cond" truecount="1" falsecount="1"/>
+      <line num="376" count="30" type="stmt"/>
+      <line num="384" count="30" type="stmt"/>
+      <line num="386" count="30" type="stmt"/>
+      <line num="393" count="30" type="stmt"/>
+      <line num="394" count="30" type="stmt"/>
+      <line num="395" count="30" type="stmt"/>
+      <line num="396" count="30" type="stmt"/>
+    </file>
+    <file name="WebAudioBufferSource.ts" path="/Users/47056/st/packages/core/src/WebAudioBufferSource.ts">
+      <metrics statements="12" coveredstatements="12" conditionals="4" coveredconditionals="4" methods="5" coveredmethods="5"/>
+      <line num="28" count="24" type="stmt"/>
+      <line num="29" count="24" type="stmt"/>
+      <line num="33" count="6" type="stmt"/>
+      <line num="37" count="4" type="stmt"/>
+      <line num="41" count="5" type="stmt"/>
+      <line num="45" count="4" type="stmt"/>
+      <line num="46" count="4" type="stmt"/>
+      <line num="47" count="4" type="cond" truecount="2" falsecount="0"/>
+      <line num="51" count="4" type="stmt"/>
+      <line num="52" count="22" type="stmt"/>
+      <line num="53" count="22" type="stmt"/>
+      <line num="55" count="4" type="stmt"/>
+    </file>
+    <file name="getWebAudioNode.ts" path="/Users/47056/st/packages/core/src/getWebAudioNode.ts">
+      <metrics statements="13" coveredstatements="13" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+      <line num="32" count="20" type="stmt"/>
+      <line num="33" count="20" type="stmt"/>
+      <line num="35" count="20" type="stmt"/>
+      <line num="36" count="2" type="stmt"/>
+      <line num="37" count="2" type="stmt"/>
+      <line num="38" count="2" type="stmt"/>
+      <line num="39" count="2" type="stmt"/>
+      <line num="40" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="41" count="1" type="stmt"/>
+      <line num="43" count="2" type="stmt"/>
+      <line num="44" count="4096" type="stmt"/>
+      <line num="45" count="4096" type="stmt"/>
+      <line num="48" count="20" type="stmt"/>
+    </file>
+    <file name="minsSecs.ts" path="/Users/47056/st/packages/core/src/minsSecs.ts">
+      <metrics statements="5" coveredstatements="5" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+      <line num="24" count="17" type="stmt"/>
+      <line num="25" count="17" type="cond" truecount="2" falsecount="0"/>
+      <line num="29" count="17" type="stmt"/>
+      <line num="30" count="17" type="stmt"/>
+      <line num="31" count="17" type="stmt"/>
+    </file>
+    <file name="noop.ts" path="/Users/47056/st/packages/core/src/noop.ts">
+      <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="24" count="4" type="stmt"/>
+    </file>
+    <file name="testFloatEqual.ts" path="/Users/47056/st/packages/core/src/testFloatEqual.ts">
+      <metrics statements="1" coveredstatements="1" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
+      <line num="24" count="213" type="cond" truecount="2" falsecount="0"/>
+    </file>
+  </project>
+</coverage>
