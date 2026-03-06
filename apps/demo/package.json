@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@soundtouchjs/core": "workspace:*"
+    "@soundtouchjs/core": "workspace:*",
+    "@soundtouchjs/audio-worklet": "workspace:*"
   }
 }

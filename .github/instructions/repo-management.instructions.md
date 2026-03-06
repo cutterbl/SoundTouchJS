@@ -27,7 +27,7 @@ Valid types: `feat`, `fix`, `chore`, `docs`, `style`, `refactor`, `perf`, `test`
 
 1. Commits land on `master` following conventional commit format
 2. `pnpm release` runs `nx release` — analyzes conventional commits, bumps version, generates per-project changelog, creates git tag
-3. `nx release publish` publishes `@soundtouchjs/core` to npm
+3. `nx release publish` publishes `@soundtouchjs/core` and `@soundtouchjs/audio-worklet` to npm
 4. CI pushes tags and publishes automatically
 
 Version bump rules (conventional commits):
@@ -40,10 +40,17 @@ Release config lives in `nx.json` under `"release"`.
 
 ## CI Pipeline (`.github/workflows/main.yml`)
 
-Triggers on push to `master`. Steps:
+Two jobs triggered by different events:
 
-1. Checkout → setup pnpm (reads `packageManager` field) → install (`--frozen-lockfile`)
-2. Typecheck → Build
+### `test` — runs on pull requests to `master`
+
+1. Checkout → setup pnpm → install (`--frozen-lockfile`)
+2. Typecheck → Build → Test
+
+### `release` — runs on push to `master` (PR merge)
+
+1. Checkout (full history) → setup pnpm → install (`--frozen-lockfile`)
+2. Build
 3. Create release (`pnpm release`) → Push tags → Publish to npm (`pnpm nx release publish`)
 
 Uses whatever Node version ships with `ubuntu-latest` — no explicit Node setup step.

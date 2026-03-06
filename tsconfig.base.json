@@ -16,7 +16,8 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@soundtouchjs/core": ["packages/core/src/index.ts"]
+      "@soundtouchjs/core": ["packages/core/src/index.ts"],
+      "@soundtouchjs/audio-worklet": ["packages/audio-worklet/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

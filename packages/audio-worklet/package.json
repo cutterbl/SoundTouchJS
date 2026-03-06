@@ -1,7 +1,7 @@
 {
-  "name": "@soundtouchjs/core",
+  "name": "@soundtouchjs/audio-worklet",
   "version": "0.3.0",
-  "description": "An audio processing library for manipulating Web Audio Contexts",
+  "description": "AudioWorklet implementation of the SoundTouchJS library",
   "license": "LGPL-2.1",
   "type": "module",
   "sideEffects": false,
@@ -10,7 +10,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./processor": "./dist/soundtouch-processor.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,6 +23,7 @@
   "keywords": [
     "audio",
     "WebAudio",
+    "AudioWorklet",
     "TypeScript",
     "pitch",
     "tempo",
@@ -38,12 +40,15 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cutterbl/SoundTouchJS.git",
-    "directory": "packages/core"
+    "directory": "packages/audio-worklet"
   },
   "bugs": {
     "url": "https://github.com/cutterbl/SoundTouchJS/issues"
   },
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "dependencies": {
+    "@soundtouchjs/core": "workspace:*"
+  },
   "publishConfig": {
     "access": "public"
   }

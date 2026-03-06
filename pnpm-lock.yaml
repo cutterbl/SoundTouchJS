@@ -47,9 +47,18 @@ importers:
 
   apps/demo:
     dependencies:
+      '@soundtouchjs/audio-worklet':
+        specifier: workspace:*
+        version: link:../../packages/audio-worklet
       '@soundtouchjs/core':
         specifier: workspace:*
         version: link:../../packages/core
+
+  packages/audio-worklet:
+    dependencies:
+      '@soundtouchjs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/core: {}
 

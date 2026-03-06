@@ -39,6 +39,9 @@
       "inputs": ["production", "^production"],
       "cache": true
     },
+    "dev": {
+      "dependsOn": ["^build"]
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "cache": true
@@ -47,7 +50,8 @@
   "release": {
     "projects": ["packages/*"],
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "adjustSemverBumpsForZeroMajorVersion": true
     },
     "changelog": {
       "workspaceChangelog": false,

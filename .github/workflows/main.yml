@@ -1,11 +1,14 @@
 name: CI
 
 on:
+  pull_request:
+    branches: [master]
   push:
     branches: [master]
 
 jobs:
-  build:
+  test:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -16,6 +19,27 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm typecheck
+
+      - run: pnpm build
+
+      - run: pnpm test
+
+  release:
+    if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore(release)')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm install --frozen-lockfile
 
       - run: pnpm build
 

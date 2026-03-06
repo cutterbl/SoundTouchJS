@@ -8,6 +8,7 @@
       body {
         background: grey;
         line-height: 30px;
+        font-family: system-ui, sans-serif;
       }
 
       input,
@@ -24,14 +25,63 @@
         position: relative;
         float: right;
       }
+
+      .mode-toggle {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .mode-toggle button {
+        display: inline-block;
+        padding: 6px 14px;
+        border: 2px solid #333;
+        background: #ddd;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .mode-toggle button.active {
+        background: #333;
+        color: #fff;
+      }
+
+      #codeBlock {
+        margin-top: 16px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 16px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        white-space: pre;
+        overflow-x: auto;
+        max-width: 640px;
+        line-height: 1.5;
+      }
+
+      audio {
+        display: block;
+        margin: 8px 0;
+      }
     </style>
   </head>
   <body>
-    <button id="play" disabled>Play</button>
-    <button id="stop">Pause</button>
-    <div class="progress">
-      <div><span id="currentTime">0:00</span><span id="duration"></span></div>
-      <progress id="progressMeter" value="0" max="100"></progress>
+    <h3>SoundTouchJS AudioWorklet Demo</h3>
+    <div class="mode-toggle">
+      <button id="modeBuffer" class="active">AudioBuffer</button>
+      <button id="modeElement">Audio Element</button>
+    </div>
+    <div id="bufferControls">
+      <button id="play" disabled>Play</button>
+      <button id="stop">Pause</button>
+      <div class="progress">
+        <div><span id="currentTime">0:00</span><span id="duration"></span></div>
+        <progress id="progressMeter" value="0" max="100"></progress>
+      </div>
+    </div>
+    <div id="elementControls" style="display: none">
+      <audio id="audioEl" src="./bensound-actionable.mp3" controls></audio>
     </div>
     Rate:
     <input
@@ -145,6 +195,7 @@
       <option value="10.0" label="10"></option>
     </datalist>
     <div id="volume"></div>
+    <div id="codeBlock"></div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

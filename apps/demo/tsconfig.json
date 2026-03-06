@@ -5,5 +5,12 @@
     "types": ["vite/client", "node"]
   },
   "include": ["src/**/*.ts", "vite.config.ts"],
-  "references": [{ "path": "../../packages/core" }]
+  "references": [
+    {
+      "path": "../../packages/audio-worklet"
+    },
+    {
+      "path": "../../packages/core"
+    }
+  ]
 }

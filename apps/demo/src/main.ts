@@ -1,5 +1,26 @@
-import { PitchShifter, type PlayEventDetail } from '@soundtouchjs/core';
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
+type SourceMode = 'buffer' | 'element';
+
+function formatTime(secs: number): string {
+  const mins = Math.floor(secs / 60);
+  const seconds = Math.floor(secs - mins * 60);
+  return `${mins}:${String(seconds).padStart(2, '0')}`;
+}
+
+// --- DOM refs ---
+const modeBufferBtn = document.getElementById(
+  'modeBuffer',
+) as HTMLButtonElement;
+const modeElementBtn = document.getElementById(
+  'modeElement',
+) as HTMLButtonElement;
+const bufferControls = document.getElementById(
+  'bufferControls',
+) as HTMLDivElement;
+const elementControls = document.getElementById(
+  'elementControls',
+) as HTMLDivElement;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const stopBtn = document.getElementById('stop') as HTMLButtonElement;
 const tempoSlider = document.getElementById('tempoSlider') as HTMLInputElement;
@@ -21,75 +42,225 @@ const duration = document.getElementById('duration') as HTMLSpanElement;
 const progressMeter = document.getElementById(
   'progressMeter',
 ) as HTMLProgressElement;
+const audioEl = document.getElementById('audioEl') as HTMLAudioElement;
+const codeBlock = document.getElementById('codeBlock') as HTMLDivElement;
+
+// --- State ---
+let audioCtx: AudioContext;
+let gainNode: GainNode;
+let stNode: SoundTouchNode;
+let sourceNode: AudioBufferSourceNode | undefined;
+let elementSourceNode: MediaElementAudioSourceNode | undefined;
+let audioBuffer: AudioBuffer | undefined;
+let isPlaying = false;
+let playStartTime = 0;
+let pauseOffset = 0;
+let rafId = 0;
+let currentTempo = 1;
+let currentPitch = 1;
+let activeMode: SourceMode = 'buffer';
+
+// --- Code snippets ---
+const BUFFER_CODE = `import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 const audioCtx = new AudioContext();
 const gainNode = audioCtx.createGain();
-let shifter: PitchShifter | undefined;
+gainNode.connect(audioCtx.destination);
 
-const loadSource = (url: string): void => {
-  playBtn.setAttribute('disabled', 'disabled');
-  if (shifter) {
-    shifter.off();
-  }
-  fetch(url)
-    .then((response) => response.arrayBuffer())
-    .then((buffer) => {
-      audioCtx.decodeAudioData(buffer, (audioBuffer) => {
-        shifter = new PitchShifter(audioCtx, audioBuffer, 16384);
-        shifter.tempo = Number(tempoSlider.value);
-        shifter.pitch = Number(pitchSlider.value);
-        shifter.on('play', (detail: PlayEventDetail) => {
-          currTime.innerHTML = detail.formattedTimePlayed;
-          progressMeter.value = detail.percentagePlayed;
-        });
-        duration.innerHTML = shifter.formattedDuration;
-        playBtn.removeAttribute('disabled');
-      });
-    });
-};
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+const stNode = new SoundTouchNode(audioCtx);
+stNode.connect(gainNode);
 
-loadSource('./bensound-actionable.mp3');
+const response = await fetch('/audio.mp3');
+const buffer = await response.arrayBuffer();
+const audioBuffer = await audioCtx.decodeAudioData(buffer);
 
-let isPlaying = false;
+const source = audioCtx.createBufferSource();
+source.buffer = audioBuffer;
+source.playbackRate.value = tempo;   // tempo via playback rate
+source.connect(stNode);
 
-const play = (): void => {
-  if (!shifter) return;
-  shifter.connect(gainNode);
+stNode.pitch.value = pitch / tempo;  // compensate for rate-induced pitch shift
+stNode.pitchSemitones.value = key;
+gainNode.gain.value = volume;
+
+source.start();`;
+
+const ELEMENT_CODE = `import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioEl = document.querySelector('audio')!;
+const audioCtx = new AudioContext();
+const gainNode = audioCtx.createGain();
+gainNode.connect(audioCtx.destination);
+
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+const stNode = new SoundTouchNode(audioCtx);
+stNode.connect(gainNode);
+
+const source = audioCtx.createMediaElementSource(audioEl);
+source.connect(stNode);
+
+audioEl.preservesPitch = false;      // let SoundTouch handle pitch
+audioEl.playbackRate = tempo;        // tempo via element playback rate
+stNode.pitch.value = pitch / tempo;  // compensate for rate-induced pitch shift
+stNode.pitchSemitones.value = key;
+gainNode.gain.value = volume;`;
+
+// --- Init ---
+async function init(): Promise<void> {
+  audioCtx = new AudioContext();
+  gainNode = audioCtx.createGain();
+  await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+  stNode = new SoundTouchNode(audioCtx);
+  stNode.connect(gainNode);
   gainNode.connect(audioCtx.destination);
+}
+
+const ready = init();
+
+async function loadAudioBuffer(url: string): Promise<void> {
+  playBtn.setAttribute('disabled', 'disabled');
+  await ready;
+  const response = await fetch(url);
+  const buffer = await response.arrayBuffer();
+  audioBuffer = await audioCtx.decodeAudioData(buffer);
+  pauseOffset = 0;
+  duration.innerHTML = formatTime(audioBuffer.duration);
+  playBtn.removeAttribute('disabled');
+}
+
+function connectAudioElement(): void {
+  if (elementSourceNode) return;
+  elementSourceNode = audioCtx.createMediaElementSource(audioEl);
+  elementSourceNode.connect(stNode);
+}
+
+// --- Buffer mode: play/pause/progress ---
+function updateProgress(): void {
+  if (!audioBuffer || !isPlaying) return;
+  const wallElapsed = audioCtx.currentTime - playStartTime;
+  const sourceElapsed = pauseOffset + wallElapsed * currentTempo;
+  const perc = Math.min(sourceElapsed / audioBuffer.duration, 1);
+  currTime.innerHTML = formatTime(sourceElapsed);
+  progressMeter.value = perc * 100;
+  if (perc >= 1) {
+    bufferPause();
+    return;
+  }
+  rafId = requestAnimationFrame(updateProgress);
+}
+
+function bufferPlay(): void {
+  if (!audioBuffer) return;
+  sourceNode = audioCtx.createBufferSource();
+  sourceNode.buffer = audioBuffer;
+  sourceNode.playbackRate.value = currentTempo;
+  sourceNode.connect(stNode);
+
+  playStartTime = audioCtx.currentTime;
+  sourceNode.start(0, pauseOffset);
+  sourceNode.onended = () => {
+    if (isPlaying) bufferPause();
+  };
+
   audioCtx.resume().then(() => {
     isPlaying = true;
     playBtn.setAttribute('disabled', 'disabled');
+    rafId = requestAnimationFrame(updateProgress);
   });
-};
+}
 
-const pause = (playing = false): void => {
-  if (!shifter) return;
-  shifter.disconnect();
-  isPlaying = playing;
+function bufferPause(resume = false): void {
+  if (sourceNode) {
+    sourceNode.onended = null;
+    sourceNode.stop();
+    sourceNode.disconnect();
+    sourceNode = undefined;
+  }
+  if (isPlaying) {
+    pauseOffset += (audioCtx.currentTime - playStartTime) * currentTempo;
+  }
+  cancelAnimationFrame(rafId);
+  isPlaying = resume;
   playBtn.removeAttribute('disabled');
-};
+}
 
-playBtn.onclick = play;
-stopBtn.onclick = () => pause();
+// --- Element mode ---
+function elementPlay(): void {
+  audioCtx.resume();
+  connectAudioElement();
+  audioEl.preservesPitch = false;
+  audioEl.playbackRate = currentTempo;
+  audioEl.play();
+}
+
+// --- Mode switching ---
+function setMode(mode: SourceMode): void {
+  if (isPlaying) {
+    if (activeMode === 'buffer') bufferPause();
+    else audioEl.pause();
+  }
+  pauseOffset = 0;
+  isPlaying = false;
+  activeMode = mode;
+
+  modeBufferBtn.classList.toggle('active', mode === 'buffer');
+  modeElementBtn.classList.toggle('active', mode === 'element');
+  bufferControls.style.display = mode === 'buffer' ? '' : 'none';
+  elementControls.style.display = mode === 'element' ? '' : 'none';
+  codeBlock.textContent = mode === 'buffer' ? BUFFER_CODE : ELEMENT_CODE;
+
+  currentTempo = 1;
+  currentPitch = 1;
+  tempoSlider.value = '1';
+  tempoOutput.innerHTML = '1';
+  pitchSlider.value = '1';
+  pitchOutput.innerHTML = '1';
+  keySlider.value = '0';
+  keyOutput.innerHTML = '0';
+  volumeSlider.value = '1';
+  volumeOutput.innerHTML = '1';
+  stNode?.pitch && (stNode.pitch.value = 1);
+  stNode?.pitchSemitones && (stNode.pitchSemitones.value = 0);
+  gainNode && (gainNode.gain.value = 1);
+}
+
+modeBufferBtn.onclick = () => setMode('buffer');
+modeElementBtn.onclick = () => setMode('element');
+
+// --- Load and set initial mode ---
+loadAudioBuffer('./bensound-actionable.mp3');
+setMode('buffer');
+
+playBtn.onclick = bufferPlay;
+stopBtn.onclick = () => bufferPause();
 
 tempoSlider.addEventListener('input', () => {
-  if (!shifter) return;
-  shifter.tempo = Number(tempoSlider.value);
+  const newTempo = Number(tempoSlider.value);
+  if (activeMode === 'buffer') {
+    if (isPlaying) {
+      pauseOffset += (audioCtx.currentTime - playStartTime) * currentTempo;
+      playStartTime = audioCtx.currentTime;
+    }
+    if (sourceNode) sourceNode.playbackRate.value = newTempo;
+  } else {
+    audioEl.preservesPitch = false;
+    audioEl.playbackRate = newTempo;
+  }
+  currentTempo = newTempo;
+  stNode.pitch.value = currentPitch / currentTempo;
   tempoOutput.innerHTML = tempoSlider.value;
 });
 
 pitchSlider.addEventListener('input', () => {
-  if (!shifter) return;
-  shifter.pitch = Number(pitchSlider.value);
+  currentPitch = Number(pitchSlider.value);
+  stNode.pitch.value = currentPitch / currentTempo;
   pitchOutput.innerHTML = pitchSlider.value;
-  shifter.tempo = Number(tempoSlider.value);
 });
 
 keySlider.addEventListener('input', () => {
-  if (!shifter) return;
-  shifter.pitchSemitones = Number(keySlider.value);
+  stNode.pitchSemitones.value = Number(keySlider.value);
   keyOutput.innerHTML = String(Number(keySlider.value) / 2);
-  shifter.tempo = Number(tempoSlider.value);
 });
 
 volumeSlider.addEventListener('input', () => {
@@ -98,16 +269,23 @@ volumeSlider.addEventListener('input', () => {
 });
 
 progressMeter.addEventListener('click', (event: MouseEvent) => {
-  if (!shifter) return;
+  if (activeMode !== 'buffer' || !audioBuffer) return;
   const target = event.target as HTMLProgressElement;
   const pos = target.getBoundingClientRect();
   const relX = event.pageX - pos.x;
   const perc = relX / target.offsetWidth;
-  pause(isPlaying);
-  shifter.percentagePlayed = perc;
+  const wasPlaying = isPlaying;
+  bufferPause();
+  pauseOffset = perc * audioBuffer.duration;
   progressMeter.value = 100 * perc;
-  currTime.innerHTML = String(shifter.timePlayed);
-  if (isPlaying) {
-    play();
+  currTime.innerHTML = formatTime(pauseOffset);
+  if (wasPlaying) {
+    bufferPlay();
+  }
+});
+
+audioEl.addEventListener('play', () => {
+  if (activeMode === 'element') {
+    elementPlay();
   }
 });
