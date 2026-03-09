@@ -61,7 +61,7 @@
       "adjustSemverBumpsForZeroMajorVersion": true
     },
     "changelog": {
-      "workspaceChangelog": false,
+      "workspaceChangelog": true,
       "projectChangelogs": {
         "renderOptions": {
           "authors": false
