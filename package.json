@@ -1,10 +1,10 @@
 {
   "name": "@soundtouchjs/monorepo",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "description": "SoundTouchJS monorepo",
   "type": "module",
-  "packageManager": "pnpm@10.6.2",
+  "packageManager": "pnpm@10.11.0",
   "bugs": {
     "url": "https://github.com/cutterbl/SoundTouchJS/issues"
   },
