@@ -23,9 +23,26 @@ export interface SoundTouchNodeOptions {
   processorUrl?: string | URL;
 }
 
+/**
+ * Main-thread AudioWorkletNode wrapper for SoundTouch audio processing.
+ * Provides AudioParam accessors for pitch, tempo, rate, pitchSemitones, and playbackRate.
+ *
+ * @example
+ * const stNode = new SoundTouchNode(audioCtx);
+ * stNode.pitch.value = 1.2;
+ * stNode.tempo.value = 0.8;
+ * stNode.pitchSemitones.value = -3;
+ */
 export class SoundTouchNode extends AudioWorkletNode {
   static readonly processorName = PROCESSOR_NAME;
 
+  /**
+   * Registers the SoundTouch processor module with the given AudioContext.
+   * Must be called before creating SoundTouchNode instances.
+   *
+   * @param context - The AudioContext or OfflineAudioContext
+   * @param processorUrl - URL or path to the processor script
+   */
   static async register(
     context: BaseAudioContext,
     processorUrl: string | URL,
@@ -33,6 +50,10 @@ export class SoundTouchNode extends AudioWorkletNode {
     await context.audioWorklet.addModule(processorUrl);
   }
 
+  /**
+   * Creates a SoundTouchNode instance.
+   * @param context - The AudioContext or OfflineAudioContext
+   */
   constructor(context: BaseAudioContext) {
     super(context, PROCESSOR_NAME, {
       numberOfInputs: 1,
@@ -41,18 +62,30 @@ export class SoundTouchNode extends AudioWorkletNode {
     });
   }
 
+  /**
+   * Pitch multiplier AudioParam (1.0 = original pitch).
+   */
   get pitch(): AudioParam {
     return this.parameters.get('pitch')!;
   }
 
+  /**
+   * Tempo multiplier AudioParam (1.0 = original tempo).
+   */
   get tempo(): AudioParam {
     return this.parameters.get('tempo')!;
   }
 
+  /**
+   * Rate multiplier AudioParam (affects both pitch and tempo).
+   */
   get rate(): AudioParam {
     return this.parameters.get('rate')!;
   }
 
+  /**
+   * Pitch shift in semitones AudioParam (integer steps for musical key changes).
+   */
   get pitchSemitones(): AudioParam {
     return this.parameters.get('pitchSemitones')!;
   }

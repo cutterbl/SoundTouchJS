@@ -61,6 +61,10 @@ const AUTOSEEK_K =
   (AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW);
 const AUTOSEEK_C = AUTOSEEK_AT_MIN - AUTOSEEK_K * AUTOSEQ_TEMPO_LOW;
 
+/**
+ * Time-stretch processor for tempo adjustment without affecting pitch.
+ * Used internally by SoundTouch for time-stretching audio.
+ */
 export default class Stretch extends AbstractFifoSamplePipe {
   private _quickSeek: boolean;
   private midBufferDirty: boolean;
@@ -80,6 +84,10 @@ export default class Stretch extends AbstractFifoSamplePipe {
   private skipFract!: number;
   sampleReq!: number;
 
+  /**
+   * Creates a Stretch instance.
+   * @param createBuffers - Whether to allocate internal buffers
+   */
   constructor(createBuffers?: boolean) {
     super(createBuffers);
     this._quickSeek = true;

@@ -25,6 +25,10 @@ import Stretch from './Stretch.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 import testFloatEqual from './testFloatEqual.js';
 
+/**
+ * Main processing engine for pitch shifting, tempo adjustment, and rate transposition.
+ * Set pitch, tempo, rate, or pitchSemitones for real-time audio manipulation.
+ */
 export default class SoundTouch {
   transposer: RateTransposer;
   stretch: Stretch;
@@ -40,6 +44,9 @@ export default class SoundTouch {
   virtualRate: number;
   virtualTempo: number;
 
+  /**
+   * Creates a new SoundTouch processor instance.
+   */
   constructor() {
     this.transposer = new RateTransposer(false);
     this.stretch = new Stretch(false);

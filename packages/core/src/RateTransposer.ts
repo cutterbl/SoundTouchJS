@@ -22,12 +22,20 @@
 
 import AbstractFifoSamplePipe from './AbstractFifoSamplePipe.js';
 
+/**
+ * Sample rate transposer for pitch and tempo manipulation.
+ * Used internally by SoundTouch for rate-based processing.
+ */
 export default class RateTransposer extends AbstractFifoSamplePipe {
   private _rate: number;
   private slopeCount: number;
   private prevSampleL: number;
   private prevSampleR: number;
 
+  /**
+   * Creates a RateTransposer instance.
+   * @param createBuffers - Whether to allocate internal buffers
+   */
   constructor(createBuffers?: boolean) {
     super(createBuffers);
     this.slopeCount = 0;

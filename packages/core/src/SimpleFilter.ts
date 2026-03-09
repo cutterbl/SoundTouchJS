@@ -24,6 +24,10 @@ import FilterSupport from './FilterSupport.js';
 import type { SamplePipe } from './FilterSupport.js';
 import noop from './noop.js';
 
+/**
+ * Pulls samples through a SoundTouch pipe from a source.
+ * Used internally for real-time processing and playback.
+ */
 export default class SimpleFilter extends FilterSupport {
   private callback: () => void;
   private sourceSound: {
@@ -35,6 +39,12 @@ export default class SimpleFilter extends FilterSupport {
   private _position: number;
   private _scratchBuffer: Float32Array;
 
+  /**
+   * Creates a SimpleFilter instance.
+   * @param sourceSound - Source object with extract method
+   * @param pipe - SoundTouch or other SamplePipe
+   * @param callback - Optional callback for end of playback
+   */
   constructor(
     sourceSound: {
       extract(
