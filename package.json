@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/monorepo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "SoundTouchJS monorepo",
   "license": "LGPL-2.1",
@@ -20,6 +20,8 @@
     "@commitlint/config-conventional": "^20.4.3",
     "@nx/js": "22.5.4",
     "@nx/vite": "22.5.4",
+    "@swc-node/register": "^1.11.1",
+    "@swc/core": "^1.15.18",
     "@types/node": "^25.3.5",
     "@vitest/coverage-v8": "^4.0.18",
     "husky": "^9.1.7",
