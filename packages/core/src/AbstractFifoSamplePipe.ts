@@ -56,21 +56,21 @@ export default class AbstractFifoSamplePipe {
   }
 
   /**
-   * Gets the input buffer
+   * Gets the input buffer.
    */
   get inputBuffer(): FifoSampleBuffer | null {
     return this._inputBuffer;
   }
 
   /**
-   * Sets the input buffer
+   * Sets the input buffer.
    */
   set inputBuffer(inputBuffer: FifoSampleBuffer | null) {
     this._inputBuffer = inputBuffer;
   }
 
   /**
-   * Gets the output buffer
+   * Gets the output buffer.
    */
   get outputBuffer(): FifoSampleBuffer | null {
     return this._outputBuffer;
