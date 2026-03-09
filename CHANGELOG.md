@@ -1,3 +1,13 @@
+## 1.0.7 (2026-03-09)
+
+### 🩹 Fixes
+
+- **@soundtouchjs/core:** Versioning ([#53](https://github.com/cutterbl/SoundTouchJS/pull/53))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
