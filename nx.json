@@ -49,6 +49,13 @@
   },
   "release": {
     "projects": ["packages/*"],
+    "releaseGroups": [
+      {
+        "name": "soundtouchjs",
+        "projects": ["@soundtouchjs/core", "@soundtouchjs/audio-worklet"],
+        "fixed": true
+      }
+    ],
     "version": {
       "conventionalCommits": true,
       "adjustSemverBumpsForZeroMajorVersion": true
