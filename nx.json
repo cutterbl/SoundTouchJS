@@ -9,6 +9,8 @@
       "!{projectRoot}/tsconfig.spec.json"
     ]
   },
+  "neverConnectToCloud": true,
+  "daemon": true,
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
