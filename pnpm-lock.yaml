@@ -15,10 +15,10 @@ importers:
         specifier: ^20.4.3
         version: 20.4.3
       '@nx/js':
-        specifier: ^22.0.0
+        specifier: 22.5.4
         version: 22.5.4(@babel/traverse@7.29.0)(nx@22.5.4)
       '@nx/vite':
-        specifier: ^22.5.4
+        specifier: 22.5.4
         version: 22.5.4(@babel/traverse@7.29.0)(nx@22.5.4)(typescript@5.9.3)(vite@6.4.1(@types/node@25.3.5)(jiti@2.6.1)(yaml@2.8.2))(vitest@4.0.18(@types/node@25.3.5)(jiti@2.6.1)(yaml@2.8.2))
       '@types/node':
         specifier: ^25.3.5
@@ -30,7 +30,7 @@ importers:
         specifier: ^9.1.7
         version: 9.1.7
       nx:
-        specifier: ^22.0.0
+        specifier: 22.5.4
         version: 22.5.4
       prettier:
         specifier: ^3.8.0
