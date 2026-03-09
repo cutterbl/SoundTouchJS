@@ -1,0 +1,50 @@
+{
+  "name": "@soundtouchjs/core",
+  "version": "0.3.0",
+  "description": "An audio processing library for manipulating Web Audio Contexts",
+  "license": "LGPL-2.1",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "audio",
+    "WebAudio",
+    "TypeScript",
+    "pitch",
+    "tempo",
+    "soundtouch"
+  ],
+  "author": "Steve 'Cutter' Blades",
+  "contributors": [
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)",
+    "Olli Parviainen <oparviai@iki.fi> (https://www.surina.net/soundtouch/)",
+    "Ryan Berdeen <ryan@ryanberdeen.com> (http://ryanberdeen.com/)",
+    "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
+    "Adria Holovaty (http://www.holovaty.com/)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "publishConfig": {
+    "access": "public"
+  }
+}

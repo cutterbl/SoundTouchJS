@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./apps/demo"
+    },
+    {
+      "path": "./packages/audio-worklet"
+    }
+  ]
+}

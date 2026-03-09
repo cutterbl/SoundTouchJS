@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "ESNext"],
+    "types": [],
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false
+  },
+  "include": ["src/processor.ts", "src/worklet-globals.d.ts"],
+  "references": [{ "path": "../core/tsconfig.lib.json" }]
+}

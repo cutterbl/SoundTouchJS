@@ -1,102 +1,131 @@
 # SoundTouchJS
 
-**[Note]: Check out the [AudioWorklet implementation of SoundTouchJS](https://github.com/cutterbl/soundtouchjs-audio-worklet)**
+A real-time audio processing library for pitch shifting, tempo adjustment, and rate transposition using the Web Audio API. Converted, expanded, and maintained by [Cutter](https://cutterscrossing.com/), based on the original [SoundTouch](https://www.surina.net/soundtouch/) C++ library by Olli Parviainen.
 
-SoundTouchJS is an ES2015 library of audio context utilities, converted, expanded, and maintained by Cutter. [Read the backstory](#in-case-you-are-interested). To see it in action:
+## Monorepo
 
-[![Edit SoundTouchJS with React](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/soundtouchjs-with-react-qdci0?fontsize=14&hidenavigation=1&theme=dark)
+This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes two packages:
 
-Or, clone the repo and [Run The Example](#running-the-example).
+| Package                                                           | npm                                       | Description                                                              |
+| ----------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------ |
+| [`@soundtouchjs/core`](packages/core/README.md)                   | `npm install @soundtouchjs/core`          | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
+| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md) | `npm install @soundtouchjs/audio-worklet` | AudioWorklet implementation with `AudioParam`-based controls             |
 
-## Installation
+A development [demo app](apps/demo/) is included for testing both packages in a browser.
 
-You can easily install **SoundTouchJS** for use in your project:
+## Quick start
 
+### AudioWorklet (recommended)
+
+The `@soundtouchjs/audio-worklet` package runs processing on the audio rendering thread via `AudioWorkletProcessor`, replacing the deprecated `ScriptProcessorNode`.
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioCtx = new AudioContext();
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+
+const stNode = new SoundTouchNode(audioCtx);
+stNode.connect(audioCtx.destination);
+
+const source = audioCtx.createBufferSource();
+source.buffer = audioBuffer;
+source.connect(stNode);
+
+stNode.tempo.value = 1.2;
+stNode.pitch.value = 0.9;
+source.start();
 ```
-npm install soundtouchjs
-```
 
-## General Usage
+### PitchShifter (ScriptProcessorNode)
 
-You can use whatever method you prefer to **get** your audio file, but once you have the data you must decode it into an [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer). Once you've decoded the data you can then create a new [PitchShifter](#PitchShifter).
+The `@soundtouchjs/core` package provides a higher-level `PitchShifter` class with built-in playback tracking. This uses `ScriptProcessorNode`, which is deprecated but widely supported.
 
-```javascript
-import { PitchShifter } from 'soundtouchjs';
+```ts
+import { PitchShifter } from '@soundtouchjs/core';
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const gainNode = audioCtx.createGain();
-let shifter;
+const audioCtx = new AudioContext();
+const shifter = new PitchShifter(audioCtx, audioBuffer, 16384);
+shifter.tempo = 1.2;
+shifter.pitch = 0.9;
 
-// here you retrieved your file with 'fetch' or a new instance of the 'FileReader', and from the data...
-if (shifter) {
-  shifter.off(); // remove any current listeners
-}
-audioCtx.decodeAudioData(buffer, (audioBuffer) => {
-  shifter = new PitchShifter(audioCtx, audioBuffer, 1024);
-  shifter.on('play', (detail) => {
-    // do something with detail.timePlayed;
-    // do something with detail.formattedTimePlayed;
-    // do something with detail.percentagePlayed
-  });
-  shifter.tempo = 1;
-  shifter.pitch = 1;
+shifter.on('play', (detail) => {
+  console.log(detail.formattedTimePlayed, detail.percentagePlayed);
 });
+
+shifter.connect(audioCtx.destination);
 ```
 
-To begin playback you connect the `PitchShifter` to the WebAudio destination (or another node), and disconnect it to pause. It's important to note that the `PitchShifter` is a pseudo-node, and cannot be connected to.
+See each package's README for full API documentation.
 
-```javascript
-const play = function () {
-  shifter.connect(gainNode); // connect it to a GainNode to control the volume
-  gainNode.connect(audioCtx.destination); // attach the GainNode to the 'destination' to begin playback
-};
+## Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) >= 20
+- [pnpm](https://pnpm.io/) >= 10
+
+### Setup
+
+```sh
+pnpm install
 ```
 
-## Running The Example
+### Commands
 
-An example has been included with the package to see some basic functionality. Prior to running the example you must install all dependencies.
-
-```
-npm i
-```
-
-If you've cloned the library, you need to build the code.
-
-```
-npm run build
+```sh
+pnpm build              # Build all projects
+pnpm typecheck          # Typecheck all projects
+pnpm dev                # Start demo dev server (Vite on port 8080)
+pnpm prettier           # Format all files
 ```
 
-It has been written in pure javascript, but could easily be integrated with your favorite framework.
+Individual project commands via Nx:
 
-**Note: Run the example in a modern browser, as it uses es2015 `import` syntax.**
-
-To run the example:
-
+```sh
+pnpm nx build core           # Build @soundtouchjs/core
+pnpm nx build audio-worklet  # Build @soundtouchjs/audio-worklet
+pnpm nx test core            # Run core tests
+pnpm nx test audio-worklet   # Run audio-worklet tests
+pnpm nx dev demo             # Dev server with HMR
 ```
-npm start
+
+### Running the demo
+
+```sh
+pnpm dev
 ```
 
-then open your browser to `http://localhost:8080`. A royalty free music file is included under Creative Commons License with this repository.
+Opens a browser at `http://localhost:8080` with sliders for tempo, pitch, key, and volume. The demo uses `@soundtouchjs/audio-worklet` under the hood.
 
-Music: "Actionable" from [Bensound.com](http://bensound.com).
+Music: "Actionable" from [Bensound.com](http://bensound.com). This is a limited use license — refer to [their licensing](https://www.bensound.com/licensing) for details.
 
-This is a limited use license, and we do not grant any permissions beyond theirs. Please refer to [their licensing](https://www.bensound.com/licensing) for further information.
+## What's changed
 
-All core components of the package are available as separate entities for more advanced audio manipulations. See the source code for greater understanding.
+The `v0.4` release is a ground-up modernization:
 
-## Creating Your Own Build
-
-As long as you've installed all dependencies, you can run the build script to create your own local version of SoundTouchJS. This is good when contributing changes back to the project.
-
-```
-npm run build
-```
+- **Monorepo**: Migrated from a single-package repo (`soundtouchjs`) to an Nx monorepo with scoped packages (`@soundtouchjs/core`, `@soundtouchjs/audio-worklet`)
+- **TypeScript**: Full rewrite — strict mode, no `any`, complete type exports
+- **ESM only**: Pure ES modules targeting ES2024 (no CommonJS)
+- **AudioWorklet**: New `@soundtouchjs/audio-worklet` package replaces the [separate AudioWorklet repo](https://github.com/cutterbl/soundtouchjs-audio-worklet)
+- **ES2024 optimizations**: Resizable `ArrayBuffer` in `FifoSampleBuffer`, scratch buffer reuse, dirty-flag overlap buffers
+- **pnpm workspaces**: Workspace protocol (`workspace:*`) for inter-package dependencies
+- **Tooling**: Vite dev server, Vitest test runner, Prettier formatting, commitlint + husky, GitHub Actions CI, `nx release` for versioning and publishing
+- **Zero runtime dependencies** on `@soundtouchjs/core`
 
 ## Contributing
 
-If you want to contribute, Hooray! Just fork the repo, do your work in a branch, then submit a Pull Request when you're done. Code? Documentation? More Examples? Go for it!
+Fork the repo, work in a branch, submit a Pull Request. Commits follow [Conventional Commits](https://www.conventionalcommits.org/) with sentence-case subjects.
 
-Or maybe you just like what's been done? [I accept cash](https://paypal.me/cutterbl?locale.x=en_US)
+## In case you are interested
+
+The original SoundTouch library was written in C++ by Olli Parviainen. It was first ported to JavaScript by Ryan Berdeen, then further adapted by Jakub Fiala, Adrian Holovaty, and others. This project was converted to ES2015+ and has been expanded and maintained by Steve 'Cutter' Blades.
+
+## License
+
+LGPL-2.1 — see [LICENSE](LICENSE) for details.
+
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
 
 ### TODO
 
