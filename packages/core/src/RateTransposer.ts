@@ -27,14 +27,29 @@ import AbstractFifoSamplePipe from './AbstractFifoSamplePipe.js';
  * Used internally by SoundTouch for rate-based processing.
  */
 export default class RateTransposer extends AbstractFifoSamplePipe {
+  /**
+   * Current rate factor for transposition.
+   */
   private _rate: number;
+
+  /**
+   * Internal slope accumulator for interpolation.
+   */
   private slopeCount: number;
+
+  /**
+   * Previous left channel sample for interpolation.
+   */
   private prevSampleL: number;
+
+  /**
+   * Previous right channel sample for interpolation.
+   */
   private prevSampleR: number;
 
   /**
    * Creates a RateTransposer instance.
-   * @param createBuffers - Whether to allocate internal buffers
+   * @param createBuffers Whether to allocate internal buffers.
    */
   constructor(createBuffers?: boolean) {
     super(createBuffers);
@@ -44,27 +59,44 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
     this._rate = 1;
   }
 
+  /**
+   * Sets the rate factor for transposition.
+   * @param rate Rate factor.
+   */
   set rate(rate: number) {
     this._rate = rate;
   }
 
+  /**
+   * Resets internal state for interpolation.
+   */
   private reset(): void {
     this.slopeCount = 0;
     this.prevSampleL = 0;
     this.prevSampleR = 0;
   }
 
+  /**
+   * Clears buffers and resets internal state.
+   */
   override clear(): void {
     super.clear();
     this.reset();
   }
 
+  /**
+   * Creates a clone of this RateTransposer with the same rate.
+   * @returns Cloned RateTransposer instance.
+   */
   clone(): RateTransposer {
     const result = new RateTransposer();
     result.rate = this._rate;
     return result;
   }
 
+  /**
+   * Processes input buffer and writes transposed samples to output buffer.
+   */
   process(): void {
     const numFrames = this._inputBuffer!.frameCount;
     this._outputBuffer!.ensureAdditionalCapacity(numFrames / this._rate + 1);
@@ -73,6 +105,11 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
     this._outputBuffer!.put(numFramesOutput);
   }
 
+  /**
+   * Transposes input samples by the current rate.
+   * @param numFrames Number of input frames to transpose.
+   * @returns Number of output frames written.
+   */
   transpose(numFrames = 0): number {
     if (numFrames === 0) {
       return 0;
