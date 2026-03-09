@@ -93,3 +93,20 @@ const framesRead = filter.extract(outputBuffer, 2048);
 ## License
 
 LGPL-2.1 — see [LICENSE](../../LICENSE) for details.
+
+## Key switching and pitch control
+
+Changing the musical key of playback is handled by the `pitchSemitones` parameter. Each integer step corresponds to one semitone (half-step) on the chromatic scale. For example:
+
+- `pitchSemitones = 2` shifts the key up a whole step
+- `pitchSemitones = -3` shifts down a minor third
+
+The effective pitch is calculated as:
+
+    pitch * 2^(pitchSemitones / 12)
+
+This lets you combine continuous pitch control (`pitch`) with discrete key changes (`pitchSemitones`).
+
+For most musical applications, set `pitchSemitones` to the desired interval and leave `pitch` at 1.0 unless you want fine-tuning within a semitone.
+
+See [`@soundtouchjs/audio-worklet`](../audio-worklet/README.md) for AudioWorklet-based usage.

@@ -29,7 +29,7 @@ describe('SoundTouchNode', () => {
   });
 
   describe('parameter accessors', () => {
-    it('exposes pitch, tempo, rate, and pitchSemitones', () => {
+    it('exposes pitch, tempo, rate, pitchSemitones, and playbackRate', () => {
       const context = {} as BaseAudioContext;
       const node = new SoundTouchNode(context);
 
@@ -37,6 +37,7 @@ describe('SoundTouchNode', () => {
       const tempoParam = { value: 1.0 };
       const rateParam = { value: 1.0 };
       const semitonesParam = { value: 0 };
+      const playbackRateParam = { value: 1.0 };
 
       (node as unknown as { parameters: Map<string, unknown> }).parameters =
         new Map([
@@ -44,12 +45,14 @@ describe('SoundTouchNode', () => {
           ['tempo', tempoParam],
           ['rate', rateParam],
           ['pitchSemitones', semitonesParam],
+          ['playbackRate', playbackRateParam],
         ]);
 
       expect(node.pitch).toBe(pitchParam);
       expect(node.tempo).toBe(tempoParam);
       expect(node.rate).toBe(rateParam);
       expect(node.pitchSemitones).toBe(semitonesParam);
+      expect(node.playbackRate).toBe(playbackRateParam);
     });
   });
 });

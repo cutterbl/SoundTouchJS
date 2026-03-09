@@ -77,10 +77,11 @@ const audioBuffer = await audioCtx.decodeAudioData(buffer);
 
 const source = audioCtx.createBufferSource();
 source.buffer = audioBuffer;
-source.playbackRate.value = tempo;   // tempo via playback rate
+source.playbackRate.value = tempo;    // tempo via playback rate
 source.connect(stNode);
 
-stNode.pitch.value = pitch / tempo;  // compensate for rate-induced pitch shift
+stNode.playbackRate.value = tempo;    // tell processor the source rate
+stNode.pitch.value = pitch;           // desired pitch (auto-compensated)
 stNode.pitchSemitones.value = key;
 gainNode.gain.value = volume;
 
@@ -100,9 +101,10 @@ stNode.connect(gainNode);
 const source = audioCtx.createMediaElementSource(audioEl);
 source.connect(stNode);
 
-audioEl.preservesPitch = false;      // let SoundTouch handle pitch
-audioEl.playbackRate = tempo;        // tempo via element playback rate
-stNode.pitch.value = pitch / tempo;  // compensate for rate-induced pitch shift
+audioEl.preservesPitch = false;       // let SoundTouch handle pitch
+audioEl.playbackRate = tempo;         // tempo via element playback rate
+stNode.playbackRate.value = tempo;    // tell processor the source rate
+stNode.pitch.value = pitch;           // desired pitch (auto-compensated)
 stNode.pitchSemitones.value = key;
 gainNode.gain.value = volume;`;
 
@@ -156,6 +158,7 @@ function bufferPlay(): void {
   sourceNode.buffer = audioBuffer;
   sourceNode.playbackRate.value = currentTempo;
   sourceNode.connect(stNode);
+  stNode.playbackRate.value = currentTempo;
 
   playStartTime = audioCtx.currentTime;
   sourceNode.start(0, pauseOffset);
@@ -191,6 +194,7 @@ function elementPlay(): void {
   connectAudioElement();
   audioEl.preservesPitch = false;
   audioEl.playbackRate = currentTempo;
+  stNode.playbackRate.value = currentTempo;
   audioEl.play();
 }
 
@@ -248,13 +252,14 @@ tempoSlider.addEventListener('input', () => {
     audioEl.playbackRate = newTempo;
   }
   currentTempo = newTempo;
-  stNode.pitch.value = currentPitch / currentTempo;
+  stNode.playbackRate.value = currentTempo;
+  stNode.pitch.value = currentPitch;
   tempoOutput.innerHTML = tempoSlider.value;
 });
 
 pitchSlider.addEventListener('input', () => {
   currentPitch = Number(pitchSlider.value);
-  stNode.pitch.value = currentPitch / currentTempo;
+  stNode.pitch.value = currentPitch;
   pitchOutput.innerHTML = pitchSlider.value;
 });
 

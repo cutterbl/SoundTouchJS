@@ -33,7 +33,7 @@ How you serve the processor file depends on your setup:
 
 ### 2. Create a node and connect it
 
-`SoundTouchNode` works with any Web Audio source node. The recommended approach for tempo control is to drive playback speed via the source's `playbackRate` and let `SoundTouchNode` handle pitch correction.
+`SoundTouchNode` works with any Web Audio source node. The recommended approach for tempo control is to drive playback speed via the source's `playbackRate` and set the matching value on `stNode.playbackRate` — the processor automatically compensates pitch so you never need to calculate the ratio yourself.
 
 #### With AudioBufferSourceNode
 
@@ -46,7 +46,8 @@ source.buffer = audioBuffer;
 source.playbackRate.value = tempo; // tempo via playback rate
 source.connect(stNode);
 
-stNode.pitch.value = pitch / tempo; // compensate for rate-induced pitch shift
+stNode.playbackRate.value = tempo; // tell processor the source rate
+stNode.pitch.value = pitch; // desired pitch (auto-compensated)
 source.start();
 ```
 
@@ -62,7 +63,8 @@ source.connect(stNode);
 
 audioEl.preservesPitch = false; // let SoundTouch handle pitch, not the browser
 audioEl.playbackRate = tempo; // tempo via element playback rate
-stNode.pitch.value = pitch / tempo; // compensate for rate-induced pitch shift
+stNode.playbackRate.value = tempo; // tell processor the source rate
+stNode.pitch.value = pitch; // desired pitch (auto-compensated)
 ```
 
 > **Why `playbackRate` for tempo?** SoundTouch's internal time-stretcher operates on small 128-sample blocks in the AudioWorklet. At higher tempos, it can't produce enough output samples per block, causing audible gaps. Using the source's `playbackRate` feeds samples faster, keeping the processing pipe balanced. SoundTouch then only needs to correct pitch, which it handles cleanly.
@@ -84,12 +86,13 @@ stNode.pitchSemitones.value = -3;
 stNode.pitch.linearRampToValueAtTime(2.0, audioCtx.currentTime + 5);
 ```
 
-| Parameter        | Default | Range      | Description                                      |
-| ---------------- | ------- | ---------- | ------------------------------------------------ |
-| `pitch`          | 1.0     | 0.25 – 4.0 | Pitch multiplier (1.0 = original)                |
-| `tempo`          | 1.0     | 0.25 – 4.0 | Tempo multiplier (1.0 = original)                |
-| `rate`           | 1.0     | 0.25 – 4.0 | Playback rate (affects both pitch and tempo)     |
-| `pitchSemitones` | 0       | -24 – 24   | Pitch shift in semitones (combined with `pitch`) |
+| Parameter        | Default | Range      | Description                                        |
+| ---------------- | ------- | ---------- | -------------------------------------------------- |
+| `pitch`          | 1.0     | 0.25 – 4.0 | Pitch multiplier (1.0 = original)                  |
+| `tempo`          | 1.0     | 0.25 – 4.0 | Tempo multiplier (1.0 = original)                  |
+| `rate`           | 1.0     | 0.25 – 4.0 | Playback rate (affects both pitch and tempo)       |
+| `pitchSemitones` | 0       | -24 – 24   | Pitch shift in semitones (combined with `pitch`)   |
+| `playbackRate`   | 1.0     | 0.25 – 4.0 | Source playback rate (for auto pitch compensation) |
 
 ### Full example — AudioBuffer
 
@@ -113,7 +116,8 @@ source.buffer = audioBuffer;
 source.playbackRate.value = 1.2; // 1.2x tempo
 source.connect(stNode);
 
-stNode.pitch.value = 0.9 / 1.2; // desired pitch / tempo
+stNode.playbackRate.value = 1.2; // tell processor the source rate
+stNode.pitch.value = 0.9; // desired pitch (auto-compensated)
 stNode.pitchSemitones.value = -2;
 gainNode.gain.value = 0.8;
 
@@ -139,10 +143,26 @@ source.connect(stNode);
 
 audioEl.preservesPitch = false;
 audioEl.playbackRate = 1.2; // 1.2x tempo
-stNode.pitch.value = 0.9 / 1.2; // desired pitch / tempo
+stNode.playbackRate.value = 1.2; // tell processor the source rate
+stNode.pitch.value = 0.9; // desired pitch (auto-compensated)
 stNode.pitchSemitones.value = -2;
 gainNode.gain.value = 0.8;
 ```
+
+## Key switching and pitch control
+
+Changing the musical key of playback is handled by the `pitchSemitones` parameter. Each integer step corresponds to one semitone (half-step) on the chromatic scale. For example:
+
+- `stNode.pitchSemitones.value = 2` shifts the key up a whole step
+- `stNode.pitchSemitones.value = -3` shifts down a minor third
+
+The processor combines this with the `pitch` multiplier:
+
+    effectivePitch = pitch * 2^(pitchSemitones / 12)
+
+This lets you combine continuous pitch control (`pitch`) with discrete key changes (`pitchSemitones`).
+
+For most musical applications, set `pitchSemitones` to the desired interval and leave `pitch` at 1.0 unless you want fine-tuning within a semitone.
 
 ## Package exports
 
@@ -154,7 +174,7 @@ gainNode.gain.value = 0.8;
 ## Architecture
 
 - **Processor thread**: `SoundTouchProcessor` extends `AudioWorkletProcessor`, runs on the audio rendering thread. It interleaves stereo input, feeds it through the `SoundTouch` processing pipe, and deinterleaves the output. The `@soundtouchjs/core` library is bundled directly into the processor file so there are no import dependencies at runtime.
-- **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for pitch, tempo, rate, and semitone shift. A static `register()` method handles `audioWorklet.addModule()`.
+- **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for pitch, tempo, rate, semitone shift, and playback rate. A static `register()` method handles `audioWorklet.addModule()`. When `playbackRate` is set, the processor automatically divides the desired pitch by the playback rate, so developers never need to manually compensate for rate-induced pitch shift.
 
 ## What's new in v0.4
 

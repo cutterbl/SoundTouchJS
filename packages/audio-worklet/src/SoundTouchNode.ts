@@ -56,4 +56,8 @@ export class SoundTouchNode extends AudioWorkletNode {
   get pitchSemitones(): AudioParam {
     return this.parameters.get('pitchSemitones')!;
   }
+
+  get playbackRate(): AudioParam {
+    return this.parameters.get('playbackRate')!;
+  }
 }
