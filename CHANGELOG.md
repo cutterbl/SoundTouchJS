@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.0 (2026-03-09)
+
+- Manually bump to 1.0.0 to rectify versioning after 0.4.0 release with breaking changes. No code changes from 0.4.0.
+
 ## 0.4.0 (2026-03-09)
 
 ### 🚀 Features
