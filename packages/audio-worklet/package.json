@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/audio-worklet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AudioWorklet implementation of the SoundTouchJS library",
   "license": "LGPL-2.1",
   "type": "module",
