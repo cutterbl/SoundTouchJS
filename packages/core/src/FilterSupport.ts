@@ -29,6 +29,10 @@ export interface SamplePipe {
   clear(): void;
 }
 
+/**
+ * Base class for filter pipes, providing process and clear methods.
+ * Used for chaining sample processing steps.
+ */
 export default class FilterSupport {
   protected _pipe: SamplePipe;
 

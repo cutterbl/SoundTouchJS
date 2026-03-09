@@ -25,12 +25,20 @@ const SAMPLES_PER_FRAME = 2;
 const BYTES_PER_FRAME = BYTES_PER_SAMPLE * SAMPLES_PER_FRAME;
 const DEFAULT_MAX_FRAMES = 131072;
 
+/**
+ * Resizable interleaved sample buffer for audio processing.
+ * Uses ES2024 ArrayBuffer for zero-allocation growth.
+ */
 export default class FifoSampleBuffer {
   private _buffer: ArrayBuffer;
   private _vector: Float32Array;
   private _position: number;
   private _frameCount: number;
 
+  /**
+   * Creates a new FifoSampleBuffer.
+   * @param maxFrames - Maximum number of frames for buffer allocation
+   */
   constructor(maxFrames = DEFAULT_MAX_FRAMES) {
     this._buffer = new ArrayBuffer(0, {
       maxByteLength: maxFrames * BYTES_PER_FRAME,

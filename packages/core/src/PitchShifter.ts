@@ -56,6 +56,10 @@ function onUpdate(this: PitchShifter, sourcePosition: number): void {
   }
 }
 
+/**
+ * High-level wrapper for real-time pitch shifting using ScriptProcessorNode.
+ * Handles buffering, playback tracking, and parameter control.
+ */
 export default class PitchShifter {
   private _soundtouch: SoundTouch;
   private _filter: SimpleFilter;
@@ -68,6 +72,13 @@ export default class PitchShifter {
   sampleRate: number;
   listeners: EventListener[];
 
+  /**
+   * Creates a PitchShifter instance for an AudioBuffer.
+   * @param context - AudioContext or OfflineAudioContext
+   * @param buffer - Source AudioBuffer
+   * @param bufferSize - Size of ScriptProcessorNode buffer
+   * @param onEnd - Callback when playback ends
+   */
   constructor(
     context: BaseAudioContext,
     buffer: AudioBuffer,

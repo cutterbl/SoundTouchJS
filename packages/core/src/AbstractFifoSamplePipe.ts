@@ -22,6 +22,12 @@
 
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 
+/**
+ * Abstract base class for sample processing pipes.
+ * Provides common buffer management for audio processing.
+ */
+// ...existing code...
+
 export default class AbstractFifoSamplePipe {
   protected _inputBuffer: FifoSampleBuffer | null;
   protected _outputBuffer: FifoSampleBuffer | null;
