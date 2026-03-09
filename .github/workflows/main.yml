@@ -51,14 +51,13 @@ jobs:
           git config --local user.email ${config_email}
           git config --local user.name ${config_un}
 
-      - name: Create the release
-        run: pnpm release
-
-      - name: Push tag and file changes to repository
-        run: git push --follow-tags origin master
+      - name: Set up .npmrc for publishing
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to npm
-        run: pnpm nx release publish
+        run: pnpm exec nx release --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
