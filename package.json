@@ -3,9 +3,25 @@
   "version": "1.0.3",
   "private": true,
   "description": "SoundTouchJS monorepo",
-  "license": "LGPL-2.1",
   "type": "module",
   "packageManager": "pnpm@10.6.2",
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
+  "author": "Steve 'Cutter' Blades",
+  "contributors": [
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)",
+    "Olli Parviainen <oparviai@iki.fi> (https://www.surina.net/soundtouch/)",
+    "Ryan Berdeen <ryan@ryanberdeen.com> (http://ryanberdeen.com/)",
+    "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
+    "Adria Holovaty (http://www.holovaty.com/)"
+  ],
+  "license": "LGPL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "scripts": {
     "build": "nx run-many -t build",
     "dev": "nx dev demo",
