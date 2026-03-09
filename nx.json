@@ -50,20 +50,62 @@
     }
   },
   "release": {
-    "projects": ["@soundtouchjs/core", "@soundtouchjs/audio-worklet"],
-    "version": {
-      "conventionalCommits": true
-    },
-    "changelog": {
-      "workspaceChangelog": true,
-      "projectChangelogs": {
-        "renderOptions": {
-          "authors": false
+    "conventionalCommits": {
+      "types": {
+        "feat": {
+          "semverBump": "minor"
+        },
+        "fix": {
+          "semverBump": "patch"
+        },
+        "perf": {
+          "semverBump": "patch"
+        },
+        "ci": {
+          "semverBump": "patch"
+        },
+        "chore": {
+          "semverBump": "patch"
+        },
+        "build": {
+          "semverBump": "patch"
+        },
+        "refactor": {
+          "semverBump": "patch"
+        },
+        "docs": {
+          "semverBump": "none"
+        },
+        "style": {
+          "semverBump": "none"
+        },
+        "test": {
+          "semverBump": "none"
         }
       }
     },
     "git": {
-      "commitMessage": "chore(release): {version}"
+      "commit": true,
+      "commitMessage": "chore(release): publish {version}",
+      "tag": true,
+      "tagMessage": "Release {version}"
+    },
+    "version": {
+      "conventionalCommits": true,
+      "preVersionCommand": "pnpm dlx nx run-many -t build",
+      "fallbackCurrentVersionResolver": "disk"
+    },
+    "projects": ["@soundtouchjs/core", "@soundtouchjs/audio-worklet"],
+    "changelog": {
+      "automaticFromRef": false,
+      "createRelease": true,
+      "workspaceChangelog": {
+        "createRelease": "github",
+        "file": "CHANGELOG.md"
+      },
+      "projectChangelogs": {
+        "createRelease": "github"
+      }
     }
   }
 }
