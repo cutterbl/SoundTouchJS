@@ -25,13 +25,26 @@ import FifoSampleBuffer from './FifoSampleBuffer.js';
 /**
  * Abstract base class for sample processing pipes.
  * Provides common buffer management for audio processing.
+ *
+ * @remarks
+ * This class manages input and output buffers for audio sample processing.
+ * Subclasses should implement specific processing logic.
  */
-// ...existing code...
-
 export default class AbstractFifoSamplePipe {
+  /**
+   * Input buffer for audio samples.
+   */
   protected _inputBuffer: FifoSampleBuffer | null;
+
+  /**
+   * Output buffer for processed audio samples.
+   */
   protected _outputBuffer: FifoSampleBuffer | null;
 
+  /**
+   * Constructs an AbstractFifoSamplePipe.
+   * @param createBuffers If true, initializes input and output buffers.
+   */
   constructor(createBuffers?: boolean) {
     if (createBuffers) {
       this._inputBuffer = new FifoSampleBuffer();
@@ -42,22 +55,37 @@ export default class AbstractFifoSamplePipe {
     }
   }
 
+  /**
+   * Gets the input buffer.
+   */
   get inputBuffer(): FifoSampleBuffer | null {
     return this._inputBuffer;
   }
 
+  /**
+   * Sets the input buffer.
+   */
   set inputBuffer(inputBuffer: FifoSampleBuffer | null) {
     this._inputBuffer = inputBuffer;
   }
 
+  /**
+   * Gets the output buffer.
+   */
   get outputBuffer(): FifoSampleBuffer | null {
     return this._outputBuffer;
   }
 
+  /**
+   * Sets the output buffer.
+   */
   set outputBuffer(outputBuffer: FifoSampleBuffer | null) {
     this._outputBuffer = outputBuffer;
   }
 
+  /**
+   * Clears both input and output buffers.
+   */
   clear(): void {
     this._inputBuffer?.clear();
     this._outputBuffer?.clear();

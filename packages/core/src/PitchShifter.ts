@@ -27,18 +27,34 @@ import SimpleFilter from './SimpleFilter.js';
 import minsSecs from './minsSecs.js';
 import noop from './noop.js';
 
-/** Detail object emitted with the 'play' event. */
+/**
+ * Detail object emitted with the 'play' event.
+ * Contains playback time, formatted time, and percentage played.
+ */
 export interface PlayEventDetail {
+  /** Seconds played so far. */
   timePlayed: number;
+  /** Formatted time string (mm:ss). */
   formattedTimePlayed: string;
+  /** Percentage of buffer played (0-100). */
   percentagePlayed: number;
 }
 
+/**
+ * Listener for custom playback events.
+ */
 interface EventListener {
+  /** Event name (e.g. 'play'). */
   name: string;
+  /** Callback for event detail. */
   cb: (detail: PlayEventDetail) => void;
 }
 
+/**
+ * Internal update handler for playback position.
+ * Dispatches 'play' event if timePlayed changes.
+ * @param sourcePosition Current sample position in buffer.
+ */
 function onUpdate(this: PitchShifter, sourcePosition: number): void {
   const currentTimePlayed = this.timePlayed;
   const sampleRate = this.sampleRate;
@@ -59,25 +75,36 @@ function onUpdate(this: PitchShifter, sourcePosition: number): void {
 /**
  * High-level wrapper for real-time pitch shifting using ScriptProcessorNode.
  * Handles buffering, playback tracking, and parameter control.
+ *
+ * @remarks
+ * Provides pitch, rate, and tempo control for an AudioBuffer source.
+ * Emits 'play' events for playback progress.
  */
 export default class PitchShifter {
+  /** Internal SoundTouch processor. */
   private _soundtouch: SoundTouch;
+  /** Internal filter for sample processing. */
   private _filter: SimpleFilter;
-  /** @internal */
+  /** Internal ScriptProcessorNode for audio output. */
   _node: ScriptProcessorNode;
 
+  /** Seconds played so far. */
   timePlayed: number;
+  /** Current sample position in buffer. */
   sourcePosition: number;
+  /** Duration of the source buffer (seconds). */
   duration: number;
+  /** Sample rate of the audio context. */
   sampleRate: number;
+  /** Registered event listeners. */
   listeners: EventListener[];
 
   /**
    * Creates a PitchShifter instance for an AudioBuffer.
-   * @param context - AudioContext or OfflineAudioContext
-   * @param buffer - Source AudioBuffer
-   * @param bufferSize - Size of ScriptProcessorNode buffer
-   * @param onEnd - Callback when playback ends
+   * @param context AudioContext or OfflineAudioContext
+   * @param buffer Source AudioBuffer
+   * @param bufferSize Size of ScriptProcessorNode buffer
+   * @param onEnd Callback when playback ends
    */
   constructor(
     context: BaseAudioContext,
@@ -103,20 +130,33 @@ export default class PitchShifter {
     this.listeners = [];
   }
 
+  /**
+   * Returns formatted duration string (mm:ss).
+   */
   get formattedDuration(): string {
     return minsSecs(this.duration);
   }
 
+  /**
+   * Returns formatted time played string (mm:ss).
+   */
   get formattedTimePlayed(): string {
     return minsSecs(this.timePlayed);
   }
 
+  /**
+   * Returns percentage of buffer played (0-100).
+   */
   get percentagePlayed(): number {
     return (
       (100 * this._filter.sourcePosition) / (this.duration * this.sampleRate)
     );
   }
 
+  /**
+   * Sets playback position by percentage.
+   * @param perc Percentage (0-100).
+   */
   set percentagePlayed(perc: number) {
     this._filter.sourcePosition = Math.floor(
       perc * this.duration * this.sampleRate,
@@ -125,34 +165,65 @@ export default class PitchShifter {
     this.timePlayed = this.sourcePosition / this.sampleRate;
   }
 
+  /**
+   * Returns the ScriptProcessorNode for audio output.
+   */
   get node(): ScriptProcessorNode {
     return this._node;
   }
 
+  /**
+   * Sets pitch factor.
+   * @param pitch Pitch factor.
+   */
   set pitch(pitch: number) {
     this._soundtouch.pitch = pitch;
   }
 
+  /**
+   * Sets pitch in semitones.
+   * @param semitone Pitch semitones.
+   */
   set pitchSemitones(semitone: number) {
     this._soundtouch.pitchSemitones = semitone;
   }
 
+  /**
+   * Sets playback rate.
+   * @param rate Rate factor.
+   */
   set rate(rate: number) {
     this._soundtouch.rate = rate;
   }
 
+  /**
+   * Sets playback tempo.
+   * @param tempo Tempo factor.
+   */
   set tempo(tempo: number) {
     this._soundtouch.tempo = tempo;
   }
 
+  /**
+   * Connects the ScriptProcessorNode to another AudioNode.
+   * @param toNode Destination AudioNode.
+   */
   connect(toNode: AudioNode): void {
     this._node.connect(toNode);
   }
 
+  /**
+   * Disconnects the ScriptProcessorNode from its destination.
+   */
   disconnect(): void {
     this._node.disconnect();
   }
 
+  /**
+   * Registers an event listener for custom playback events.
+   * @param eventName Event name (e.g. 'play').
+   * @param cb Callback for event detail.
+   */
   on(eventName: string, cb: (detail: PlayEventDetail) => void): void {
     this.listeners.push({ name: eventName, cb });
     this._node.addEventListener(eventName, ((
@@ -160,6 +231,10 @@ export default class PitchShifter {
     ) => cb(event.detail)) as EventListener_2);
   }
 
+  /**
+   * Removes event listeners for custom playback events.
+   * @param eventName Event name to remove (or all if null).
+   */
   off(eventName: string | null = null): void {
     let listeners = this.listeners;
     if (eventName) {
