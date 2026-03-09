@@ -21,28 +21,28 @@
  */
 
 /**
- * Number of bytes per sample (Float32)
+ * Number of bytes per sample (Float32).
  */
 const BYTES_PER_SAMPLE = 4;
 
 /**
- * Number of samples per audio frame (stereo)
+ * Number of samples per audio frame (stereo).
  */
 const SAMPLES_PER_FRAME = 2;
 
 /**
- * Number of bytes per audio frame
+ * Number of bytes per audio frame.
  */
 const BYTES_PER_FRAME = BYTES_PER_SAMPLE * SAMPLES_PER_FRAME;
 
 /**
- * Default maximum number of frames for buffer allocation
+ * Default maximum number of frames for buffer allocation.
  */
 const DEFAULT_MAX_FRAMES = 131072;
 
 /**
- * Resizable interleaved sample buffer for audio processing
- * Uses ES2024 ArrayBuffer for zero-allocation growth
+ * Resizable interleaved sample buffer for audio processing.
+ * Uses ES2024 ArrayBuffer for zero-allocation growth.
  *
  * @remarks
  * Stores stereo audio samples in a contiguous Float32Array

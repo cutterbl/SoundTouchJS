@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/core",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "An audio processing library for manipulating Web Audio Contexts",
   "license": "LGPL-2.1",
   "type": "module",
