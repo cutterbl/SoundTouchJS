@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/monorepo",
-  "version": "0.0.0",
+  "version": "0.3.9",
   "private": true,
   "description": "SoundTouchJS monorepo",
   "license": "LGPL-2.1",
