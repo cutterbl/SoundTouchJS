@@ -1,3 +1,17 @@
+## 1.0.8 (2026-03-18)
+
+### 📖 Documentation
+
+- Remove verbose ([8a6aff9](https://github.com/cutterbl/SoundTouchJS/commit/8a6aff9))
+
+### 🤖 CI
+
+- Update dependencies ([#55](https://github.com/cutterbl/SoundTouchJS/pull/55))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 1.0.7 (2026-03-09)
 
 ### 🩹 Fixes
