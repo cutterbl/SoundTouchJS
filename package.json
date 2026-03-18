@@ -32,20 +32,20 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.4.3",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@nx/js": "22.5.4",
     "@nx/vite": "22.5.4",
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.18",
-    "@types/node": "^25.3.5",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^4.1.0",
     "husky": "^9.1.7",
     "nx": "22.5.4",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vitest": "^4.0.18"
+    "vite": "^8.0.0",
+    "vitest": "^4.1.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

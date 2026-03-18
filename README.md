@@ -127,10 +127,6 @@ LGPL-2.1 — see [LICENSE](LICENSE) for details.
 
 [I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
 
-### TODO
-
-- audio worklets - (Thank You to [Janick Delot](https://github.com/watch-janick) for sponsoring this upcoming feature)
-
 ## In Case You Are Interested
 
 SoundTouchJS is based on the C++ implementation of [Soundtouch](https://www.surina.net/soundtouch/) by Olli Parviainen. The earliest implementation in JavaScript was written by [Ryan Berdeen](https://github.com/also/soundtouch-js) and later expanded by [Jakub Faila](https://github.com/jakubfiala/soundtouch-js). I have further expanded this library into a distributable package, refactored for es2015 development.
