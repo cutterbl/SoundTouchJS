@@ -13,6 +13,14 @@ This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnp
 
 A development [demo app](apps/demo/) is included for testing both packages in a browser.
 
+If you are new to Web Audio, start with the demo guide: [apps/demo/README.md](apps/demo/README.md).
+
+## Documentation
+
+- Core package API and concepts: [packages/core/README.md](packages/core/README.md)
+- AudioWorklet package API and setup: [packages/audio-worklet/README.md](packages/audio-worklet/README.md)
+- Beginner Web Audio + demo architecture guide: [apps/demo/README.md](apps/demo/README.md)
+
 ## Quick start
 
 ### AudioWorklet (recommended)
@@ -99,6 +107,8 @@ pnpm dev
 ```
 
 Opens a browser at `http://localhost:8080` with sliders for tempo, pitch, key, and volume. The demo uses `@soundtouchjs/audio-worklet` under the hood.
+
+For a beginner-oriented walkthrough of the signal graph, playback modes, loop behavior, and parameter cause/effect, see [apps/demo/README.md](apps/demo/README.md).
 
 Music: "Actionable" from [Bensound.com](http://bensound.com). This is a limited use license — refer to [their licensing](https://www.bensound.com/licensing) for details.
 
