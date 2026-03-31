@@ -37,6 +37,8 @@ stNode.pitch.value = 0.9;
 source.start();
 ```
 
+The audio-worklet package exposes wider real-time control ranges for `pitch`, `tempo`, `rate`, and `playbackRate` than earlier releases. Those controls are intentionally capped to balance flexibility with predictable real-time behavior: more extreme values can increase artifacts, reduce output quality, and make buffer behavior less stable on small AudioWorklet render blocks.
+
 ### PitchShifter (ScriptProcessorNode)
 
 The `@soundtouchjs/core` package provides a higher-level `PitchShifter` class with built-in playback tracking. This uses `ScriptProcessorNode`, which is deprecated but widely supported.
