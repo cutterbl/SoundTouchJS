@@ -1,3 +1,13 @@
+## 1.0.9 (2026-03-31)
+
+### 🩹 Fixes
+
+- **@soundtouchjs/audio-worklet:** Expand range ([#57](https://github.com/cutterbl/SoundTouchJS/pull/57), [#56](https://github.com/cutterbl/SoundTouchJS/issues/56))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 1.0.8 (2026-03-18)
 
 ### 📖 Documentation
