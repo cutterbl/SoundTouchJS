@@ -2,6 +2,18 @@ import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 type SourceMode = 'buffer' | 'element';
 
+/**
+ * Demo architecture in one sentence:
+ * source node (AudioBufferSourceNode or HTMLMediaElement) -> SoundTouchNode -> GainNode -> destination.
+ *
+ * Cause/effect summary:
+ * - Source playbackRate controls transport speed (tempo).
+ * - SoundTouchNode.playbackRate mirrors source playbackRate so pitch compensation is correct.
+ * - SoundTouchNode.pitch and pitchSemitones apply musical pitch changes on top.
+ *
+ * For a full beginner-focused Web Audio walkthrough, see ../README.md in this app.
+ */
+
 function formatTime(secs: number): string {
   const mins = Math.floor(secs / 60);
   const seconds = Math.floor(secs - mins * 60);
@@ -42,10 +54,13 @@ const duration = document.getElementById('duration') as HTMLSpanElement;
 const progressMeter = document.getElementById(
   'progressMeter',
 ) as HTMLProgressElement;
+const loopToggle = document.getElementById('loopToggle') as HTMLInputElement;
 const audioEl = document.getElementById('audioEl') as HTMLAudioElement;
 const codeBlock = document.getElementById('codeBlock') as HTMLDivElement;
 
 // --- State ---
+// `pauseOffset` is tracked in source-time seconds (not wall clock time).
+// This lets seek/pause/resume stay correct when tempo changes.
 let audioCtx: AudioContext;
 let gainNode: GainNode;
 let stNode: SoundTouchNode;
@@ -58,6 +73,7 @@ let pauseOffset = 0;
 let rafId = 0;
 let currentTempo = 1;
 let currentPitch = 1;
+let loopEnabled = false;
 let activeMode: SourceMode = 'buffer';
 
 // --- Code snippets ---
@@ -77,6 +93,7 @@ const audioBuffer = await audioCtx.decodeAudioData(buffer);
 
 const source = audioCtx.createBufferSource();
 source.buffer = audioBuffer;
+source.loop = true;
 source.playbackRate.value = tempo;    // tempo via playback rate
 source.connect(stNode);
 
@@ -101,6 +118,7 @@ stNode.connect(gainNode);
 const source = audioCtx.createMediaElementSource(audioEl);
 source.connect(stNode);
 
+audioEl.loop = true;
 audioEl.preservesPitch = false;       // let SoundTouch handle pitch
 audioEl.playbackRate = tempo;         // tempo via element playback rate
 stNode.playbackRate.value = tempo;    // tell processor the source rate
@@ -137,33 +155,77 @@ function connectAudioElement(): void {
   elementSourceNode.connect(stNode);
 }
 
+/**
+ * Converts an arbitrary source-time position into a valid playback offset.
+ *
+ * Cause/effect:
+ * - Loop off  -> clamp to end of file.
+ * - Loop on   -> wrap around with modulo so repeated playback stays continuous.
+ */
+function normalizeOffset(position: number): number {
+  if (!audioBuffer) return position;
+  if (audioBuffer.duration <= 0) return 0;
+  if (loopEnabled) {
+    return position % audioBuffer.duration;
+  }
+  return Math.min(position, audioBuffer.duration);
+}
+
+/**
+ * Single source of truth for loop state.
+ * Applies the toggle to both playback modes so behavior is predictable when switching modes.
+ */
+function setLoop(enabled: boolean): void {
+  loopEnabled = enabled;
+  loopToggle.checked = enabled;
+  if (sourceNode) {
+    sourceNode.loop = enabled;
+  }
+  audioEl.loop = enabled;
+}
+
 // --- Buffer mode: play/pause/progress ---
+/**
+ * UI progress is derived from source-time, not output-time.
+ * This keeps the meter aligned with seek and tempo changes.
+ */
 function updateProgress(): void {
   if (!audioBuffer || !isPlaying) return;
   const wallElapsed = audioCtx.currentTime - playStartTime;
   const sourceElapsed = pauseOffset + wallElapsed * currentTempo;
-  const perc = Math.min(sourceElapsed / audioBuffer.duration, 1);
-  currTime.innerHTML = formatTime(sourceElapsed);
+  const displayElapsed = loopEnabled
+    ? sourceElapsed % audioBuffer.duration
+    : sourceElapsed;
+  const perc = loopEnabled
+    ? displayElapsed / audioBuffer.duration
+    : Math.min(displayElapsed / audioBuffer.duration, 1);
+  currTime.innerHTML = formatTime(displayElapsed);
   progressMeter.value = perc * 100;
-  if (perc >= 1) {
+  if (!loopEnabled && perc >= 1) {
     bufferPause();
     return;
   }
   rafId = requestAnimationFrame(updateProgress);
 }
 
+/**
+ * AudioBufferSourceNode is one-shot, so every play/resume creates a new source node.
+ * The offset determines where playback begins in the source buffer.
+ */
 function bufferPlay(): void {
   if (!audioBuffer) return;
   sourceNode = audioCtx.createBufferSource();
   sourceNode.buffer = audioBuffer;
+  sourceNode.loop = loopEnabled;
   sourceNode.playbackRate.value = currentTempo;
   sourceNode.connect(stNode);
   stNode.playbackRate.value = currentTempo;
 
+  pauseOffset = normalizeOffset(pauseOffset);
   playStartTime = audioCtx.currentTime;
   sourceNode.start(0, pauseOffset);
   sourceNode.onended = () => {
-    if (isPlaying) bufferPause();
+    if (isPlaying && !loopEnabled) bufferPause();
   };
 
   audioCtx.resume().then(() => {
@@ -173,6 +235,10 @@ function bufferPlay(): void {
   });
 }
 
+/**
+ * Stops the current source node and converts wall-clock elapsed time back into source-time offset.
+ * This is what makes pause/resume and tempo edits deterministic.
+ */
 function bufferPause(resume = false): void {
   if (sourceNode) {
     sourceNode.onended = null;
@@ -182,6 +248,7 @@ function bufferPause(resume = false): void {
   }
   if (isPlaying) {
     pauseOffset += (audioCtx.currentTime - playStartTime) * currentTempo;
+    pauseOffset = normalizeOffset(pauseOffset);
   }
   cancelAnimationFrame(rafId);
   isPlaying = resume;
@@ -189,9 +256,14 @@ function bufferPause(resume = false): void {
 }
 
 // --- Element mode ---
+/**
+ * For media elements, playbackRate changes transport speed and would normally pitch-shift.
+ * Setting preservesPitch=false delegates pitch handling to SoundTouch for consistent behavior.
+ */
 function elementPlay(): void {
   audioCtx.resume();
   connectAudioElement();
+  audioEl.loop = loopEnabled;
   audioEl.preservesPitch = false;
   audioEl.playbackRate = currentTempo;
   stNode.playbackRate.value = currentTempo;
@@ -199,6 +271,10 @@ function elementPlay(): void {
 }
 
 // --- Mode switching ---
+/**
+ * Switching mode resets transport-related UI state while keeping processing graph intact.
+ * This avoids stale offsets from one source type leaking into the other.
+ */
 function setMode(mode: SourceMode): void {
   if (isPlaying) {
     if (activeMode === 'buffer') bufferPause();
@@ -238,12 +314,17 @@ setMode('buffer');
 
 playBtn.onclick = bufferPlay;
 stopBtn.onclick = () => bufferPause();
+loopToggle.onchange = () => setLoop(loopToggle.checked);
+setLoop(false);
 
 tempoSlider.addEventListener('input', () => {
   const newTempo = Number(tempoSlider.value);
   if (activeMode === 'buffer') {
+    // Fold elapsed wall time into source offset before changing tempo,
+    // then restart accumulation from the new tempo.
     if (isPlaying) {
       pauseOffset += (audioCtx.currentTime - playStartTime) * currentTempo;
+      pauseOffset = normalizeOffset(pauseOffset);
       playStartTime = audioCtx.currentTime;
     }
     if (sourceNode) sourceNode.playbackRate.value = newTempo;
