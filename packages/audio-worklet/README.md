@@ -86,13 +86,15 @@ stNode.pitchSemitones.value = -3;
 stNode.pitch.linearRampToValueAtTime(2.0, audioCtx.currentTime + 5);
 ```
 
-| Parameter        | Default | Range      | Description                                        |
-| ---------------- | ------- | ---------- | -------------------------------------------------- |
-| `pitch`          | 1.0     | 0.25 – 4.0 | Pitch multiplier (1.0 = original)                  |
-| `tempo`          | 1.0     | 0.25 – 4.0 | Tempo multiplier (1.0 = original)                  |
-| `rate`           | 1.0     | 0.25 – 4.0 | Playback rate (affects both pitch and tempo)       |
-| `pitchSemitones` | 0       | -24 – 24   | Pitch shift in semitones (combined with `pitch`)   |
-| `playbackRate`   | 1.0     | 0.25 – 4.0 | Source playback rate (for auto pitch compensation) |
+| Parameter        | Default | Range     | Description                                        |
+| ---------------- | ------- | --------- | -------------------------------------------------- |
+| `pitch`          | 1.0     | 0.1 – 8.0 | Pitch multiplier (1.0 = original)                  |
+| `tempo`          | 1.0     | 0.1 – 8.0 | Tempo multiplier (1.0 = original)                  |
+| `rate`           | 1.0     | 0.1 – 8.0 | Playback rate (affects both pitch and tempo)       |
+| `pitchSemitones` | 0       | -24 – 24  | Pitch shift in semitones (combined with `pitch`)   |
+| `playbackRate`   | 1.0     | 0.1 – 8.0 | Source playback rate (for auto pitch compensation) |
+
+These ranges are intentionally broader than the typical musical sweet spot, but still bounded for real-time stability. Values outside this window tend to produce more audible artifacts, less predictable output, and higher risk of buffer starvation or unnatural sounding results, especially in the AudioWorklet's small render blocks. For most material, settings closer to `1.0` will sound cleaner.
 
 ### Full example — AudioBuffer
 

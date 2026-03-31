@@ -35,22 +35,22 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       {
         name: 'pitch',
         defaultValue: 1.0,
-        minValue: 0.25,
-        maxValue: 4.0,
+        minValue: 0.1,
+        maxValue: 8.0,
         automationRate: 'k-rate',
       },
       {
         name: 'tempo',
         defaultValue: 1.0,
-        minValue: 0.25,
-        maxValue: 4.0,
+        minValue: 0.1,
+        maxValue: 8.0,
         automationRate: 'k-rate',
       },
       {
         name: 'rate',
         defaultValue: 1.0,
-        minValue: 0.25,
-        maxValue: 4.0,
+        minValue: 0.1,
+        maxValue: 8.0,
         automationRate: 'k-rate',
       },
       {
@@ -63,8 +63,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       {
         name: 'playbackRate',
         defaultValue: 1.0,
-        minValue: 0.25,
-        maxValue: 4.0,
+        minValue: 0.1,
+        maxValue: 8.0,
         automationRate: 'k-rate',
       },
     ];
