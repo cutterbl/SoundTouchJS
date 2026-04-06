@@ -1,3 +1,17 @@
+## 1.0.10 (2026-04-06)
+
+### 🚀 Features
+
+- **demo:** Add loop playback toggle and beginner Web Audio docs ([#58](https://github.com/cutterbl/SoundTouchJS/pull/58), [#31](https://github.com/cutterbl/SoundTouchJS/issues/31))
+
+### 🏡 Chore
+
+- Dependency updates ([#60](https://github.com/cutterbl/SoundTouchJS/pull/60))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 1.0.9 (2026-03-31)
 
 ### 🩹 Fixes
