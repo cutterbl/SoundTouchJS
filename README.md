@@ -135,7 +135,7 @@ The original SoundTouch library was written in C++ by Olli Parviainen. It was fi
 
 ## License
 
-LGPL-2.1 — see [LICENSE](LICENSE) for details.
+LGPL-3.0 — see [LICENSE](LICENSE) for details.
 
 [I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
 
