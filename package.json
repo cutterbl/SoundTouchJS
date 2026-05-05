@@ -16,7 +16,7 @@
     "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
     "Adria Holovaty (http://www.holovaty.com/)"
   ],
-  "license": "LGPL-2.1",
+  "license": "LGPL-3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cutterbl/SoundTouchJS.git"
