@@ -20,9 +20,8 @@ function createMockAudioBuffer(length = 44100, channels = 2): AudioBuffer {
 }
 
 function createMockAudioContext(): BaseAudioContext {
-  let onaudioprocessHandler:
-    | ((event: AudioProcessingEvent) => void)
-    | null = null;
+  let onaudioprocessHandler: ((event: AudioProcessingEvent) => void) | null =
+    null;
 
   const node = {
     set onaudioprocess(fn: (event: AudioProcessingEvent) => void) {
@@ -36,6 +35,9 @@ function createMockAudioContext(): BaseAudioContext {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
+    _trigger(event: AudioProcessingEvent) {
+      onaudioprocessHandler?.(event);
+    },
   };
 
   return {
@@ -44,12 +46,31 @@ function createMockAudioContext(): BaseAudioContext {
   } as unknown as BaseAudioContext;
 }
 
+function createMockAudioProcessingEvent(
+  bufferSize: number,
+): AudioProcessingEvent {
+  const left = new Float32Array(bufferSize);
+  const right = new Float32Array(bufferSize);
+
+  return {
+    outputBuffer: {
+      getChannelData: vi.fn((channel: number) =>
+        channel === 0 ? left : right,
+      ),
+    },
+  } as unknown as AudioProcessingEvent;
+}
+
 describe('PitchShifter', () => {
   describe('constructor', () => {
     it('initializes with correct defaults', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(shifter.timePlayed).toBe(0);
       expect(shifter.sourcePosition).toBe(0);
       expect(shifter.duration).toBe(buffer.duration);
@@ -61,7 +82,57 @@ describe('PitchShifter', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
       const onEnd = vi.fn();
-      expect(() => new PitchShifter(ctx, buffer, 4096, onEnd)).not.toThrow();
+      expect(
+        () =>
+          new PitchShifter({
+            context: ctx,
+            buffer,
+            bufferSize: 4096,
+            onEnd,
+          }),
+      ).not.toThrow();
+    });
+
+    it('accepts circular sample buffer type', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer();
+      expect(
+        () =>
+          new PitchShifter({
+            context: ctx,
+            buffer,
+            bufferSize: 4096,
+            sampleBufferType: 'circular',
+          }),
+      ).not.toThrow();
+    });
+
+    it('accepts sampleBufferType option', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer();
+      expect(
+        () =>
+          new PitchShifter({
+            context: ctx,
+            buffer,
+            bufferSize: 4096,
+            sampleBufferType: 'fifo',
+          }),
+      ).not.toThrow();
+    });
+
+    it('accepts interpolationStrategy option', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer();
+      expect(
+        () =>
+          new PitchShifter({
+            context: ctx,
+            buffer,
+            bufferSize: 4096,
+            interpolationStrategy: 'lanczos8',
+          }),
+      ).not.toThrow();
     });
   });
 
@@ -69,7 +140,11 @@ describe('PitchShifter', () => {
     it('returns formatted MM:SS string', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer(44100 * 65);
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(shifter.formattedDuration).toBe('1:05');
     });
   });
@@ -78,7 +153,11 @@ describe('PitchShifter', () => {
     it('returns 0:00 initially', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(shifter.formattedTimePlayed).toBe('0:00');
     });
   });
@@ -87,14 +166,22 @@ describe('PitchShifter', () => {
     it('returns 0 initially', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(shifter.percentagePlayed).toBe(0);
     });
 
     it('can be set and updates internal state', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       shifter.percentagePlayed = 0.5;
       expect(shifter.timePlayed).toBeGreaterThan(0);
       expect(shifter.sourcePosition).toBeGreaterThan(0);
@@ -105,7 +192,11 @@ describe('PitchShifter', () => {
     it('returns the ScriptProcessorNode', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(shifter.node).toBeDefined();
     });
   });
@@ -114,7 +205,11 @@ describe('PitchShifter', () => {
     it('sets pitch without throwing', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(() => {
         shifter.pitch = 2.0;
       }).not.toThrow();
@@ -123,7 +218,11 @@ describe('PitchShifter', () => {
     it('sets rate without throwing', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(() => {
         shifter.rate = 1.5;
       }).not.toThrow();
@@ -132,7 +231,11 @@ describe('PitchShifter', () => {
     it('sets tempo without throwing', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(() => {
         shifter.tempo = 0.5;
       }).not.toThrow();
@@ -141,7 +244,11 @@ describe('PitchShifter', () => {
     it('sets pitchSemitones without throwing', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       expect(() => {
         shifter.pitchSemitones = 3;
       }).not.toThrow();
@@ -152,7 +259,11 @@ describe('PitchShifter', () => {
     it('delegates connect to the internal node', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       const destNode = { context: ctx } as unknown as AudioNode;
       shifter.connect(destNode);
       expect(shifter.node.connect).toHaveBeenCalledWith(destNode);
@@ -161,7 +272,11 @@ describe('PitchShifter', () => {
     it('delegates disconnect to the internal node', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       shifter.disconnect();
       expect(shifter.node.disconnect).toHaveBeenCalled();
     });
@@ -171,7 +286,11 @@ describe('PitchShifter', () => {
     it('registers event listener', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       const cb = vi.fn();
       shifter.on('play', cb);
       expect(shifter.listeners).toHaveLength(1);
@@ -182,7 +301,11 @@ describe('PitchShifter', () => {
     it('removes all listeners when off() called without argument', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       shifter.on('play', vi.fn());
       shifter.on('play', vi.fn());
       shifter.off();
@@ -192,11 +315,98 @@ describe('PitchShifter', () => {
     it('removes only matching listeners when name is provided', () => {
       const ctx = createMockAudioContext();
       const buffer = createMockAudioBuffer();
-      const shifter = new PitchShifter(ctx, buffer, 4096);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
       shifter.on('play', vi.fn());
       shifter.on('other', vi.fn());
       shifter.off('play');
       expect(shifter.node.removeEventListener).toHaveBeenCalledTimes(1);
+    });
+
+    it('invokes the registered callback with play event detail', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer();
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
+      const cb = vi.fn();
+
+      shifter.on('play', cb);
+
+      const handler = vi.mocked(shifter.node.addEventListener).mock
+        .calls[0]?.[1] as (
+        event: CustomEvent<{
+          timePlayed: number;
+          formattedTimePlayed: string;
+          percentagePlayed: number;
+        }>,
+      ) => void;
+
+      handler(
+        new CustomEvent('play', {
+          detail: {
+            timePlayed: 1,
+            formattedTimePlayed: '0:01',
+            percentagePlayed: 25,
+          },
+        }),
+      );
+
+      expect(cb).toHaveBeenCalledWith({
+        timePlayed: 1,
+        formattedTimePlayed: '0:01',
+        percentagePlayed: 25,
+      });
+    });
+  });
+
+  describe('audio processing events', () => {
+    it('dispatches a play event when source position changes', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer(44100 * 2);
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
+      const node = shifter.node as unknown as {
+        _trigger: (event: AudioProcessingEvent) => void;
+      };
+
+      node._trigger(createMockAudioProcessingEvent(4096));
+
+      expect(shifter.node.dispatchEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dispatch a play event when source position does not change', () => {
+      const ctx = createMockAudioContext();
+      const buffer = createMockAudioBuffer();
+      const shifter = new PitchShifter({
+        context: ctx,
+        buffer,
+        bufferSize: 4096,
+      });
+      const node = shifter.node as unknown as {
+        _trigger: (event: AudioProcessingEvent) => void;
+      };
+      const filter = (
+        shifter as unknown as {
+          _filter: {
+            extract: (target: Float32Array, numFrames: number) => number;
+          };
+        }
+      )._filter;
+
+      vi.spyOn(filter, 'extract').mockReturnValue(0);
+
+      node._trigger(createMockAudioProcessingEvent(4096));
+
+      expect(shifter.node.dispatchEvent).not.toHaveBeenCalled();
     });
   });
 });

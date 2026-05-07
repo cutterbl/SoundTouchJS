@@ -1,0 +1,22 @@
+{
+  "name": "@soundtouchjs/storybook",
+  "targets": {
+    "storybook": {
+      "executor": "@nx/storybook:storybook",
+      "options": {
+        "configDir": "storybook/.storybook",
+        "outputPath": "dist/storybook",
+        "port": 4400
+      },
+      "inputs": ["default", "^default"]
+    },
+    "build-storybook": {
+      "executor": "@nx/storybook:build",
+      "options": {
+        "configDir": "storybook/.storybook",
+        "outputDir": "dist/storybook"
+      },
+      "inputs": ["default", "^default"]
+    }
+  }
+}

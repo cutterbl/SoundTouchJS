@@ -72,6 +72,16 @@
       <button id="modeBuffer" class="active">AudioBuffer</button>
       <button id="modeElement">Audio Element</button>
     </div>
+    <label style="display: flex; gap: 1rem">
+      <input type="checkbox" id="circularAdapterToggle" />
+      Use FIFO sample buffers (reloads demo)
+    </label>
+    <div id="adapterMode"></div>
+    <label style="display: flex; gap: 1rem">
+      <input type="checkbox" id="interpolationToggle" />
+      Use linear interpolation (reloads demo)
+    </label>
+    <div id="interpolationMode"></div>
     <div id="bufferControls">
       <button id="play" disabled>Play</button>
       <button id="stop">Pause</button>

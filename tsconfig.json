@@ -11,6 +11,12 @@
     },
     {
       "path": "./packages/audio-worklet"
+    },
+    {
+      "path": "./packages/interpolation-strategy-lanczos"
+    },
+    {
+      "path": "./packages/interpolation-strategy-linear"
     }
   ]
 }

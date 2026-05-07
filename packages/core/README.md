@@ -8,6 +8,10 @@ Core audio processing library for real-time pitch shifting, tempo adjustment, an
 npm install @soundtouchjs/core
 ```
 
+## API docs
+
+Detailed developer documentation for all public class and function exports is available in [`./docs`](./docs/README.md).
+
 ## Usage
 
 ### PitchShifter (ScriptProcessorNode)
@@ -25,7 +29,11 @@ const response = await fetch('/audio.mp3');
 const buffer = await response.arrayBuffer();
 const audioBuffer = await audioCtx.decodeAudioData(buffer);
 
-const shifter = new PitchShifter(audioCtx, audioBuffer, 16384);
+const shifter = new PitchShifter({
+  context: audioCtx,
+  buffer: audioBuffer,
+  bufferSize: 16384,
+});
 shifter.tempo = 1.2;
 shifter.pitch = 0.9;
 shifter.pitchSemitones = -2;
@@ -42,6 +50,42 @@ shifter.connect(gainNode);
 shifter.disconnect();
 ```
 
+By default, `SoundTouch` and `PitchShifter` use circular sample buffers internally. To override that and force FIFO buffers:
+
+```ts
+const shifter = new PitchShifter({
+  context: audioCtx,
+  buffer: audioBuffer,
+  bufferSize: 16384,
+  sampleBufferType: 'fifo',
+});
+```
+
+### Interpolation strategy selection
+
+`RateTransposer` now resolves interpolation through a strategy registry. The default strategy id is `lanczos8`.
+
+To opt into linear interpolation:
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerLinearStrategy } from '@cxing/interpolation-strategy-linear';
+
+registerLinearStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: 'linear',
+});
+```
+
+To use default Lanczos explicitly:
+
+```ts
+const st = new SoundTouch({
+  interpolationStrategy: 'lanczos8',
+});
+```
+
 > **Note:** `ScriptProcessorNode` is deprecated in the Web Audio spec. For new projects, consider using [`@soundtouchjs/audio-worklet`](../audio-worklet/README.md) which provides an `AudioWorklet`-based implementation.
 
 ### Low-level API
@@ -50,18 +94,27 @@ All internal components are exported for advanced use cases:
 
 ```ts
 import {
+  CircularSampleBuffer,
   SoundTouch,
   SimpleFilter,
   WebAudioBufferSource,
   FifoSampleBuffer,
+  registerInterpolationStrategy,
+  setActiveInterpolationStrategy,
 } from '@soundtouchjs/core';
 
-const st = new SoundTouch();
+const st = new SoundTouch({});
 st.pitch = 1.5;
 st.tempo = 0.8;
 
+// Optional FIFO override
+const stFifo = new SoundTouch({
+  sampleRate: 44100,
+  sampleBufferType: 'fifo',
+});
+
 const source = new WebAudioBufferSource(audioBuffer);
-const filter = new SimpleFilter(source, st);
+const filter = new SimpleFilter({ sourceSound: source, pipe: st });
 
 // Pull processed samples
 const outputBuffer = new Float32Array(4096);
@@ -70,16 +123,38 @@ const framesRead = filter.extract(outputBuffer, 2048);
 
 #### Key classes
 
-| Export                 | Description                                                                |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `SoundTouch`           | Main processing engine — set `pitch`, `tempo`, `rate`, or `pitchSemitones` |
-| `PitchShifter`         | High-level wrapper using `ScriptProcessorNode` with playback events        |
-| `SimpleFilter`         | Pulls samples through a `SoundTouch` pipe from a source                    |
-| `WebAudioBufferSource` | Adapter from `AudioBuffer` to the internal sample source interface         |
-| `FifoSampleBuffer`     | Resizable interleaved sample buffer (ES2024 `ArrayBuffer`)                 |
-| `getWebAudioNode`      | Creates a `ScriptProcessorNode` wired to a `SimpleFilter`                  |
-| `Stretch`              | Time-stretch processor (used internally by `SoundTouch`)                   |
-| `RateTransposer`       | Sample rate transposer (used internally by `SoundTouch`)                   |
+| Export                           | Description                                                                |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| `SoundTouch`                     | Main processing engine — set `pitch`, `tempo`, `rate`, or `pitchSemitones` |
+| `PitchShifter`                   | High-level wrapper using `ScriptProcessorNode` with playback events        |
+| `SimpleFilter`                   | Pulls samples through a `SoundTouch` pipe from a source                    |
+| `WebAudioBufferSource`           | Adapter from `AudioBuffer` to the internal sample source interface         |
+| `CircularSampleBuffer`           | Circular interleaved sample buffer used by the default processing path     |
+| `FifoSampleBuffer`               | Resizable interleaved sample buffer (ES2024 `ArrayBuffer`)                 |
+| `getWebAudioNode`                | Creates a `ScriptProcessorNode` wired to a `SimpleFilter`                  |
+| `Stretch`                        | Time-stretch processor (used internally by `SoundTouch`)                   |
+| `RateTransposer`                 | Sample rate transposer (used internally by `SoundTouch`)                   |
+| `registerInterpolationStrategy`  | Registers a custom interpolation strategy id (or kernel)                   |
+| `setActiveInterpolationStrategy` | Changes process-wide default interpolation strategy id                     |
+
+## Constructor API (breaking)
+
+`@soundtouchjs/core` constructors now use named options objects instead of positional arguments.
+
+Examples:
+
+```ts
+new SoundTouch({ sampleRate: 44100, sampleBufferType: 'fifo' });
+
+new PitchShifter({
+  context: audioCtx,
+  buffer: audioBuffer,
+  bufferSize: 16384,
+  sampleBufferType: 'fifo',
+});
+
+new SimpleFilter({ sourceSound: source, pipe: soundTouch });
+```
 
 ## What's changed in v0.4
 
@@ -87,12 +162,13 @@ const framesRead = filter.extract(outputBuffer, 2048);
 - **TypeScript**: Full rewrite — strict mode, zero `any`, complete type exports
 - **ESM only**: Pure ES modules targeting ES2024 (`import`/`export`, no CommonJS)
 - **ES2024 buffers**: `FifoSampleBuffer` uses resizable `ArrayBuffer` for zero-allocation growth
+- **Interpolation plugin architecture**: strategy registry with `lanczos8` default and pluggable strategies
 - **Optimized internals**: Scratch buffer reuse in `SimpleFilter`, dirty-flag overlap buffers in `Stretch`
 - **Zero runtime dependencies**
 
 ## License
 
-LGPL-2.1 — see [LICENSE](../../LICENSE) for details.
+LGPL-3.0 — see [LICENSE](../../LICENSE) for details.
 
 ## Key switching and pitch control
 

@@ -1,5 +1,12 @@
 # SoundTouchJS Monorepo
 
+## Local Environment
+
+- OS: macOS
+- Shell: zsh
+- `rg` (ripgrep) is not installed
+- Prefer `find` and `grep` when searching files/content
+
 ## Architecture
 
 Nx monorepo with pnpm workspaces and TypeScript project references.
@@ -32,13 +39,21 @@ pnpm dev                  # Start demo dev server (Vite on port 8080)
 pnpm prettier             # Format all files
 ```
 
+Test execution rule:
+
+- Always run Vitest with `--run` (never watch mode), e.g. `pnpm exec vitest --run`.
+
 Individual project commands:
 
 ```sh
-pnpm nx build core        # Build the library (TSC → packages/core/dist/)
+pnpm nx build core        # Build the library (TSC → packages/core/.dist/)
 pnpm nx build demo        # Build the demo app (Vite → apps/demo/dist/)
 pnpm nx dev demo          # Dev server with HMR
 ```
+
+Package build output convention:
+
+- Publishable packages build to `.dist/` (dot-prefixed) and publish ESM outputs from there.
 
 ## Conventions
 
@@ -48,6 +63,7 @@ pnpm nx dev demo          # Dev server with HMR
 - Workspace dependency uses `"workspace:*"` protocol (pnpm)
 - CI runs on GitHub Actions (`.github/workflows/main.yml`)
 - Pre-commit hook runs typecheck (skipped in CI via `$CI` env var)
+- Keep docs up to date with code changes: update affected README/docs files whenever public behavior, APIs, defaults, or workflows are changed
 
 ## Do Not
 
@@ -55,4 +71,4 @@ pnpm nx dev demo          # Dev server with HMR
 - Do not use CommonJS (`require`/`module.exports`) anywhere
 - Do not use `any` type — use `unknown` with narrowing or proper generics
 - Do not add dependencies to the core library — it has zero runtime dependencies
-- Do not commit `dist/`, `.nx/`, or `*.tsbuildinfo` files
+- Do not commit `.dist/`, `dist/`, `.nx/`, or `*.tsbuildinfo` files

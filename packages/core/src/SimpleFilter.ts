@@ -8,7 +8,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,15 +24,26 @@ import FilterSupport from './FilterSupport.js';
 import type { SamplePipe } from './FilterSupport.js';
 import noop from './noop.js';
 
+interface SimpleFilterSourceSound {
+  extract(target: Float32Array, numFrames: number, position: number): number;
+}
+
+export interface SimpleFilterConstructorOptions {
+  /** Source object with extract method. */
+  sourceSound: SimpleFilterSourceSound;
+  /** SoundTouch or other SamplePipe. */
+  pipe: SamplePipe;
+  /** Optional callback for end of playback. */
+  callback?: () => void;
+}
+
 /**
  * Pulls samples through a SoundTouch pipe from a source.
  * Used internally for real-time processing and playback.
  */
 export default class SimpleFilter extends FilterSupport {
   private callback: () => void;
-  private sourceSound: {
-    extract(target: Float32Array, numFrames: number, position: number): number;
-  };
+  private sourceSound: SimpleFilterSourceSound;
   private historyBufferSize: number;
   private _sourcePosition: number;
   private outputBufferPosition: number;
@@ -41,21 +52,13 @@ export default class SimpleFilter extends FilterSupport {
 
   /**
    * Creates a SimpleFilter instance.
-   * @param sourceSound - Source object with extract method
-   * @param pipe - SoundTouch or other SamplePipe
-   * @param callback - Optional callback for end of playback
+   * @param options Constructor options.
    */
-  constructor(
-    sourceSound: {
-      extract(
-        target: Float32Array,
-        numFrames: number,
-        position: number,
-      ): number;
-    },
-    pipe: SamplePipe,
-    callback: () => void = noop,
-  ) {
+  constructor({
+    sourceSound,
+    pipe,
+    callback = noop,
+  }: SimpleFilterConstructorOptions) {
     super(pipe);
     this.callback = callback;
     this.sourceSound = sourceSound;

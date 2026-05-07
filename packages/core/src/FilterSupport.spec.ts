@@ -71,5 +71,19 @@ describe('FilterSupport', () => {
       expect(pipe.process).toHaveBeenCalled();
       expect(callCount).toBeGreaterThanOrEqual(1);
     });
+
+    it('stops before processing when fillInputBuffer leaves too little input', () => {
+      const pipe = createMockPipe();
+      const filter = new FilterSupport(pipe);
+
+      filter.fillInputBuffer = vi.fn(() => {
+        pipe.inputBuffer!.putSamples(new Float32Array(8));
+      });
+
+      filter.fillOutputBuffer(50);
+
+      expect(filter.fillInputBuffer).toHaveBeenCalled();
+      expect(pipe.process).not.toHaveBeenCalled();
+    });
   });
 });

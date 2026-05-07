@@ -1,6 +1,7 @@
 import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 type SourceMode = 'buffer' | 'element';
+type InterpolationStrategy = 'linear' | 'lanczos8';
 
 /**
  * Demo architecture in one sentence:
@@ -57,6 +58,53 @@ const progressMeter = document.getElementById(
 const loopToggle = document.getElementById('loopToggle') as HTMLInputElement;
 const audioEl = document.getElementById('audioEl') as HTMLAudioElement;
 const codeBlock = document.getElementById('codeBlock') as HTMLDivElement;
+const circularAdapterToggle = document.getElementById(
+  'circularAdapterToggle',
+) as HTMLInputElement;
+const adapterMode = document.getElementById('adapterMode') as HTMLDivElement;
+const interpolationToggle = document.getElementById(
+  'interpolationToggle',
+) as HTMLInputElement;
+const interpolationMode = document.getElementById(
+  'interpolationMode',
+) as HTMLDivElement;
+
+const searchParams = new URLSearchParams(window.location.search);
+const useFifoSampleBuffers = searchParams.get('sampleBufferType') === 'fifo';
+const interpolationStrategy: InterpolationStrategy =
+  searchParams.get('interpolationStrategy') === 'linear'
+    ? 'linear'
+    : 'lanczos8';
+
+function getAdapterModeLabel(): string {
+  return useFifoSampleBuffers
+    ? 'FIFO sample buffers enabled'
+    : 'Circular sample buffers enabled (default)';
+}
+
+function getInterpolationModeLabel(): string {
+  return interpolationStrategy === 'lanczos8'
+    ? 'Lanczos interpolation enabled (default)'
+    : 'Linear interpolation enabled (override)';
+}
+
+function getNodeOptionsSnippet(): string {
+  if (!useFifoSampleBuffers && interpolationStrategy === 'lanczos8') {
+    return 'const stNode = new SoundTouchNode({ context: audioCtx });';
+  }
+
+  const options = [`context: audioCtx`];
+  if (useFifoSampleBuffers) {
+    options.push(`sampleBufferType: 'fifo'`);
+  }
+  if (interpolationStrategy === 'linear') {
+    options.push(`interpolationStrategy: 'linear'`);
+  }
+
+  return `const stNode = new SoundTouchNode({
+  ${options.join(',\n  ')},
+});`;
+}
 
 // --- State ---
 // `pauseOffset` is tracked in source-time seconds (not wall clock time).
@@ -84,7 +132,7 @@ const gainNode = audioCtx.createGain();
 gainNode.connect(audioCtx.destination);
 
 await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
-const stNode = new SoundTouchNode(audioCtx);
+${getNodeOptionsSnippet()}
 stNode.connect(gainNode);
 
 const response = await fetch('/audio.mp3');
@@ -112,7 +160,7 @@ const gainNode = audioCtx.createGain();
 gainNode.connect(audioCtx.destination);
 
 await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
-const stNode = new SoundTouchNode(audioCtx);
+${getNodeOptionsSnippet()}
 stNode.connect(gainNode);
 
 const source = audioCtx.createMediaElementSource(audioEl);
@@ -131,7 +179,11 @@ async function init(): Promise<void> {
   audioCtx = new AudioContext();
   gainNode = audioCtx.createGain();
   await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
-  stNode = new SoundTouchNode(audioCtx);
+  stNode = new SoundTouchNode({
+    context: audioCtx,
+    sampleBufferType: useFifoSampleBuffers ? 'fifo' : 'circular',
+    interpolationStrategy,
+  });
   stNode.connect(gainNode);
   gainNode.connect(audioCtx.destination);
 }
@@ -307,6 +359,30 @@ function setMode(mode: SourceMode): void {
 
 modeBufferBtn.onclick = () => setMode('buffer');
 modeElementBtn.onclick = () => setMode('element');
+circularAdapterToggle.checked = useFifoSampleBuffers;
+adapterMode.textContent = getAdapterModeLabel();
+interpolationToggle.checked = interpolationStrategy === 'linear';
+interpolationMode.textContent = getInterpolationModeLabel();
+circularAdapterToggle.onchange = () => {
+  const next = new URLSearchParams(window.location.search);
+  if (circularAdapterToggle.checked) {
+    next.set('sampleBufferType', 'fifo');
+  } else {
+    next.delete('sampleBufferType');
+  }
+  const query = next.toString();
+  window.location.search = query.length > 0 ? `?${query}` : '';
+};
+interpolationToggle.onchange = () => {
+  const next = new URLSearchParams(window.location.search);
+  if (interpolationToggle.checked) {
+    next.set('interpolationStrategy', 'linear');
+  } else {
+    next.delete('interpolationStrategy');
+  }
+  const query = next.toString();
+  window.location.search = query.length > 0 ? `?${query}` : '';
+};
 
 // --- Load and set initial mode ---
 loadAudioBuffer('./bensound-actionable.mp3');

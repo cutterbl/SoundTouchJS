@@ -5,7 +5,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"],
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": ["{projectRoot}/.dist"],
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",

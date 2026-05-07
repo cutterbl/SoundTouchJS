@@ -1,0 +1,43 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/SoundTouchNode" />
+
+# SoundTouchNode
+
+## Import
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+```
+
+## Purpose
+
+`SoundTouchNode` is the main-thread `AudioWorkletNode` wrapper for SoundTouch processing on the render thread.
+
+It provides:
+
+- Worklet module registration helpers.
+- Constructor options for sample-buffer and interpolation strategy behavior.
+- Typed `AudioParam` getters for runtime control.
+
+## Constructor
+
+```ts
+new SoundTouchNode({
+  context,
+  processorUrl?,
+  sampleBufferType?,
+  interpolationStrategy?,
+})
+```
+
+### Options
+
+- `context`: `BaseAudioContext` (required)
+- `processorUrl`: optional convenience field retained in options type (registration still done via `register`)
+- `sampleBufferType`: `'circular' | 'fifo'` (defaults internally to package constant)
+- `interpolationStrategy`: strategy id/descriptor understood by `@soundtouchjs/core`
+
+## Static methods
+
+### `register(context, processorUrl)`

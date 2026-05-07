@@ -1,0 +1,31 @@
+{
+  "name": "@cxing/interpolation-strategy-lanczos",
+  "version": "0.1.0",
+  "description": "Lanczos interpolation strategy for SoundTouchJS and audio-worklet.",
+  "type": "module",
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./.dist/index.js",
+      "types": "./.dist/index.d.ts"
+    }
+  },
+  "files": [
+    ".dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "soundtouchjs",
+    "interpolation",
+    "lanczos",
+    "audio",
+    "dsp"
+  ],
+  "author": "@cxing",
+  "license": "MIT",
+  "dependencies": {}
+}

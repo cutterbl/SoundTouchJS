@@ -8,7 +8,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,12 +20,45 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import type { SampleBufferFactory, SampleBufferType } from './SampleBuffer.js';
+import type { RateTransposerInterpolationStrategy } from './RateTransposer.js';
 import WebAudioBufferSource from './WebAudioBufferSource.js';
 import getWebAudioNode from './getWebAudioNode.js';
-import SoundTouch from './SoundTouch.js';
+import SoundTouch, { type SoundTouchOptions } from './SoundTouch.js';
 import SimpleFilter from './SimpleFilter.js';
 import minsSecs from './minsSecs.js';
 import noop from './noop.js';
+
+/**
+ * Optional configuration for `PitchShifter`.
+ */
+export interface PitchShifterOptions {
+  /**
+   * Internal buffer strategy used by the underlying `SoundTouch` instance.
+   */
+  sampleBufferType?: SampleBufferType;
+
+  /**
+   * Factory that creates chain buffers for advanced integration scenarios.
+   */
+  sampleBufferFactory?: SampleBufferFactory;
+
+  /**
+   * Interpolation strategy used by the internal transposer stage.
+   */
+  interpolationStrategy?: RateTransposerInterpolationStrategy;
+}
+
+export interface PitchShifterConstructorOptions extends PitchShifterOptions {
+  /** Audio context that owns the ScriptProcessor graph. */
+  context: BaseAudioContext;
+  /** Source audio buffer. */
+  buffer: AudioBuffer;
+  /** ScriptProcessor buffer size. */
+  bufferSize: number;
+  /** Callback when playback reaches end of source. */
+  onEnd?: () => void;
+}
 
 /**
  * Detail object emitted with the 'play' event.
@@ -101,22 +134,32 @@ export default class PitchShifter {
 
   /**
    * Creates a PitchShifter instance for an AudioBuffer.
-   * @param context AudioContext or OfflineAudioContext
-   * @param buffer Source AudioBuffer
-   * @param bufferSize Size of ScriptProcessorNode buffer
-   * @param onEnd Callback when playback ends
+   * @param options Constructor options.
    */
-  constructor(
-    context: BaseAudioContext,
-    buffer: AudioBuffer,
-    bufferSize: number,
-    onEnd: () => void = noop,
-  ) {
-    this._soundtouch = new SoundTouch();
+  constructor({
+    context,
+    buffer,
+    bufferSize,
+    onEnd = noop,
+    sampleBufferType,
+    sampleBufferFactory,
+    interpolationStrategy,
+  }: PitchShifterConstructorOptions) {
+    const soundTouchOptions: SoundTouchOptions = {
+      sampleRate: context.sampleRate,
+      sampleBufferType,
+      sampleBufferFactory,
+      interpolationStrategy,
+    };
+    this._soundtouch = new SoundTouch(soundTouchOptions);
     const source = new WebAudioBufferSource(buffer);
     this.timePlayed = 0;
     this.sourcePosition = 0;
-    this._filter = new SimpleFilter(source, this._soundtouch, onEnd);
+    this._filter = new SimpleFilter({
+      sourceSound: source,
+      pipe: this._soundtouch,
+      callback: onEnd,
+    });
     this._node = getWebAudioNode(
       context,
       this._filter,

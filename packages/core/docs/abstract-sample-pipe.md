@@ -1,0 +1,34 @@
+# AbstractSamplePipe
+
+## Import
+
+```ts
+import { AbstractSamplePipe } from '@soundtouchjs/core';
+```
+
+## Purpose
+
+`AbstractSamplePipe` is the generic base class for pipeline stages that read from an input buffer and write to an output buffer.
+
+## Constructor
+
+```ts
+new AbstractSamplePipe({
+  createBuffers?: boolean,
+  inputBufferFactory?: () => TInputBuffer,
+  outputBufferFactory?: () => TOutputBuffer,
+})
+```
+
+When `createBuffers` is `true`, both factories are required.
+
+## Public API
+
+- `inputBuffer` getter and setter
+- `outputBuffer` getter and setter
+- `clear()`
+
+## Notes
+
+- Most applications use concrete subclasses (`Stretch`, `RateTransposer`) rather than using this class directly.
+- `clear()` delegates to both buffers when present.

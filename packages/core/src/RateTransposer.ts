@@ -8,7 +8,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,43 +20,143 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import AbstractFifoSamplePipe from './AbstractFifoSamplePipe.js';
+import AbstractSamplePipe from './AbstractSamplePipe.js';
+import CircularSampleBuffer from './CircularSampleBuffer.js';
+import FifoSampleBuffer from './FifoSampleBuffer.js';
+import {
+  createCircularSampleBufferAdapter,
+  createFifoSampleBufferAdapter,
+  type SampleBufferAdapter,
+  type SampleBufferAdapterFactory,
+} from './SampleBufferAdapter.js';
+import {
+  normalizeInterpolationStrategyId,
+  resolveInterpolationStrategy,
+  type RateTransposerInterpolationStrategyId,
+  type RateTransposerInterpolationStrategyOption,
+  type InterpolationKernel,
+} from './interpolationStrategyRegistry.js';
+import type { SampleBuffer } from './SampleBuffer.js';
+
+export type RateTransposerInterpolationStrategy =
+  RateTransposerInterpolationStrategyOption;
+
+export interface RateTransposerConstructorOptions {
+  /** Whether to allocate internal buffers. */
+  createBuffers?: boolean;
+  /** Factory for creating adapters that normalize input reads. */
+  sampleBufferAdapterFactory?: SampleBufferAdapterFactory;
+  /** Factory for creating chain input/output buffers. */
+  sampleBufferFactory?: () => SampleBuffer;
+  /** Interpolation strategy used for resampling. */
+  interpolationStrategy?: RateTransposerInterpolationStrategy;
+}
 
 /**
  * Sample rate transposer for pitch and tempo manipulation.
  * Used internally by SoundTouch for rate-based processing.
  */
-export default class RateTransposer extends AbstractFifoSamplePipe {
+export default class RateTransposer extends AbstractSamplePipe<
+  SampleBuffer,
+  SampleBuffer
+> {
   /**
    * Current rate factor for transposition.
    */
   private _rate: number;
 
   /**
-   * Internal slope accumulator for interpolation.
+   * Source position (in frames) for the next output sample, relative to the
+   * current processing block where 0 is the first frame and -1 is prevSample.
    */
-  private slopeCount: number;
+  private fractionalPosition: number;
 
   /**
    * Previous left channel sample for interpolation.
    */
-  private prevSampleL: number;
+  private previousLeftSample: number;
 
   /**
    * Previous right channel sample for interpolation.
    */
-  private prevSampleR: number;
+  private previousRightSample: number;
+
+  /** Scratch space used for extracted input samples. */
+  private inputScratch: Float32Array;
+
+  /** Scratch space used for generated output samples. */
+  private outputScratch: Float32Array;
+
+  /** Factory used when cloning or initializing adapter strategy. */
+  private readonly sampleBufferAdapterFactory: SampleBufferAdapterFactory;
+
+  /** Factory used to construct input/output chain buffers. */
+  private readonly sampleBufferFactory: () => SampleBuffer;
+
+  /** Adapter that normalizes reads from the bound input buffer. */
+  private readonly inputAdapter: SampleBufferAdapter;
+
+  /** Selected interpolation strategy for transposition. */
+  private readonly interpolationStrategy: RateTransposerInterpolationStrategyId;
+
+  /** Resolved kernel used by this transposer instance. */
+  private readonly resolvedInterpolationKernel: InterpolationKernel;
+
+  /** Optional per-instance state for plugin kernels. */
+  private readonly kernelState: unknown;
 
   /**
    * Creates a RateTransposer instance.
-   * @param createBuffers Whether to allocate internal buffers.
+   * @param options Constructor options.
    */
-  constructor(createBuffers?: boolean) {
-    super(createBuffers);
-    this.slopeCount = 0;
-    this.prevSampleL = 0;
-    this.prevSampleR = 0;
+  constructor({
+    createBuffers = false,
+    sampleBufferAdapterFactory = createCircularSampleBufferAdapter,
+    sampleBufferFactory = () => new CircularSampleBuffer(),
+    interpolationStrategy,
+  }: RateTransposerConstructorOptions = {}) {
+    super({
+      createBuffers,
+      inputBufferFactory: sampleBufferFactory,
+      outputBufferFactory: sampleBufferFactory,
+    });
+    this.fractionalPosition = -1;
+    this.previousLeftSample = 0;
+    this.previousRightSample = 0;
     this._rate = 1;
+    this.inputScratch = new Float32Array(0);
+    this.outputScratch = new Float32Array(0);
+    this.sampleBufferAdapterFactory = sampleBufferAdapterFactory;
+    this.sampleBufferFactory = sampleBufferFactory;
+    this.inputAdapter = sampleBufferAdapterFactory();
+    this.interpolationStrategy = normalizeInterpolationStrategyId(
+      interpolationStrategy,
+    );
+    const resolvedInterpolationStrategy = resolveInterpolationStrategy(
+      this.interpolationStrategy,
+    );
+    if (typeof resolvedInterpolationStrategy === 'function') {
+      this.resolvedInterpolationKernel = resolvedInterpolationStrategy;
+    } else {
+      const resolvedBase = resolveInterpolationStrategy(
+        resolvedInterpolationStrategy,
+      );
+      if (typeof resolvedBase !== 'function') {
+        throw new Error(
+          `Interpolation strategy \"${this.interpolationStrategy}\" did not resolve to a kernel.`,
+        );
+      }
+      this.resolvedInterpolationKernel = resolvedBase;
+    }
+
+    if (
+      'createState' in this.resolvedInterpolationKernel &&
+      typeof this.resolvedInterpolationKernel.createState === 'function'
+    ) {
+      this.kernelState = this.resolvedInterpolationKernel.createState();
+    } else {
+      this.kernelState = undefined;
+    }
   }
 
   /**
@@ -67,13 +167,18 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
     this._rate = rate;
   }
 
+  /** Active interpolation strategy. */
+  get strategy(): RateTransposerInterpolationStrategyId {
+    return this.interpolationStrategy;
+  }
+
   /**
    * Resets internal state for interpolation.
    */
   private reset(): void {
-    this.slopeCount = 0;
-    this.prevSampleL = 0;
-    this.prevSampleR = 0;
+    this.fractionalPosition = -1;
+    this.previousLeftSample = 0;
+    this.previousRightSample = 0;
   }
 
   /**
@@ -81,6 +186,7 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
    */
   override clear(): void {
     super.clear();
+    this.inputAdapter.clear();
     this.reset();
   }
 
@@ -89,7 +195,12 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
    * @returns Cloned RateTransposer instance.
    */
   clone(): RateTransposer {
-    const result = new RateTransposer();
+    const result = new RateTransposer({
+      createBuffers: false,
+      sampleBufferAdapterFactory: this.sampleBufferAdapterFactory,
+      sampleBufferFactory: this.sampleBufferFactory,
+      interpolationStrategy: this.interpolationStrategy,
+    });
     result.rate = this._rate;
     return result;
   }
@@ -98,11 +209,41 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
    * Processes input buffer and writes transposed samples to output buffer.
    */
   process(): void {
-    const numFrames = this._inputBuffer!.frameCount;
-    this._outputBuffer!.ensureAdditionalCapacity(numFrames / this._rate + 1);
+    if (this._inputBuffer === null || this._outputBuffer === null) {
+      return;
+    }
+
+    this.inputAdapter.syncFromInputBuffer(this._inputBuffer);
+    const numFrames = this.inputAdapter.frameCount;
+    if (numFrames === 0) {
+      return;
+    }
+
     const numFramesOutput = this.transpose(numFrames);
-    this._inputBuffer!.receive();
-    this._outputBuffer!.put(numFramesOutput);
+    this.inputAdapter.receive(numFrames);
+
+    if (numFramesOutput > 0) {
+      this._outputBuffer!.putSamples(this.outputScratch, 0, numFramesOutput);
+    }
+  }
+
+  /**
+   * Ensures temporary scratch arrays are large enough for the current frame
+   * request and estimated output size.
+   *
+   * @param numInputFrames Number of input frames that will be processed.
+   */
+  private ensureScratchCapacity(numInputFrames: number): void {
+    const inputSamples = numInputFrames * 2;
+    if (this.inputScratch.length < inputSamples) {
+      this.inputScratch = new Float32Array(inputSamples);
+    }
+
+    const estimatedOutputFrames = Math.ceil(numInputFrames / this._rate) + 2;
+    const outputSamples = Math.max(0, estimatedOutputFrames) * 2;
+    if (this.outputScratch.length < outputSamples) {
+      this.outputScratch = new Float32Array(outputSamples);
+    }
   }
 
   /**
@@ -111,59 +252,98 @@ export default class RateTransposer extends AbstractFifoSamplePipe {
    * @returns Number of output frames written.
    */
   transpose(numFrames = 0): number {
+    if (this._inputBuffer !== null) {
+      this.inputAdapter.syncFromInputBuffer(this._inputBuffer);
+      if (numFrames === 0) {
+        numFrames = this.inputAdapter.frameCount;
+      }
+    }
+
     if (numFrames === 0) {
       return 0;
     }
 
-    const src = this._inputBuffer!.vector;
-    const srcOffset = this._inputBuffer!.startIndex;
+    this.ensureScratchCapacity(numFrames);
 
-    const dest = this._outputBuffer!.vector;
-    const destOffset = this._outputBuffer!.endIndex;
+    const src = this.inputScratch;
+    const extractedFrames = this.inputAdapter.extract(src, 0, numFrames);
+    if (extractedFrames === 0) {
+      return 0;
+    }
+    numFrames = extractedFrames;
 
-    let used = 0;
+    return this.transposePluginKernel(numFrames);
+  }
+
+  /**
+   * Handles transposition using a plugin kernel.
+   */
+  private transposePluginKernel(numFrames: number): number {
+    const src = this.inputScratch;
+    const dest = this.outputScratch;
+    const srcOffset = 0;
+    const destOffset = 0;
+    const kernel = this.resolvedInterpolationKernel;
+    const state = this.kernelState;
+    const stateRecord = this.getKernelStateRecord(state);
+
+    if (stateRecord !== undefined) {
+      stateRecord.prevSampleL = this.previousLeftSample;
+      stateRecord.prevSampleR = this.previousRightSample;
+    }
+
     let i = 0;
+    let position = this.fractionalPosition;
+    const maxPosition = numFrames - 1;
 
-    while (this.slopeCount < 1.0) {
-      dest[destOffset + 2 * i] =
-        (1.0 - this.slopeCount) * this.prevSampleL +
-        this.slopeCount * src[srcOffset];
-      dest[destOffset + 2 * i + 1] =
-        (1.0 - this.slopeCount) * this.prevSampleR +
-        this.slopeCount * src[srcOffset + 1];
+    while (position <= maxPosition) {
+      dest[destOffset + 2 * i] = kernel(
+        src,
+        srcOffset,
+        numFrames,
+        position,
+        0,
+        state,
+      );
+      dest[destOffset + 2 * i + 1] = kernel(
+        src,
+        srcOffset,
+        numFrames,
+        position,
+        1,
+        state,
+      );
       i = i + 1;
-      this.slopeCount += this._rate;
+      position += this._rate;
     }
 
-    this.slopeCount -= 1.0;
+    this.fractionalPosition = position - numFrames;
 
-    if (numFrames !== 1) {
-      // eslint-disable-next-line no-constant-condition
-      out: while (true) {
-        while (this.slopeCount > 1.0) {
-          this.slopeCount -= 1.0;
-          used = used + 1;
-          if (used >= numFrames - 1) {
-            break out;
-          }
-        }
+    this.previousLeftSample = src[srcOffset + 2 * numFrames - 2];
+    this.previousRightSample = src[srcOffset + 2 * numFrames - 1];
 
-        const srcIndex = srcOffset + 2 * used;
-        dest[destOffset + 2 * i] =
-          (1.0 - this.slopeCount) * src[srcIndex] +
-          this.slopeCount * src[srcIndex + 2];
-        dest[destOffset + 2 * i + 1] =
-          (1.0 - this.slopeCount) * src[srcIndex + 1] +
-          this.slopeCount * src[srcIndex + 3];
-
-        i = i + 1;
-        this.slopeCount += this._rate;
-      }
+    if (stateRecord !== undefined) {
+      stateRecord.prevSampleL = this.previousLeftSample;
+      stateRecord.prevSampleR = this.previousRightSample;
     }
-
-    this.prevSampleL = src[srcOffset + 2 * numFrames - 2];
-    this.prevSampleR = src[srcOffset + 2 * numFrames - 1];
 
     return i;
+  }
+
+  private getKernelStateRecord(
+    state: unknown,
+  ): { prevSampleL: number; prevSampleR: number } | undefined {
+    if (typeof state !== 'object' || state === null) {
+      return undefined;
+    }
+
+    const record = state as Record<string, unknown>;
+    const prevSampleL = record['prevSampleL'];
+    const prevSampleR = record['prevSampleR'];
+    if (typeof prevSampleL === 'number' && typeof prevSampleR === 'number') {
+      return record as { prevSampleL: number; prevSampleR: number };
+    }
+
+    return undefined;
   }
 }

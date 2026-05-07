@@ -95,7 +95,12 @@
       "preVersionCommand": "pnpm dlx nx run-many -t build",
       "fallbackCurrentVersionResolver": "disk"
     },
-    "projects": ["@soundtouchjs/core", "@soundtouchjs/audio-worklet"],
+    "projects": [
+      "@soundtouchjs/core",
+      "@soundtouchjs/audio-worklet",
+      "@cxing/interpolation-strategy-lanczos",
+      "@cxing/interpolation-strategy-linear"
+    ],
     "changelog": {
       "automaticFromRef": false,
       "createRelease": true,

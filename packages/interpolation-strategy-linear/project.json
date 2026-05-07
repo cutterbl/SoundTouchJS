@@ -1,0 +1,38 @@
+{
+  "name": "@cxing/interpolation-strategy-linear",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/interpolation-strategy-linear/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-linear",
+        "command": "tsc -p tsconfig.json"
+      },
+      "outputs": ["{projectRoot}/.dist"],
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-linear",
+        "command": "tsc --build tsconfig.json --emitDeclarationOnly"
+      },
+      "outputs": [
+        "{projectRoot}/.dist/**/*.d.ts",
+        "{projectRoot}/.dist/**/*.d.ts.map",
+        "{projectRoot}/.dist/tsconfig.tsbuildinfo"
+      ],
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-linear",
+        "command": "vitest run --passWithNoTests"
+      }
+    }
+  },
+  "tags": []
+}

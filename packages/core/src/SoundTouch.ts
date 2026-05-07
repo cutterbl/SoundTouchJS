@@ -8,7 +8,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,59 @@
  */
 
 import RateTransposer from './RateTransposer.js';
-import Stretch from './Stretch.js';
+import type { RateTransposerInterpolationStrategy } from './RateTransposer.js';
+import type { RateTransposerInterpolationStrategyId } from './interpolationStrategyRegistry.js';
+import {
+  createCircularStretchInputBufferAdapter,
+  createFifoStretchInputBufferAdapter,
+  default as Stretch,
+} from './Stretch.js';
+import CircularSampleBuffer from './CircularSampleBuffer.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
+import {
+  createCircularSampleBufferAdapter,
+  createFifoSampleBufferAdapter,
+} from './SampleBufferAdapter.js';
+import type {
+  SampleBuffer,
+  SampleBufferFactory,
+  SampleBufferType,
+} from './SampleBuffer.js';
 import testFloatEqual from './testFloatEqual.js';
+
+/**
+ * Configuration for `SoundTouch` construction.
+ */
+export interface SoundTouchOptions {
+  /** Processing sample rate in Hz.
+   *
+   * @defaultValue 44100
+   */
+  sampleRate?: number;
+
+  /**
+   * Internal sample buffer strategy.
+   *
+   * @defaultValue 'circular'
+   */
+  sampleBufferType?: SampleBufferType;
+
+  /**
+   * Custom factory for creating all chain buffers.
+   *
+   * @remarks
+   * When provided, this takes precedence over `sampleBufferType` for buffer
+   * instantiation.
+   */
+  sampleBufferFactory?: SampleBufferFactory;
+
+  /**
+   * Interpolation strategy used by the rate transposer stage.
+   *
+   * @defaultValue 'linear'
+   */
+  interpolationStrategy?: RateTransposerInterpolationStrategy;
+}
 
 /**
  * Main processing engine for pitch shifting, tempo adjustment, and rate transposition.
@@ -33,9 +83,15 @@ export default class SoundTouch {
   transposer: RateTransposer;
   stretch: Stretch;
 
-  private _inputBuffer: FifoSampleBuffer;
-  private _intermediateBuffer: FifoSampleBuffer;
-  private _outputBuffer: FifoSampleBuffer;
+  private _sampleRate: number;
+
+  private _sampleBufferType: SampleBufferType;
+  private _sampleBufferFactory: SampleBufferFactory;
+  private _interpolationStrategy: RateTransposerInterpolationStrategyId;
+
+  private _inputBuffer: SampleBuffer;
+  private _intermediateBuffer: SampleBuffer;
+  private _outputBuffer: SampleBuffer;
 
   private _rate: number;
   private _tempo: number;
@@ -46,14 +102,40 @@ export default class SoundTouch {
 
   /**
    * Creates a new SoundTouch processor instance.
+   * @param options Construction options for sample rate, buffer strategy, and factories.
    */
-  constructor() {
-    this.transposer = new RateTransposer(false);
-    this.stretch = new Stretch(false);
+  constructor(options: SoundTouchOptions = {}) {
+    this._sampleBufferType = options.sampleBufferType ?? 'circular';
+    this._sampleBufferFactory =
+      options.sampleBufferFactory ??
+      (this._sampleBufferType === 'fifo'
+        ? () => new FifoSampleBuffer()
+        : () => new CircularSampleBuffer());
+    this.transposer = new RateTransposer({
+      createBuffers: false,
+      sampleBufferAdapterFactory:
+        this._sampleBufferType === 'circular'
+          ? createCircularSampleBufferAdapter
+          : createFifoSampleBufferAdapter,
+      sampleBufferFactory: this._sampleBufferFactory,
+      interpolationStrategy: options.interpolationStrategy,
+    });
+    this._interpolationStrategy = this.transposer.strategy;
+    this.stretch = new Stretch({
+      createBuffers: false,
+      inputBufferAdapterFactory:
+        this._sampleBufferType === 'circular'
+          ? createCircularStretchInputBufferAdapter
+          : createFifoStretchInputBufferAdapter,
+      sampleBufferFactory: this._sampleBufferFactory,
+    });
 
-    this._inputBuffer = new FifoSampleBuffer();
-    this._intermediateBuffer = new FifoSampleBuffer();
-    this._outputBuffer = new FifoSampleBuffer();
+    this._sampleRate = options.sampleRate ?? 44100;
+    this.stretch.setParameters(this._sampleRate, 0, 0, 0);
+
+    this._inputBuffer = this._sampleBufferFactory();
+    this._intermediateBuffer = this._sampleBufferFactory();
+    this._outputBuffer = this._sampleBufferFactory();
 
     this._rate = 0;
     this._tempo = 0;
@@ -65,66 +147,103 @@ export default class SoundTouch {
     this.calculateEffectiveRateAndTempo();
   }
 
+  /** Clears both processing stages and their internal buffers. */
   clear(): void {
     this.transposer.clear();
     this.stretch.clear();
   }
 
+  /**
+   * Creates an independent copy with equivalent runtime configuration.
+   */
   clone(): SoundTouch {
-    const result = new SoundTouch();
+    const result = new SoundTouch({
+      sampleRate: this._sampleRate,
+      sampleBufferType: this._sampleBufferType,
+      sampleBufferFactory: this._sampleBufferFactory,
+      interpolationStrategy: this._interpolationStrategy,
+    });
     result.rate = this.rate;
     result.tempo = this.tempo;
     return result;
   }
 
+  /** Effective output rate after virtual controls are resolved. */
   get rate(): number {
     return this._rate;
   }
 
+  /**
+   * Sets virtual playback rate and recomputes effective pipeline parameters.
+   */
   set rate(rate: number) {
     this.virtualRate = rate;
     this.calculateEffectiveRateAndTempo();
   }
 
+  /**
+   * Sets rate using a percent delta where `0` means no change.
+   */
   set rateChange(rateChange: number) {
     this._rate = 1.0 + 0.01 * rateChange;
   }
 
+  /** Effective output tempo after virtual controls are resolved. */
   get tempo(): number {
     return this._tempo;
   }
 
+  /**
+   * Sets virtual tempo and recomputes effective pipeline parameters.
+   */
   set tempo(tempo: number) {
     this.virtualTempo = tempo;
     this.calculateEffectiveRateAndTempo();
   }
 
+  /**
+   * Sets tempo using a percent delta where `0` means no change.
+   */
   set tempoChange(tempoChange: number) {
     this.tempo = 1.0 + 0.01 * tempoChange;
   }
 
+  /**
+   * Sets virtual pitch multiplier and updates derived tempo/rate values.
+   */
   set pitch(pitch: number) {
     this.virtualPitch = pitch;
     this.calculateEffectiveRateAndTempo();
   }
 
+  /**
+   * Sets pitch by octave offset.
+   */
   set pitchOctaves(pitchOctaves: number) {
     this.pitch = Math.exp(0.69314718056 * pitchOctaves);
     this.calculateEffectiveRateAndTempo();
   }
 
+  /**
+   * Sets pitch by semitone offset.
+   */
   set pitchSemitones(pitchSemitones: number) {
     this.pitchOctaves = pitchSemitones / 12.0;
   }
 
-  get inputBuffer(): FifoSampleBuffer {
+  /** Input buffer for upstream interleaved stereo frames. */
+  get inputBuffer(): SampleBuffer {
     return this._inputBuffer;
   }
 
-  get outputBuffer(): FifoSampleBuffer {
+  /** Output buffer that downstream consumers read from. */
+  get outputBuffer(): SampleBuffer {
     return this._outputBuffer;
   }
 
+  /**
+   * Recomputes effective tempo/rate and rewires the stage ordering when needed.
+   */
   calculateEffectiveRateAndTempo(): void {
     const previousTempo = this._tempo;
     const previousRate = this._rate;
@@ -158,6 +277,9 @@ export default class SoundTouch {
     }
   }
 
+  /**
+   * Runs one processing step through the currently selected stage order.
+   */
   process(): void {
     if (this._rate > 1.0) {
       this.stretch.process();

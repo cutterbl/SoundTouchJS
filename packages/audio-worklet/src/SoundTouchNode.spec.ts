@@ -18,12 +18,53 @@ describe('SoundTouchNode', () => {
       await SoundTouchNode.register(context, '/path/to/processor.js');
       expect(addModule).toHaveBeenCalledWith('/path/to/processor.js');
     });
+
+    it('registers strategy installer modules in worklet scope', async () => {
+      const addModule = vi.fn().mockResolvedValue(undefined);
+      const context = {
+        audioWorklet: { addModule },
+      } as unknown as BaseAudioContext;
+
+      await SoundTouchNode.registerStrategyModule(
+        context,
+        '/path/to/strategy.worklet.js',
+      );
+
+      expect(addModule).toHaveBeenCalledWith('/path/to/strategy.worklet.js');
+    });
   });
 
   describe('constructor', () => {
     it('creates an instance extending AudioWorkletNode', () => {
       const context = {} as BaseAudioContext;
-      const node = new SoundTouchNode(context);
+      const node = new SoundTouchNode({ context });
+      expect(node).toBeInstanceOf(SoundTouchNode);
+    });
+
+    it('accepts circular sample buffer type', () => {
+      const context = {} as BaseAudioContext;
+      const node = new SoundTouchNode({
+        context,
+        sampleBufferType: 'circular',
+      });
+      expect(node).toBeInstanceOf(SoundTouchNode);
+    });
+
+    it('accepts sampleBufferType option', () => {
+      const context = {} as BaseAudioContext;
+      const node = new SoundTouchNode({
+        context,
+        sampleBufferType: 'fifo',
+      });
+      expect(node).toBeInstanceOf(SoundTouchNode);
+    });
+
+    it('accepts interpolationStrategy option', () => {
+      const context = {} as BaseAudioContext;
+      const node = new SoundTouchNode({
+        context,
+        interpolationStrategy: 'lanczos8',
+      });
       expect(node).toBeInstanceOf(SoundTouchNode);
     });
   });
@@ -31,7 +72,7 @@ describe('SoundTouchNode', () => {
   describe('parameter accessors', () => {
     it('exposes pitch, tempo, rate, pitchSemitones, and playbackRate', () => {
       const context = {} as BaseAudioContext;
-      const node = new SoundTouchNode(context);
+      const node = new SoundTouchNode({ context });
 
       const pitchParam = { value: 1.0 };
       const tempoParam = { value: 1.0 };

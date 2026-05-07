@@ -5,7 +5,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,10 +17,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import { PROCESSOR_NAME } from './constants.js';
+import type {
+  RateTransposerInterpolationStrategy,
+  SampleBufferType,
+} from '@soundtouchjs/core';
+import { DEFAULT_SAMPLE_BUFFER_TYPE, PROCESSOR_NAME } from './constants.js';
 
+/**
+ * Construction options for `SoundTouchNode`.
+ */
 export interface SoundTouchNodeOptions {
+  /**
+   * Optional processor URL retained for caller-side convenience.
+   *
+   * @remarks
+   * Module registration is still performed through `SoundTouchNode.register`.
+   */
   processorUrl?: string | URL;
+
+  /**
+   * Internal sample buffer strategy used inside the render-thread processor.
+   */
+  sampleBufferType?: SampleBufferType;
+
+  /**
+   * Interpolation strategy used by the internal rate transposer.
+   */
+  interpolationStrategy?: RateTransposerInterpolationStrategy;
+}
+
+export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions {
+  /** The AudioContext or OfflineAudioContext. */
+  context: BaseAudioContext;
 }
 
 /**
@@ -28,7 +56,7 @@ export interface SoundTouchNodeOptions {
  * Provides AudioParam accessors for pitch, tempo, rate, pitchSemitones, and playbackRate.
  *
  * @example
- * const stNode = new SoundTouchNode(audioCtx);
+ * const stNode = new SoundTouchNode({ context: audioCtx });
  * stNode.pitch.value = 1.2;
  * stNode.tempo.value = 0.8;
  * stNode.pitchSemitones.value = -3;
@@ -51,14 +79,35 @@ export class SoundTouchNode extends AudioWorkletNode {
   }
 
   /**
-   * Creates a SoundTouchNode instance.
-   * @param context - The AudioContext or OfflineAudioContext
+   * Registers an interpolation strategy installer module in AudioWorkletGlobalScope.
+   *
+   * @remarks
+   * The module should call core registration APIs during evaluation.
    */
-  constructor(context: BaseAudioContext) {
+  static async registerStrategyModule(
+    context: BaseAudioContext,
+    strategyModuleUrl: string | URL,
+  ): Promise<void> {
+    await context.audioWorklet.addModule(strategyModuleUrl);
+  }
+
+  /**
+   * Creates a SoundTouchNode instance.
+   * @param options - Node and processor configuration.
+   */
+  constructor({
+    context,
+    sampleBufferType,
+    interpolationStrategy,
+  }: SoundTouchNodeConstructorOptions) {
     super(context, PROCESSOR_NAME, {
       numberOfInputs: 1,
       numberOfOutputs: 1,
       outputChannelCount: [2],
+      processorOptions: {
+        sampleBufferType: sampleBufferType ?? DEFAULT_SAMPLE_BUFFER_TYPE,
+        interpolationStrategy,
+      },
     });
   }
 

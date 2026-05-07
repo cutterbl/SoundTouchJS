@@ -5,7 +5,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,19 +17,47 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import { SoundTouch } from '@soundtouchjs/core';
+import { SoundTouch, resolveInterpolationStrategy } from '@soundtouchjs/core';
+import { DEFAULT_SAMPLE_BUFFER_TYPE } from './constants.js';
+import type {
+  RateTransposerInterpolationStrategy,
+  SampleBufferType,
+} from '@soundtouchjs/core';
 
 const PROCESSOR_NAME = 'soundtouch-processor';
 
+/**
+ * AudioParam descriptor shape expected by the worklet runtime.
+ */
 interface ParameterDescriptor {
+  /** Parameter name exposed on the node. */
   name: string;
+  /** Default parameter value when no automation is present. */
   defaultValue: number;
+  /** Lower bound enforced by the audio param. */
   minValue: number;
+  /** Upper bound enforced by the audio param. */
   maxValue: number;
+  /** Automation rate selected for this parameter. */
   automationRate: 'k-rate' | 'a-rate';
 }
 
+/** Constructor options passed by `SoundTouchNode` on initialization. */
+interface ProcessorConstructorOptions {
+  processorOptions?: {
+    /** Preferred internal buffer strategy for the SoundTouch pipeline. */
+    sampleBufferType?: SampleBufferType;
+    /** Interpolation strategy for rate transposition. */
+    interpolationStrategy?: RateTransposerInterpolationStrategy;
+  };
+}
+
+/**
+ * Audio render-thread processor that applies SoundTouch transformations to
+ * stereo blocks.
+ */
 class SoundTouchProcessor extends AudioWorkletProcessor {
+  /** Static AudioParam metadata consumed by the browser. */
   static get parameterDescriptors(): ParameterDescriptor[] {
     return [
       {
@@ -74,9 +102,38 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
   private _samples: Float32Array;
   private _outputSamples: Float32Array;
 
-  constructor() {
+  /**
+   * @param options Worklet constructor options provided by the main thread.
+   *
+   * @remarks
+   * Unknown interpolation strategy ids are logged and coerced to `lanczos8`
+   * so render-thread startup remains resilient.
+   */
+  constructor(options?: ProcessorConstructorOptions) {
     super();
-    this._pipe = new SoundTouch();
+    let interpolationStrategy =
+      options?.processorOptions?.interpolationStrategy;
+    try {
+      if (interpolationStrategy) {
+        resolveInterpolationStrategy(interpolationStrategy);
+      }
+    } catch (err) {
+      // Fallback to lanczos8 and log info
+      // eslint-disable-next-line no-console
+      console.info(
+        '[SoundTouchProcessor] Unknown interpolation strategy id:',
+        interpolationStrategy,
+        '— falling back to lanczos8.',
+      );
+      interpolationStrategy = 'lanczos8';
+    }
+    this._pipe = new SoundTouch({
+      sampleRate,
+      sampleBufferType:
+        options?.processorOptions?.sampleBufferType ??
+        DEFAULT_SAMPLE_BUFFER_TYPE,
+      interpolationStrategy,
+    });
     this._samples = new Float32Array(128 * 2);
     this._outputSamples = new Float32Array(128 * 2);
   }
@@ -86,6 +143,7 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     outputs: Float32Array[][],
     parameters: Record<string, Float32Array>,
   ): boolean {
+    // Keep processor alive for the lifetime of the node.
     const input = inputs[0];
     const output = outputs[0];
 
@@ -131,7 +189,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
 
     if (toExtract > 0) {
       const extracted = this._outputSamples;
-      outputBuffer.receiveSamples(extracted, toExtract);
+      outputBuffer.extract(extracted, 0, toExtract);
+      outputBuffer.receive(toExtract);
       for (let i = 0; i < toExtract; i++) {
         const l = extracted[i * 2];
         const r = extracted[i * 2 + 1];

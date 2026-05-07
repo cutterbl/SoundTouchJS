@@ -1,0 +1,40 @@
+# FifoSampleBuffer
+
+## Import
+
+```ts
+import { FifoSampleBuffer } from '@soundtouchjs/core';
+```
+
+## Purpose
+
+`FifoSampleBuffer` is a resizable FIFO sample store optimized for interleaved stereo frame processing.
+
+## Constructor
+
+```ts
+new FifoSampleBuffer(maxFrames?: number)
+```
+
+## Public API
+
+- `vector` (getter)
+- `position` (getter)
+- `startIndex` (getter)
+- `frameCount` (getter)
+- `endIndex` (getter)
+- `clear()`
+- `put(numFrames)`
+- `putSamples(samples, position?, numFrames?)`
+- `putBuffer(buffer, position?, numFrames?)`
+- `receive(numFrames?)`
+- `receiveSamples(output, numFrames?)`
+- `extract(output, position?, numFrames?)`
+- `ensureCapacity(numFrames?)`
+- `ensureAdditionalCapacity(numFrames?)`
+- `rewind()`
+
+## Notes
+
+- Uses resizable `ArrayBuffer` on supported runtimes.
+- `vector` exposes underlying storage for low-level integrations.

@@ -17,9 +17,8 @@ function createMockSource(length = 100000) {
 }
 
 function createMockAudioContext(bufferSize = 4096): BaseAudioContext {
-  let onaudioprocessHandler:
-    | ((event: AudioProcessingEvent) => void)
-    | null = null;
+  let onaudioprocessHandler: ((event: AudioProcessingEvent) => void) | null =
+    null;
 
   const node = {
     set onaudioprocess(fn: (event: AudioProcessingEvent) => void) {
@@ -62,8 +61,8 @@ describe('getWebAudioNode', () => {
   it('creates a ScriptProcessorNode', () => {
     const ctx = createMockAudioContext();
     const source = createMockSource();
-    const pipe = new SoundTouch();
-    const filter = new SimpleFilter(source, pipe);
+    const pipe = new SoundTouch({});
+    const filter = new SimpleFilter({ sourceSound: source, pipe });
 
     const node = getWebAudioNode(ctx, filter);
     expect(ctx.createScriptProcessor).toHaveBeenCalledWith(4096, 2, 2);
@@ -73,8 +72,8 @@ describe('getWebAudioNode', () => {
   it('accepts a custom buffer size', () => {
     const ctx = createMockAudioContext(8192);
     const source = createMockSource();
-    const pipe = new SoundTouch();
-    const filter = new SimpleFilter(source, pipe);
+    const pipe = new SoundTouch({});
+    const filter = new SimpleFilter({ sourceSound: source, pipe });
 
     getWebAudioNode(ctx, filter, undefined, 8192);
     expect(ctx.createScriptProcessor).toHaveBeenCalledWith(8192, 2, 2);
@@ -83,8 +82,8 @@ describe('getWebAudioNode', () => {
   it('calls sourcePositionCallback during audio processing', () => {
     const ctx = createMockAudioContext();
     const source = createMockSource();
-    const pipe = new SoundTouch();
-    const filter = new SimpleFilter(source, pipe);
+    const pipe = new SoundTouch({});
+    const filter = new SimpleFilter({ sourceSound: source, pipe });
     const posCallback = vi.fn();
 
     const node = getWebAudioNode(ctx, filter, posCallback) as unknown as {
@@ -100,8 +99,8 @@ describe('getWebAudioNode', () => {
   it('calls filter.onEnd when no frames are extracted', () => {
     const ctx = createMockAudioContext();
     const source = createMockSource();
-    const pipe = new SoundTouch();
-    const filter = new SimpleFilter(source, pipe);
+    const pipe = new SoundTouch({});
+    const filter = new SimpleFilter({ sourceSound: source, pipe });
     vi.spyOn(filter, 'extract').mockReturnValue(0);
     const onEndSpy = vi.spyOn(filter, 'onEnd');
 

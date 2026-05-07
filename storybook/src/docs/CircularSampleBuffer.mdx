@@ -1,0 +1,38 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/CircularSampleBuffer" />
+
+# CircularSampleBuffer
+
+`CircularSampleBuffer` is a ring buffer for interleaved stereo sample frames with automatic growth.
+
+## Import
+
+```ts
+import { CircularSampleBuffer } from '@soundtouchjs/core';
+```
+
+## Constructor
+
+```ts
+new CircularSampleBuffer(capacityFrames?: number)
+```
+
+## Public API
+
+- capacityFrames (getter)
+- frameCount (getter)
+- clear()
+- ensureCapacity(minCapacityFrames)
+- pushSamples(source, sourceFrameOffset?, frameCount?)
+- putSamples(source, sourceFrameOffset?, frameCount?)
+- extract(target, sourceFrameOffset?, frameCount?, consume?)
+- readSample(sampleIndex)
+- dropFrames(frameCount)
+- receive(frameCount?)
+
+## Notes
+
+- Samples are interleaved stereo (`L, R, L, R, ...`).
+- extract(..., consume = true) both reads and drops frames.
+- Out-of-range readSample returns 0.

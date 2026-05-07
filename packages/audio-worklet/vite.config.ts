@@ -8,7 +8,7 @@ export default defineConfig({
       formats: ['es'],
       fileName: () => 'soundtouch-processor.js',
     },
-    outDir: 'dist',
+    outDir: '.dist',
     emptyOutDir: false,
     rollupOptions: {
       output: {

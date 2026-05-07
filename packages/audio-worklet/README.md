@@ -8,6 +8,12 @@ An [AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet)
 npm install @soundtouchjs/audio-worklet
 ```
 
+## API docs
+
+Detailed developer documentation for public exports is available in [`./docs`](./docs/README.md).
+
+- `SoundTouchNode` reference: [./docs/sound-touch-node.md](./docs/sound-touch-node.md)
+
 This package depends on [`@soundtouchjs/core`](../core/README.md), which will be installed automatically.
 
 ## Usage
@@ -27,7 +33,7 @@ await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
 
 How you serve the processor file depends on your setup:
 
-- **Vite**: Copy or serve `node_modules/@soundtouchjs/audio-worklet/dist/soundtouch-processor.js` from your `public/` directory
+- **Vite**: Copy or serve `node_modules/@soundtouchjs/audio-worklet/.dist/soundtouch-processor.js` from your `public/` directory
 - **Webpack**: Use `new URL('@soundtouchjs/audio-worklet/processor', import.meta.url)` with asset modules
 - **Static hosting**: Copy the file to your static assets directory
 
@@ -38,8 +44,20 @@ How you serve the processor file depends on your setup:
 #### With AudioBufferSourceNode
 
 ```ts
-const stNode = new SoundTouchNode(audioCtx);
+const stNode = new SoundTouchNode({ context: audioCtx });
 stNode.connect(audioCtx.destination);
+
+// Optional FIFO override
+const stNodeFifo = new SoundTouchNode({
+  context: audioCtx,
+  sampleBufferType: 'fifo',
+});
+
+// Optional interpolation override
+const stNodeLinear = new SoundTouchNode({
+  context: audioCtx,
+  interpolationStrategy: 'linear',
+});
 
 const source = audioCtx.createBufferSource();
 source.buffer = audioBuffer;
@@ -55,7 +73,7 @@ source.start();
 
 ```ts
 const audioEl = document.querySelector('audio')!;
-const stNode = new SoundTouchNode(audioCtx);
+const stNode = new SoundTouchNode({ context: audioCtx });
 stNode.connect(audioCtx.destination);
 
 const source = audioCtx.createMediaElementSource(audioEl);
@@ -96,6 +114,19 @@ stNode.pitch.linearRampToValueAtTime(2.0, audioCtx.currentTime + 5);
 
 These ranges are intentionally broader than the typical musical sweet spot, but still bounded for real-time stability. Values outside this window tend to produce more audible artifacts, less predictable output, and higher risk of buffer starvation or unnatural sounding results, especially in the AudioWorklet's small render blocks. For most material, settings closer to `1.0` will sound cleaner.
 
+### Interpolation strategy
+
+AudioWorklet processing defaults to `lanczos8`. You can pass an alternate strategy id at node construction:
+
+```ts
+const stNode = new SoundTouchNode({
+  context: audioCtx,
+  interpolationStrategy: 'linear',
+});
+```
+
+If an unknown strategy id is provided, the processor logs an info message and falls back to `lanczos8`.
+
 ### Full example — AudioBuffer
 
 ```ts
@@ -106,7 +137,7 @@ const gainNode = audioCtx.createGain();
 gainNode.connect(audioCtx.destination);
 
 await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
-const stNode = new SoundTouchNode(audioCtx);
+const stNode = new SoundTouchNode({ context: audioCtx });
 stNode.connect(gainNode);
 
 const response = await fetch('/audio.mp3');
@@ -137,7 +168,7 @@ const gainNode = audioCtx.createGain();
 gainNode.connect(audioCtx.destination);
 
 await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
-const stNode = new SoundTouchNode(audioCtx);
+const stNode = new SoundTouchNode({ context: audioCtx });
 stNode.connect(gainNode);
 
 const source = audioCtx.createMediaElementSource(audioEl);
@@ -173,6 +204,30 @@ For most musical applications, set `pitchSemitones` to the desired interval and 
 | `@soundtouchjs/audio-worklet`           | Main-thread API: `SoundTouchNode` class, types                              |
 | `@soundtouchjs/audio-worklet/processor` | Pre-bundled processor script (self-contained, `@soundtouchjs/core` inlined) |
 
+## Sample buffer type
+
+`SoundTouchNode` uses circular sample buffers by default. To override that behavior:
+
+```ts
+const stNode = new SoundTouchNode({
+  context: audioCtx,
+  sampleBufferType: 'fifo',
+});
+```
+
+For advanced use cases, the lower-level core library also exposes a `sampleBufferFactory` option.
+
+For interpolation strategy registration and custom kernels, see [@soundtouchjs/core](../core/README.md) and strategy package docs.
+
+## Constructor API (breaking)
+
+`SoundTouchNode` now uses a named options object constructor:
+
+```ts
+new SoundTouchNode({ context: audioCtx });
+new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
+```
+
 ## Architecture
 
 - **Processor thread**: `SoundTouchProcessor` extends `AudioWorkletProcessor`, runs on the audio rendering thread. It interleaves stereo input, feeds it through the `SoundTouch` processing pipe, and deinterleaves the output. The `@soundtouchjs/core` library is bundled directly into the processor file so there are no import dependencies at runtime.
@@ -189,4 +244,4 @@ For most musical applications, set `pitchSemitones` to the desired interval and 
 
 ## License
 
-LGPL-2.1 — see [LICENSE](../../LICENSE) for details.
+LGPL-3.0 — see [LICENSE](../../LICENSE) for details.

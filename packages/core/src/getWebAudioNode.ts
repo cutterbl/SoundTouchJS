@@ -6,7 +6,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,8 +21,20 @@
 import type SimpleFilter from './SimpleFilter.js';
 import noop from './noop.js';
 
+/**
+ * Callback invoked with the latest source position after each audio callback.
+ */
 export type SourcePositionCallback = (sourcePosition: number) => void;
 
+/**
+ * Creates a `ScriptProcessorNode` that pulls samples from `SimpleFilter`.
+ *
+ * @param context Web Audio context used to allocate the processor node.
+ * @param filter Filter instance that supplies processed frames.
+ * @param sourcePositionCallback Optional callback receiving source position updates.
+ * @param bufferSize Processor buffer size in frames.
+ * @returns Configured `ScriptProcessorNode` ready to connect in an audio graph.
+ */
 export default function getWebAudioNode(
   context: BaseAudioContext,
   filter: SimpleFilter,
