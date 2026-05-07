@@ -90,7 +90,11 @@ export function SoundTouchPlayground({
   const pitchSemitonesListId = `${idPrefix}-pitch-semitones`;
 
   const ensureGraph = async (): Promise<void> => {
-    if (audioContextRef.current && soundTouchNodeRef.current && gainNodeRef.current) {
+    if (
+      audioContextRef.current &&
+      soundTouchNodeRef.current &&
+      gainNodeRef.current
+    ) {
       return;
     }
 
@@ -118,7 +122,8 @@ export function SoundTouchPlayground({
     if (sourceMode === 'buffer') {
       const response = await fetch(track.url);
       const arrayBuffer = await response.arrayBuffer();
-      audioBufferRef.current = await audioContextRef.current!.decodeAudioData(arrayBuffer);
+      audioBufferRef.current =
+        await audioContextRef.current!.decodeAudioData(arrayBuffer);
       setDuration(audioBufferRef.current.duration);
       setCurrentTime(0);
       sourceOffsetRef.current = 0;
@@ -136,9 +141,8 @@ export function SoundTouchPlayground({
     elementRef.current.playbackRate = rate;
 
     if (!elementSourceNodeRef.current) {
-      elementSourceNodeRef.current = audioContextRef.current!.createMediaElementSource(
-        elementRef.current,
-      );
+      elementSourceNodeRef.current =
+        audioContextRef.current!.createMediaElementSource(elementRef.current);
       elementSourceNodeRef.current.connect(soundTouchNodeRef.current!);
     }
 
@@ -198,8 +202,12 @@ export function SoundTouchPlayground({
     if (sourceMode === 'buffer') {
       const elapsed =
         sourceOffsetRef.current +
-        (audioContextRef.current!.currentTime - startAtContextTimeRef.current) * rate;
-      const next = loopEnabled && duration > 0 ? elapsed % duration : Math.min(elapsed, duration);
+        (audioContextRef.current!.currentTime - startAtContextTimeRef.current) *
+          rate;
+      const next =
+        loopEnabled && duration > 0
+          ? elapsed % duration
+          : Math.min(elapsed, duration);
       setCurrentTime(next);
       if (!loopEnabled && elapsed >= duration) {
         setIsPlaying(false);
@@ -262,7 +270,8 @@ export function SoundTouchPlayground({
       setStatus('Playing');
       rafIdRef.current = window.requestAnimationFrame(tick);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown audio error';
+      const message =
+        error instanceof Error ? error.message : 'Unknown audio error';
       setStatus(`Error: ${message}`);
     }
   };
@@ -271,7 +280,9 @@ export function SoundTouchPlayground({
     if (sourceMode === 'buffer') {
       if (isPlaying) {
         sourceOffsetRef.current +=
-          (audioContextRef.current!.currentTime - startAtContextTimeRef.current) * rate;
+          (audioContextRef.current!.currentTime -
+            startAtContextTimeRef.current) *
+          rate;
       }
       if (duration > 0) {
         sourceOffsetRef.current = loopEnabled
@@ -294,7 +305,10 @@ export function SoundTouchPlayground({
     }
 
     const bounds = event.currentTarget.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    const ratio = Math.min(
+      1,
+      Math.max(0, (event.clientX - bounds.left) / bounds.width),
+    );
     const nextTime = ratio * duration;
 
     if (sourceMode === 'buffer') {
@@ -355,18 +369,40 @@ export function SoundTouchPlayground({
   }, []);
 
   return (
-    <div style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif', padding: '1rem', maxWidth: 920 }}>
+    <div
+      style={{
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+        padding: '1rem',
+        maxWidth: 920,
+      }}
+    >
       <h3 style={{ marginTop: 0 }}>{title}</h3>
       <p style={{ marginTop: 0, color: '#4b5563' }}>
-        Source: <strong>{sourceMode === 'buffer' ? 'Manual buffer load' : 'HTML audio element'}</strong> | Buffer:
+        Source:{' '}
+        <strong>
+          {sourceMode === 'buffer'
+            ? 'Manual buffer load'
+            : 'HTML audio element'}
+        </strong>{' '}
+        | Buffer:
         <strong> {sampleBufferType}</strong> | Interpolation:
         <strong> {interpolationStrategy}</strong>
       </p>
 
-      <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: '0.75rem',
+          gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
+        }}
+      >
         <label>
           Track
-          <select value={selectedTrackId} onChange={onTrackChange} style={{ display: 'block', width: '100%' }}>
+          <select
+            value={selectedTrackId}
+            onChange={onTrackChange}
+            style={{ display: 'block', width: '100%' }}
+          >
             {TRACKS.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.label}
@@ -499,11 +535,22 @@ export function SoundTouchPlayground({
         </label>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginTop: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
         <button type="button" onClick={() => void loadTrack()}>
           Load
         </button>
-        <button type="button" onClick={() => void startPlayback()} disabled={isPlaying}>
+        <button
+          type="button"
+          onClick={() => void startPlayback()}
+          disabled={isPlaying}
+        >
           Play
         </button>
         <button type="button" onClick={stopPlayback} disabled={!isPlaying}>
@@ -518,13 +565,22 @@ export function SoundTouchPlayground({
           onClick={handleSeek}
           style={{ width: '100%', cursor: 'pointer' }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.9rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '0.25rem',
+            fontSize: '0.9rem',
+          }}
+        >
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
 
-      <p style={{ marginBottom: 0, marginTop: '0.75rem', color: '#374151' }}>{status}</p>
+      <p style={{ marginBottom: 0, marginTop: '0.75rem', color: '#374151' }}>
+        {status}
+      </p>
     </div>
   );
 }
