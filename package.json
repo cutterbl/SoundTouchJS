@@ -16,16 +16,17 @@
     "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
     "Adria Holovaty (http://www.holovaty.com/)"
   ],
-  "license": "LGPL-3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cutterbl/SoundTouchJS.git"
   },
+  "license": "MPL-2.0",
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "scripts": {
     "build": "nx run-many -t build",
     "dev": "nx dev demo",
     "test": "nx run-many -t test",
+    "coverage:summary": "node ./scripts/generate-coverage-summary.mjs",
     "typecheck": "nx run-many -t typecheck",
     "release": "nx release",
     "prettier": "prettier --write '**/*.{ts,js,json,html}'",

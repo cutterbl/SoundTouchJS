@@ -4,6 +4,14 @@ import { Meta } from '@storybook/blocks';
 
 # Abstract Sample Pipe
 
+**What is this?**
+
+This is a base class (a starting point) for building parts of an audio pipeline. If you imagine audio processing as an assembly line, each stage (like stretching or changing pitch) is a “pipe” that takes in sound, does something to it, and passes it on.
+
+**Do I need to use it?**
+
+Most developers will use the ready-made classes like `Stretch` or `RateTransposer`. Use this only if you want to build your own custom processing step.
+
 ## Import
 
 ```ts

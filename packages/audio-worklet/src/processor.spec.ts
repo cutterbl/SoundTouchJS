@@ -1,27 +1,3 @@
-it('falls back to lanczos8 and logs info for unknown interpolation strategy', async () => {
-  const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-  await import('./processor.js');
-  expect(registeredCtor).toBeDefined();
-  new registeredCtor!({
-    processorOptions: {
-      sampleBufferType: 'circular',
-      interpolationStrategy: 'not-a-real-strategy',
-    },
-  });
-  expect(soundTouchCtorArgs).toHaveLength(1);
-  expect(soundTouchCtorArgs[0]).toEqual(
-    expect.objectContaining({
-      sampleBufferType: 'circular',
-      interpolationStrategy: 'lanczos8',
-    }),
-  );
-  expect(infoSpy).toHaveBeenCalledWith(
-    expect.stringContaining('Unknown interpolation strategy id:'),
-    'not-a-real-strategy',
-    expect.stringContaining('falling back to lanczos8.'),
-  );
-  infoSpy.mockRestore();
-});
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RegisteredProcessorCtor = new (options?: {
@@ -43,6 +19,8 @@ let outputFrameCount = 0;
 const putSamples = vi.fn();
 const extract = vi.fn();
 const receive = vi.fn();
+const setInterpolationStrategy = vi.fn();
+const setInterpolationStrategyParams = vi.fn();
 const soundTouchCtorArgs: unknown[] = [];
 
 vi.mock('@soundtouchjs/core', () => {
@@ -63,6 +41,14 @@ vi.mock('@soundtouchjs/core', () => {
     tempo = 1;
     pitch = 1;
 
+    setInterpolationStrategy(strategy: unknown): void {
+      setInterpolationStrategy(strategy);
+    }
+
+    setInterpolationStrategyParams(params: unknown): void {
+      setInterpolationStrategyParams(params);
+    }
+
     constructor(options?: unknown) {
       soundTouchCtorArgs.push(options);
     }
@@ -70,7 +56,15 @@ vi.mock('@soundtouchjs/core', () => {
     process(): void {}
   }
 
-  return { SoundTouch };
+  return {
+    SoundTouch,
+    resolveInterpolationStrategy: (strategy?: unknown) => {
+      if (strategy === 'not-a-real-strategy') {
+        throw new Error('unknown interpolation strategy');
+      }
+      return 'lanczos8';
+    },
+  };
 });
 
 beforeEach(() => {
@@ -79,11 +73,20 @@ beforeEach(() => {
   putSamples.mockReset();
   extract.mockReset();
   receive.mockReset();
+  setInterpolationStrategy.mockReset();
+  setInterpolationStrategyParams.mockReset();
   soundTouchCtorArgs.length = 0;
   outputFrameCount = 0;
 
   vi.stubGlobal('sampleRate', 48000);
-  vi.stubGlobal('AudioWorkletProcessor', class AudioWorkletProcessor {});
+  vi.stubGlobal(
+    'AudioWorkletProcessor',
+    class AudioWorkletProcessor {
+      port = {
+        onmessage: null as ((event: { data: unknown }) => void) | null,
+      };
+    },
+  );
   vi.stubGlobal(
     'registerProcessor',
     vi.fn((name: string, ctor: RegisteredProcessorCtor) => {
@@ -95,6 +98,197 @@ beforeEach(() => {
 });
 
 describe('processor', () => {
+  it('falls back to lanczos8 and logs info for unknown interpolation strategy', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    await import('./processor.js');
+    expect(registeredCtor).toBeDefined();
+    new registeredCtor!({
+      processorOptions: {
+        sampleBufferType: 'circular',
+        interpolationStrategy: 'not-a-real-strategy',
+      },
+    });
+    expect(soundTouchCtorArgs).toHaveLength(1);
+    expect(soundTouchCtorArgs[0]).toEqual(
+      expect.objectContaining({
+        sampleBufferType: 'circular',
+        interpolationStrategy: 'lanczos8',
+      }),
+    );
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown interpolation strategy id:'),
+      'not-a-real-strategy',
+      expect.stringContaining('falling back to lanczos8.'),
+    );
+    infoSpy.mockRestore();
+  });
+
+  it('applies pending runtime strategy updates from message port', async () => {
+    await import('./processor.js');
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    }) as unknown as {
+      port: { onmessage: ((event: { data: unknown }) => void) | null };
+      process: RegisteredProcessorCtor['prototype']['process'];
+    };
+
+    instance.port.onmessage?.({
+      data: {
+        type: 'set-interpolation-strategy',
+        strategy: 'linear',
+      },
+    });
+    instance.port.onmessage?.({
+      data: {
+        type: 'set-interpolation-strategy-params',
+        params: { edgeHoldFrames: 3 },
+      },
+    });
+
+    const inputLeft = new Float32Array([1, 2]);
+    const outputLeft = new Float32Array(2);
+    const outputRight = new Float32Array(2);
+    outputFrameCount = 0;
+
+    const ok = instance.process(
+      [[inputLeft]],
+      [[outputLeft, outputRight]],
+      {
+        pitch: new Float32Array([1]),
+        tempo: new Float32Array([1]),
+        rate: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      },
+    );
+
+    expect(ok).toBe(true);
+    expect(setInterpolationStrategy).toHaveBeenCalledWith('linear');
+    expect(setInterpolationStrategyParams).toHaveBeenCalledWith({
+      edgeHoldFrames: 3,
+    });
+  });
+
+  it('logs and recovers when runtime strategy update handlers throw', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    setInterpolationStrategy.mockImplementationOnce(() => {
+      throw new Error('switch failed');
+    });
+    setInterpolationStrategyParams.mockImplementationOnce(() => {
+      throw new Error('params failed');
+    });
+
+    await import('./processor.js');
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    }) as unknown as {
+      port: { onmessage: ((event: { data: unknown }) => void) | null };
+      process: RegisteredProcessorCtor['prototype']['process'];
+    };
+
+    instance.port.onmessage?.({
+      data: {
+        type: 'set-interpolation-strategy',
+        strategy: 'linear',
+      },
+    });
+    instance.port.onmessage?.({
+      data: {
+        type: 'set-interpolation-strategy-params',
+        params: { edgeHoldFrames: 2 },
+      },
+    });
+    instance.port.onmessage?.({
+      data: {
+        type: 'ignored-message',
+      },
+    } as unknown as { data: unknown });
+
+    const inputLeft = new Float32Array([1, 2]);
+    const outputLeft = new Float32Array(2);
+    const outputRight = new Float32Array(2);
+
+    instance.process(
+      [[inputLeft]],
+      [[outputLeft, outputRight]],
+      {
+        pitch: new Float32Array([1]),
+        tempo: new Float32Array([1]),
+        rate: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      },
+    );
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[SoundTouchProcessor] Failed to switch interpolation strategy:',
+      'linear',
+    );
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[SoundTouchProcessor] Failed to update interpolation strategy params.',
+    );
+    infoSpy.mockRestore();
+  });
+
+  it('returns early when process input/output is missing', async () => {
+    await import('./processor.js');
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    });
+
+    const params = {
+      pitch: new Float32Array([1]),
+      tempo: new Float32Array([1]),
+      rate: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    };
+
+    expect(instance.process([], [], params)).toBe(true);
+    expect(instance.process([[]], [[]], params)).toBe(true);
+    expect(instance.process([[new Float32Array(2)]], [[]], params)).toBe(true);
+  });
+
+  it('handles mono input/output channel fallback and buffer resize path', async () => {
+    await import('./processor.js');
+
+    extract.mockImplementation((target: Float32Array, _start: number, frames: number) => {
+      for (let i = 0; i < frames; i++) {
+        target[i * 2] = i;
+        target[i * 2 + 1] = i + 0.5;
+      }
+    });
+    outputFrameCount = 256;
+
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    });
+
+    const monoInput = new Float32Array(256);
+    for (let i = 0; i < monoInput.length; i++) {
+      monoInput[i] = i / 10;
+    }
+    const monoOutput = new Float32Array(256);
+
+    const ok = instance.process(
+      [[monoInput]],
+      [[monoOutput]],
+      {
+        pitch: new Float32Array([1]),
+        tempo: new Float32Array([1]),
+        rate: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      },
+    );
+
+    expect(ok).toBe(true);
+    expect(putSamples).toHaveBeenCalledWith(expect.any(Float32Array), 0, 256);
+    expect(extract).toHaveBeenCalledWith(expect.any(Float32Array), 0, 256);
+    expect(receive).toHaveBeenCalledWith(256);
+    expect(monoOutput[0]).toBeCloseTo(0.5, 6);
+  });
+
   describe('constructor options', () => {
     it('forwards interpolationStrategy into SoundTouch options', async () => {
       await import('./processor.js');

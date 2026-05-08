@@ -1,5 +1,5 @@
 {
-  "name": "@cxing/interpolation-strategy-lanczos",
+  "name": "@soundtouchjs/interpolation-strategy-lanczos",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/interpolation-strategy-lanczos/src",
   "projectType": "library",

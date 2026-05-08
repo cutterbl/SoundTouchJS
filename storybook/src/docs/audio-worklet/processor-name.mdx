@@ -4,22 +4,24 @@ import { Meta } from '@storybook/blocks';
 
 # Processor Name
 
+**What is this?**
+
+`PROCESSOR_NAME` is just a string constant that both the main code and the audio processor use to make sure they’re talking about the same thing.
+
+**Do I need it?**
+
+Most developers don’t need to use this directly. It’s mainly for advanced use, like debugging or writing tests.
+
 ## Import
 
 ```ts
 import { PROCESSOR_NAME } from '@soundtouchjs/audio-worklet';
 ```
 
-## Purpose
-
-`PROCESSOR_NAME` is the shared identifier used by both the main-thread node wrapper and the worklet processor registration.
-
 ## Usage
-
-Most consumers do not need to use this constant directly.
 
 ```ts
 const name = PROCESSOR_NAME;
 ```
 
-It is mainly useful for diagnostics, custom assertions, or tests that verify expected processor identity.
+You might use it if you’re building custom tools or want to check that everything is wired up correctly.

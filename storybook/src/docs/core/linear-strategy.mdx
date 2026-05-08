@@ -1,0 +1,37 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Linear Strategy" />
+
+# Linear Strategy (Low Latency)
+
+**What is Linear?**
+
+Linear interpolation is a simple, fast way for the computer to "connect the dots" between audio samples. It’s not as smooth as Lanczos8, but it’s much quicker—like drawing a straight line instead of a curve.
+
+**When should I use it?**
+
+- If you need instant response (live effects, games, interactive music tools)
+- If you’re running on slow devices or want to save battery/CPU
+
+**What’s the catch?**
+
+- The sound might be a little rougher or "robotic" compared to Lanczos8, especially for music or voices.
+
+**What does the `edgeHoldFrames` parameter do?**
+
+- This controls how much the algorithm "holds" the first and last bit of audio to avoid clicks or pops. Bigger numbers can help with glitches at the start/end, but too high can make things sound odd. Try 1 to start (range: 0–32).
+
+**How do I use it?**
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+
+const soundTouch = new SoundTouch({
+  interpolationStrategy: {
+    id: 'linear',
+    params: { edgeHoldFrames: 2 }, // 1 or 2 is a good start
+  },
+});
+```
+
+**Tip:** Use linear if you want the lowest possible delay, or if you’re building something interactive where speed matters more than perfect sound.

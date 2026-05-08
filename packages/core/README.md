@@ -65,11 +65,13 @@ const shifter = new PitchShifter({
 
 `RateTransposer` now resolves interpolation through a strategy registry. The default strategy id is `lanczos8`.
 
+Strategy registration adds strategies to the registry, but no longer changes the process-wide active strategy automatically.
+
 To opt into linear interpolation:
 
 ```ts
 import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
-import { registerLinearStrategy } from '@cxing/interpolation-strategy-linear';
+import { registerLinearStrategy } from '@soundtouchjs/interpolation-strategy-linear';
 
 registerLinearStrategy({ registerInterpolationStrategy });
 
@@ -77,6 +79,29 @@ const st = new SoundTouch({
   interpolationStrategy: 'linear',
 });
 ```
+
+To configure strategy params and update them at runtime:
+
+```ts
+const st = new SoundTouch({
+  interpolationStrategy: {
+    id: 'lanczos8',
+    params: { radius: 4 },
+  },
+});
+
+st.setInterpolationStrategy({
+  id: 'linear',
+  params: { edgeHoldFrames: 2 },
+});
+
+st.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
+```
+
+Current mutable params:
+
+- `lanczos8`: `radius` (default `4`, normalized to `2..8`)
+- `linear`: `edgeHoldFrames` (default `1`, normalized to `0..32`)
 
 To use default Lanczos explicitly:
 
@@ -123,19 +148,20 @@ const framesRead = filter.extract(outputBuffer, 2048);
 
 #### Key classes
 
-| Export                           | Description                                                                |
-| -------------------------------- | -------------------------------------------------------------------------- |
-| `SoundTouch`                     | Main processing engine — set `pitch`, `tempo`, `rate`, or `pitchSemitones` |
-| `PitchShifter`                   | High-level wrapper using `ScriptProcessorNode` with playback events        |
-| `SimpleFilter`                   | Pulls samples through a `SoundTouch` pipe from a source                    |
-| `WebAudioBufferSource`           | Adapter from `AudioBuffer` to the internal sample source interface         |
-| `CircularSampleBuffer`           | Circular interleaved sample buffer used by the default processing path     |
-| `FifoSampleBuffer`               | Resizable interleaved sample buffer (ES2024 `ArrayBuffer`)                 |
-| `getWebAudioNode`                | Creates a `ScriptProcessorNode` wired to a `SimpleFilter`                  |
-| `Stretch`                        | Time-stretch processor (used internally by `SoundTouch`)                   |
-| `RateTransposer`                 | Sample rate transposer (used internally by `SoundTouch`)                   |
-| `registerInterpolationStrategy`  | Registers a custom interpolation strategy id (or kernel)                   |
-| `setActiveInterpolationStrategy` | Changes process-wide default interpolation strategy id                     |
+| Export                                | Description                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| `SoundTouch`                          | Main processing engine — set `pitch`, `tempo`, `rate`, or `pitchSemitones` |
+| `PitchShifter`                        | High-level wrapper using `ScriptProcessorNode` with playback events        |
+| `SimpleFilter`                        | Pulls samples through a `SoundTouch` pipe from a source                    |
+| `WebAudioBufferSource`                | Adapter from `AudioBuffer` to the internal sample source interface         |
+| `CircularSampleBuffer`                | Circular interleaved sample buffer used by the default processing path     |
+| `FifoSampleBuffer`                    | Resizable interleaved sample buffer (ES2024 `ArrayBuffer`)                 |
+| `getWebAudioNode`                     | Creates a `ScriptProcessorNode` wired to a `SimpleFilter`                  |
+| `Stretch`                             | Time-stretch processor (used internally by `SoundTouch`)                   |
+| `RateTransposer`                      | Sample rate transposer (used internally by `SoundTouch`)                   |
+| `registerInterpolationStrategy`       | Registers a custom interpolation strategy id (or kernel)                   |
+| `resolveInterpolationStrategyRuntime` | Resolves runtime kernel + normalized params for an option                  |
+| `setActiveInterpolationStrategy`      | Changes process-wide default interpolation strategy id                     |
 
 ## Constructor API (breaking)
 
@@ -168,7 +194,7 @@ new SimpleFilter({ sourceSound: source, pipe: soundTouch });
 
 ## License
 
-LGPL-3.0 — see [LICENSE](../../LICENSE) for details.
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.
 
 ## Key switching and pitch control
 

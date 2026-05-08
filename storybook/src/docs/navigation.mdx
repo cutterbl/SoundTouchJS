@@ -1,17 +1,89 @@
 import { Meta } from '@storybook/blocks';
 
-<Meta title="Documentation" />
+<Meta title="Introduction" />
 
-# Documentation Navigation
+# SoundTouchJS: Developer Introduction
 
-This page provides an overview of the documentation structure for the SoundTouchJS monorepo. Use the navigation links below to explore specific topics.
+Welcome! SoundTouchJS helps you change the speed, pitch, or key of audio in the browser—no audio engineering background required.
 
-## Audio Worklet
+## What is SoundTouchJS?
+
+SoundTouchJS is a toolkit for working with audio in web apps. It lets you:
+
+- Slow down or speed up music (tempo/rate)
+- Change the pitch (make voices higher/lower)
+- Shift the key of a song
+- Do all this in real time, with good sound quality
+
+You don’t need to know DSP (digital signal processing) or the Web Audio API to get started. We’ll explain everything as we go!
+
+## What is the Web Audio API?
+
+The Web Audio API is how browsers let you play, process, and analyze sound. Think of it as a set of building blocks for making music players, games, or audio tools in JavaScript.
+
+SoundTouchJS builds on top of this, so you can do advanced things without learning all the low-level details.
+
+## What are pitch, tempo, and rate?
+
+- **Pitch**: How high or low a sound is (like a singer’s voice or a musical note)
+- **Tempo**: How fast the music is (beats per minute)
+- **Rate**: How quickly the audio plays (speeding up or slowing down everything)
+
+## What’s a buffer?
+
+A buffer is just a chunk of audio data—think of it as a container holding a piece of sound. You don’t need to manage these directly unless you want to do custom stuff.
+
+## What does this repo include?
+
+- **@soundtouchjs/core**: The main engine and building blocks. Use this if you want to build your own audio pipeline or do offline processing.
+- **@soundtouchjs/audio-worklet**: The easiest way to use SoundTouchJS in real-time browser audio. Handles all the tricky parts for you.
+- **Interpolation plugins**: Extra modules for fine-tuning sound quality or performance. You can swap these in and out.
+- **Demo app**: Try everything live in your browser ([apps/demo/](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo)).
+
+---
+
+If you’re new to audio, start with the **Getting Started** guide. If you’re curious, check out the Playground or the demo app!
+
+## When to Use Each Package
+
+- Use **@soundtouchjs/audio-worklet** for modern, real-time browser audio. This is the default for most apps.
+- Use **@soundtouchjs/core** for custom DSP, offline processing, or legacy `ScriptProcessorNode` flows.
+- Use interpolation plugins for quality/latency tradeoffs or to implement your own strategy.
+
+## Quick Start (AudioWorklet)
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioCtx = new AudioContext();
+// See Getting Started for processorModuleUrl details
+await SoundTouchNode.register(audioCtx, processorModuleUrl);
+
+const stNode = new SoundTouchNode({ context: audioCtx });
+stNode.connect(audioCtx.destination);
+```
+
+See **Getting Started** for a step-by-step guide, including how to resolve `processorModuleUrl` in different build setups (Vite, static, etc).
+
+## Playground & Demo
+
+Try the [Playground](../playground) in Storybook for live, interactive parameter control and transport. For a full demo with source code, see [apps/demo/README.md](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo/README.md).
+
+## Practical Integration Notes
+
+- Always register the processor before creating a `SoundTouchNode`.
+- Use the source node's `playbackRate` for transport speed, and keep `stNode.playbackRate` in sync for pitch/rate compensation.
+- Call `audioCtx.resume()` in a user gesture to comply with browser autoplay policies.
+- For advanced use, see the [core package docs](../../packages/core/README.md) and [audio-worklet package docs](../../packages/audio-worklet/README.md).
+
+## Documentation Index
+
+### Audio Worklet
 
 - [Processor Name](./audio-worklet/processor-name)
 - [SoundTouchNode](./audio-worklet/sound-touch-node)
 
-## Core Library
+### Core Library
 
 - [Abstract Sample Pipe](./core/abstract-sample-pipe)
 - [Circular Sample Buffer](./core/circular-sample-buffer)
@@ -20,7 +92,11 @@ This page provides an overview of the documentation structure for the SoundTouch
 - [Get Active Interpolation Strategy ID](./core/get-active-interpolation-strategy-id)
 - [Get Web Audio Node](./core/get-web-audio-node)
 - [Has Interpolation Strategy](./core/has-interpolation-strategy)
-- [List Interpolation Strategies](./core/list-interpolation-strategies)
+- [Interpolation Strategies](./core/interpolation-strategies)
+  - [Basics](./core/interpolation-strategies)
+  - [Strategy Plugin Authoring](./core/strategy-plugin-authoring)
+  - [Lanczos8 Strategy](./core/lanczos8-strategy)
+  - [Linear Strategy](./core/linear-strategy)
 - [Normalize Interpolation Strategy ID](./core/normalize-interpolation-strategy-id)
 - [Pitch Shifter](./core/pitch-shifter)
 - [Rate Transposer](./core/rate-transposer)

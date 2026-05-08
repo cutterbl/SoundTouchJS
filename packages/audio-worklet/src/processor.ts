@@ -20,6 +20,7 @@
 import { SoundTouch, resolveInterpolationStrategy } from '@soundtouchjs/core';
 import { DEFAULT_SAMPLE_BUFFER_TYPE } from './constants.js';
 import type {
+  InterpolationStrategyParams,
   RateTransposerInterpolationStrategy,
   SampleBufferType,
 } from '@soundtouchjs/core';
@@ -28,6 +29,9 @@ const PROCESSOR_NAME = 'soundtouch-processor';
 
 /**
  * AudioParam descriptor shape expected by the worklet runtime.
+ *
+ * @remarks
+ * Describes the metadata for each AudioParam exposed by the processor, including name, default value, and automation rate.
  */
 interface ParameterDescriptor {
   /** Parameter name exposed on the node. */
@@ -42,7 +46,12 @@ interface ParameterDescriptor {
   automationRate: 'k-rate' | 'a-rate';
 }
 
-/** Constructor options passed by `SoundTouchNode` on initialization. */
+/**
+ * Constructor options passed by `SoundTouchNode` on initialization.
+ *
+ * @remarks
+ * Used to configure the processor's internal buffer strategy and interpolation strategy.
+ */
 interface ProcessorConstructorOptions {
   processorOptions?: {
     /** Preferred internal buffer strategy for the SoundTouch pipeline. */
@@ -52,9 +61,25 @@ interface ProcessorConstructorOptions {
   };
 }
 
+interface SetInterpolationStrategyMessage {
+  type: 'set-interpolation-strategy';
+  strategy: RateTransposerInterpolationStrategy;
+}
+
+interface SetInterpolationStrategyParamsMessage {
+  type: 'set-interpolation-strategy-params';
+  params: Partial<InterpolationStrategyParams>;
+}
+
+type ProcessorMessage =
+  | SetInterpolationStrategyMessage
+  | SetInterpolationStrategyParamsMessage;
+
 /**
- * Audio render-thread processor that applies SoundTouch transformations to
- * stereo blocks.
+ * Audio render-thread processor that applies SoundTouch transformations to stereo blocks.
+ *
+ * @remarks
+ * Receives audio from the main thread, applies pitch, tempo, and rate transformations, and outputs processed stereo audio. Handles runtime strategy switching via messages.
  */
 class SoundTouchProcessor extends AudioWorkletProcessor {
   /** Static AudioParam metadata consumed by the browser. */
@@ -101,6 +126,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
   private _pipe: SoundTouch;
   private _samples: Float32Array;
   private _outputSamples: Float32Array;
+  private pendingInterpolationStrategy: RateTransposerInterpolationStrategy | null;
+  private pendingInterpolationStrategyParams: Partial<InterpolationStrategyParams> | null;
 
   /**
    * @param options Worklet constructor options provided by the main thread.
@@ -136,6 +163,51 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     });
     this._samples = new Float32Array(128 * 2);
     this._outputSamples = new Float32Array(128 * 2);
+    this.pendingInterpolationStrategy = null;
+    this.pendingInterpolationStrategyParams = null;
+
+    const port = this.port;
+    if (port !== undefined) {
+      port.onmessage = (event: MessageEvent<ProcessorMessage>) => {
+        const message = event.data;
+        if (message.type === 'set-interpolation-strategy') {
+          this.pendingInterpolationStrategy = message.strategy;
+          return;
+        }
+        if (message.type === 'set-interpolation-strategy-params') {
+          this.pendingInterpolationStrategyParams = message.params;
+        }
+      };
+    }
+  }
+
+  private applyPendingRuntimeUpdates(): void {
+    if (this.pendingInterpolationStrategy !== null) {
+      try {
+        this._pipe.setInterpolationStrategy(this.pendingInterpolationStrategy);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.info(
+          '[SoundTouchProcessor] Failed to switch interpolation strategy:',
+          this.pendingInterpolationStrategy,
+        );
+      }
+      this.pendingInterpolationStrategy = null;
+    }
+
+    if (this.pendingInterpolationStrategyParams !== null) {
+      try {
+        this._pipe.setInterpolationStrategyParams(
+          this.pendingInterpolationStrategyParams,
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.info(
+          '[SoundTouchProcessor] Failed to update interpolation strategy params.',
+        );
+      }
+      this.pendingInterpolationStrategyParams = null;
+    }
   }
 
   process(
@@ -144,6 +216,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     parameters: Record<string, Float32Array>,
   ): boolean {
     // Keep processor alive for the lifetime of the node.
+    this.applyPendingRuntimeUpdates();
+
     const input = inputs[0];
     const output = outputs[0];
 

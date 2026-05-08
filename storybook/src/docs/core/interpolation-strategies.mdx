@@ -1,0 +1,82 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies" />
+
+# Interpolation Strategies (For Everyone)
+
+**What is interpolation?**
+
+When you change the speed or pitch of audio, the computer has to "fill in" or "stretch out" the sound data. Interpolation is the math used to guess what those new audio samples should be. Good interpolation makes audio sound smooth and natural, while poor interpolation can make it sound robotic or glitchy.
+
+**Why does it matter?**
+
+If you want to slow down, speed up, or shift the pitch of audio (like for music apps, podcasts, or games), the interpolation strategy you choose affects both sound quality and performance. Some strategies sound better but use more CPU; others are faster but may sound rougher.
+
+## Which strategies are available?
+
+- **lanczos8** (default): High-quality, great for music and anything where sound quality matters. You can adjust how "sharp" it sounds with the `radius` parameter.
+- **linear**: Simpler and faster, good for real-time effects or when you need low latency. You can adjust how much it "holds" the edges with `edgeHoldFrames`.
+
+## How do I use them?
+
+You can pick a strategy when you create a SoundTouch processor, and you can change it later if you want. Here are some simple examples:
+
+### Using with the core library
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+
+const soundTouch = new SoundTouch({
+  interpolationStrategy: {
+    id: 'lanczos8', // or 'linear'
+    params: { radius: 4 }, // or { edgeHoldFrames: 2 }
+  },
+});
+
+// Change strategy at runtime (for example, if the user wants lower latency)
+soundTouch.setInterpolationStrategy({
+  id: 'linear',
+  params: { edgeHoldFrames: 2 },
+});
+
+// Update just the parameters (for example, to make it smoother)
+soundTouch.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
+```
+
+### Using with AudioWorklet (browser real-time audio)
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const node = new SoundTouchNode({
+  context: audioCtx,
+  interpolationStrategy: { id: 'lanczos8', params: { radius: 4 } },
+});
+
+// Change strategy while running
+node.setInterpolationStrategy({ id: 'linear', params: { edgeHoldFrames: 2 } });
+node.setInterpolationStrategyParams({ edgeHoldFrames: 3 });
+```
+
+## What should I pick?
+
+- **If you want the best sound:** Use `lanczos8` (the default). Great for music, podcasts, and anything where quality matters.
+- **If you want the lowest latency:** Use `linear`. Good for live effects, games, or when you need instant response.
+
+You can always experiment—try both and see what sounds best for your app!
+
+## What do the parameters mean?
+
+- **radius** (for lanczos8): Higher values make the sound smoother but use more CPU. Try 4 to start (range: 2–8).
+- **edgeHoldFrames** (for linear): Higher values can help avoid clicks at the start/end of playback. Try 1 to start (range: 0–32).
+
+## Extra notes
+
+- You can switch strategies or update parameters at any time—changes are applied smoothly.
+- If you give a parameter that's out of range, the library will pick a safe value for you.
+
+---
+
+**Not sure what any of this means?**
+
+That's okay! For most apps, just use the defaults. If you want to experiment, try changing the strategy or its parameters and listen to the difference. You don't need to be an audio expert to get good results.

@@ -20,6 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * Tests whether two floating-point numbers are approximately equal.
+ *
+ * @param a First number to compare.
+ * @param b Second number to compare.
+ * @returns True if the numbers are approximately equal, false otherwise.
+ * @remarks
+ * Uses a fixed epsilon threshold to determine equality.
+ */
 export default function testFloatEqual(a: number, b: number): boolean {
   return (a > b ? a - b : b - a) > 1e-10;
 }

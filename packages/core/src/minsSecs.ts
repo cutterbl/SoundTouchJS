@@ -25,6 +25,14 @@ function pad(n: number, width: number, z = '0'): string {
   return s.length >= width ? s : new Array(width - s.length + 1).join(z) + s;
 }
 
+/**
+ * Converts a number of seconds to a string in "minutes:seconds" format.
+ *
+ * @param secs Number of seconds to convert.
+ * @returns A string formatted as "m:ss".
+ * @example
+ * minsSecs(125) // "2:05"
+ */
 export default function minsSecs(secs: number): string {
   const mins = Math.floor(secs / 60);
   const seconds = secs - mins * 60;

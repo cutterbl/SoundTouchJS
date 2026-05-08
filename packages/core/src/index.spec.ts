@@ -23,6 +23,7 @@ describe('core public exports', () => {
       'normalizeInterpolationStrategyId',
       'registerInterpolationStrategy',
       'resolveInterpolationStrategy',
+      'resolveInterpolationStrategyRuntime',
       'setActiveInterpolationStrategy',
       'unregisterInterpolationStrategy',
     ].sort();

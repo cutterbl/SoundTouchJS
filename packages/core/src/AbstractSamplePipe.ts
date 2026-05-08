@@ -36,17 +36,14 @@ export interface AbstractSamplePipeOptions<
 
 /**
  * Abstract base class for sample processing pipes.
- * Provides common buffer management for audio processing.
  *
  * @remarks
- * This class manages input and output buffers for audio sample processing.
- * Subclasses should implement specific processing logic.
+ * Manages input and output buffers for audio sample processing chains. Subclasses should implement
+ * specific processing logic for audio transformation or analysis. This class is not intended to be used
+ * directly, but as a base for concrete audio processing stages.
  *
- * @typeParam TInputBuffer Concrete input buffer type.
- * Defaults to the generic `SampleBuffer` contract.
- * @typeParam TOutputBuffer Concrete output buffer type.
- * Defaults to `TInputBuffer` so input/output share the same buffer type unless
- * a subclass opts into different types.
+ * @typeParam TInputBuffer - Concrete input buffer type (defaults to the generic `SampleBuffer` contract).
+ * @typeParam TOutputBuffer - Concrete output buffer type (defaults to `TInputBuffer` so input/output share the same buffer type unless a subclass opts into different types).
  */
 export default class AbstractSamplePipe<
   TInputBuffer extends SampleBuffer = SampleBuffer,
@@ -91,6 +88,7 @@ export default class AbstractSamplePipe<
 
   /**
    * Gets the input buffer.
+   * @returns The current input buffer instance, or null if not set.
    */
   get inputBuffer(): TInputBuffer | null {
     return this._inputBuffer;
@@ -98,6 +96,7 @@ export default class AbstractSamplePipe<
 
   /**
    * Sets the input buffer.
+   * @param inputBuffer The new input buffer instance, or null to unset.
    */
   set inputBuffer(inputBuffer: TInputBuffer | null) {
     this._inputBuffer = inputBuffer;
@@ -105,6 +104,7 @@ export default class AbstractSamplePipe<
 
   /**
    * Gets the output buffer.
+   * @returns The current output buffer instance, or null if not set.
    */
   get outputBuffer(): TOutputBuffer | null {
     return this._outputBuffer;
@@ -112,6 +112,7 @@ export default class AbstractSamplePipe<
 
   /**
    * Sets the output buffer.
+   * @param outputBuffer The new output buffer instance, or null to unset.
    */
   set outputBuffer(outputBuffer: TOutputBuffer | null) {
     this._outputBuffer = outputBuffer;
@@ -119,6 +120,9 @@ export default class AbstractSamplePipe<
 
   /**
    * Clears both input and output buffers.
+   *
+   * @remarks
+   * Resets the state of both input and output buffers, if present, by calling their `clear()` methods.
    */
   clear(): void {
     this._inputBuffer?.clear();

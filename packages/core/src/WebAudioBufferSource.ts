@@ -1,17 +1,24 @@
 /**
- * Adapter from `AudioBuffer` to the sample-source contract expected by
- * `SimpleFilter`.
+ * Adapter from `AudioBuffer` to the sample-source contract expected by `SimpleFilter`.
  *
  * @remarks
- * Output samples are interleaved stereo. Mono input buffers are duplicated to
- * both output channels.
+ * Converts a Web Audio API `AudioBuffer` into an interleaved stereo sample source for use with SoundTouch processing chains.
+ * Output samples are interleaved stereo. Mono input buffers are duplicated to both output channels.
  */
 
 export default class WebAudioBufferSource {
-  /** Source `AudioBuffer` used for extraction. */
+  /**
+   * Source `AudioBuffer` used for extraction.
+   * @remarks
+   * The underlying Web Audio API buffer that provides audio data.
+   */
   buffer: AudioBuffer;
 
-  /** Current source position in frames. */
+  /**
+   * Current source position in frames.
+   * @remarks
+   * Indicates the current read position within the source buffer.
+   */
   private _position: number;
 
   /**
@@ -22,17 +29,24 @@ export default class WebAudioBufferSource {
     this._position = 0;
   }
 
-  /** True when the source contains at least two channels. */
+  /**
+   * True when the source contains at least two channels.
+   * @returns True if the buffer is stereo, false if mono.
+   */
   get dualChannel(): boolean {
     return this.buffer.numberOfChannels > 1;
   }
 
-  /** Current source position in frames. */
+  /**
+   * Current source position in frames.
+   * @returns The current frame index for reading from the buffer.
+   */
   get position(): number {
     return this._position;
   }
 
   /**
+   * Sets the current source position in frames.
    * @param value New source position in frames.
    */
   set position(value: number) {
@@ -46,6 +60,8 @@ export default class WebAudioBufferSource {
    * @param numFrames Number of frames to extract.
    * @param position Source frame offset.
    * @returns Number of frames that can be considered available from the source.
+   * @remarks
+   * If the buffer is mono, samples are duplicated to both channels. If stereo, both channels are used as-is.
    */
   extract(target: Float32Array, numFrames = 0, position = 0): number {
     this.position = position;

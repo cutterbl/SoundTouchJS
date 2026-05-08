@@ -30,8 +30,8 @@ import {
   type SampleBufferAdapterFactory,
 } from './SampleBufferAdapter.js';
 import {
-  normalizeInterpolationStrategyId,
-  resolveInterpolationStrategy,
+  resolveInterpolationStrategyRuntime,
+  type InterpolationStrategyParams,
   type RateTransposerInterpolationStrategyId,
   type RateTransposerInterpolationStrategyOption,
   type InterpolationKernel,
@@ -54,7 +54,9 @@ export interface RateTransposerConstructorOptions {
 
 /**
  * Sample rate transposer for pitch and tempo manipulation.
- * Used internally by SoundTouch for rate-based processing.
+ *
+ * @remarks
+ * Used internally by SoundTouch for rate-based processing. Applies interpolation strategies to resample audio at different rates, supporting real-time pitch and tempo changes.
  */
 export default class RateTransposer extends AbstractSamplePipe<
   SampleBuffer,
@@ -97,17 +99,27 @@ export default class RateTransposer extends AbstractSamplePipe<
   private readonly inputAdapter: SampleBufferAdapter;
 
   /** Selected interpolation strategy for transposition. */
-  private readonly interpolationStrategy: RateTransposerInterpolationStrategyId;
+  private interpolationStrategy: RateTransposerInterpolationStrategyId;
 
   /** Resolved kernel used by this transposer instance. */
-  private readonly resolvedInterpolationKernel: InterpolationKernel;
+  private resolvedInterpolationKernel: InterpolationKernel;
 
   /** Optional per-instance state for plugin kernels. */
-  private readonly kernelState: unknown;
+  private kernelState: unknown;
+
+  /** Normalized params for the selected interpolation strategy. */
+  private interpolationStrategyParams: InterpolationStrategyParams;
+
+  /** Optional params application hook from the strategy registration. */
+  private applyKernelParams:
+    | ((state: unknown, params: InterpolationStrategyParams) => void)
+    | undefined;
 
   /**
    * Creates a RateTransposer instance.
    * @param options Constructor options.
+   * @remarks
+   * Accepts factories for buffer and adapter creation, and allows specifying the interpolation strategy.
    */
   constructor({
     createBuffers = false,
@@ -129,34 +141,12 @@ export default class RateTransposer extends AbstractSamplePipe<
     this.sampleBufferAdapterFactory = sampleBufferAdapterFactory;
     this.sampleBufferFactory = sampleBufferFactory;
     this.inputAdapter = sampleBufferAdapterFactory();
-    this.interpolationStrategy = normalizeInterpolationStrategyId(
-      interpolationStrategy,
-    );
-    const resolvedInterpolationStrategy = resolveInterpolationStrategy(
-      this.interpolationStrategy,
-    );
-    if (typeof resolvedInterpolationStrategy === 'function') {
-      this.resolvedInterpolationKernel = resolvedInterpolationStrategy;
-    } else {
-      const resolvedBase = resolveInterpolationStrategy(
-        resolvedInterpolationStrategy,
-      );
-      if (typeof resolvedBase !== 'function') {
-        throw new Error(
-          `Interpolation strategy \"${this.interpolationStrategy}\" did not resolve to a kernel.`,
-        );
-      }
-      this.resolvedInterpolationKernel = resolvedBase;
-    }
-
-    if (
-      'createState' in this.resolvedInterpolationKernel &&
-      typeof this.resolvedInterpolationKernel.createState === 'function'
-    ) {
-      this.kernelState = this.resolvedInterpolationKernel.createState();
-    } else {
-      this.kernelState = undefined;
-    }
+    this.interpolationStrategy = 'lanczos8';
+    this.resolvedInterpolationKernel = () => 0;
+    this.kernelState = undefined;
+    this.interpolationStrategyParams = {};
+    this.applyKernelParams = undefined;
+    this.setInterpolationStrategy(interpolationStrategy ?? 'lanczos8');
   }
 
   /**
@@ -167,13 +157,77 @@ export default class RateTransposer extends AbstractSamplePipe<
     this._rate = rate;
   }
 
-  /** Active interpolation strategy. */
+  /**
+   * Active interpolation strategy.
+   * @returns The current interpolation strategy identifier.
+   */
   get strategy(): RateTransposerInterpolationStrategyId {
     return this.interpolationStrategy;
   }
 
   /**
+   * Active interpolation strategy params.
+   * @returns The current interpolation strategy parameters.
+   */
+  get strategyParams(): Readonly<InterpolationStrategyParams> {
+    return { ...this.interpolationStrategyParams };
+  }
+
+  /**
+   * Switches interpolation strategy at runtime.
+   * @param strategy The new interpolation strategy to use.
+   */
+  setInterpolationStrategy(
+    strategy: RateTransposerInterpolationStrategy,
+  ): void {
+    const resolved = resolveInterpolationStrategyRuntime(strategy);
+    this.interpolationStrategy = resolved.id;
+    this.resolvedInterpolationKernel = resolved.kernel;
+    this.interpolationStrategyParams = { ...resolved.params };
+    this.applyKernelParams = resolved.applyParams;
+
+    if (
+      'createState' in this.resolvedInterpolationKernel &&
+      typeof this.resolvedInterpolationKernel.createState === 'function'
+    ) {
+      this.kernelState = this.resolvedInterpolationKernel.createState();
+    } else {
+      this.kernelState = undefined;
+    }
+
+    if (this.applyKernelParams !== undefined) {
+      this.applyKernelParams(
+        this.kernelState,
+        this.interpolationStrategyParams,
+      );
+    }
+    this.reset();
+  }
+
+  /**
+   * Applies a partial params update to the current interpolation strategy.
+   * @param params Partial set of parameters to update.
+   */
+  setInterpolationStrategyParams(
+    params: Partial<InterpolationStrategyParams>,
+  ): void {
+    this.interpolationStrategyParams = {
+      ...this.interpolationStrategyParams,
+      ...params,
+    };
+
+    if (this.applyKernelParams !== undefined) {
+      this.applyKernelParams(
+        this.kernelState,
+        this.interpolationStrategyParams,
+      );
+    }
+  }
+
+  /**
    * Resets internal state for interpolation.
+   * @remarks
+   * Clears previous sample values and resets the fractional position for output generation.
    */
   private reset(): void {
     this.fractionalPosition = -1;
@@ -183,6 +237,8 @@ export default class RateTransposer extends AbstractSamplePipe<
 
   /**
    * Clears buffers and resets internal state.
+   * @remarks
+   * Calls clear on all internal buffers and resets interpolation state.
    */
   override clear(): void {
     super.clear();
@@ -199,7 +255,10 @@ export default class RateTransposer extends AbstractSamplePipe<
       createBuffers: false,
       sampleBufferAdapterFactory: this.sampleBufferAdapterFactory,
       sampleBufferFactory: this.sampleBufferFactory,
-      interpolationStrategy: this.interpolationStrategy,
+      interpolationStrategy: {
+        id: this.interpolationStrategy,
+        params: this.interpolationStrategyParams,
+      },
     });
     result.rate = this._rate;
     return result;
@@ -207,6 +266,8 @@ export default class RateTransposer extends AbstractSamplePipe<
 
   /**
    * Processes input buffer and writes transposed samples to output buffer.
+   * @remarks
+   * Reads frames from the input buffer, applies rate transposition, and writes to the output buffer.
    */
   process(): void {
     if (this._inputBuffer === null || this._outputBuffer === null) {
@@ -228,10 +289,11 @@ export default class RateTransposer extends AbstractSamplePipe<
   }
 
   /**
-   * Ensures temporary scratch arrays are large enough for the current frame
-   * request and estimated output size.
+   * Ensures temporary scratch arrays are large enough for the current frame request and estimated output size.
    *
    * @param numInputFrames Number of input frames that will be processed.
+   * @remarks
+   * Allocates or resizes scratch arrays as needed for efficient processing.
    */
   private ensureScratchCapacity(numInputFrames: number): void {
     const inputSamples = numInputFrames * 2;
@@ -250,6 +312,8 @@ export default class RateTransposer extends AbstractSamplePipe<
    * Transposes input samples by the current rate.
    * @param numFrames Number of input frames to transpose.
    * @returns Number of output frames written.
+   * @remarks
+   * Applies the selected interpolation kernel to generate output samples at the new rate.
    */
   transpose(numFrames = 0): number {
     if (this._inputBuffer !== null) {
@@ -277,6 +341,8 @@ export default class RateTransposer extends AbstractSamplePipe<
 
   /**
    * Handles transposition using a plugin kernel.
+   * @remarks
+   * Invokes the selected interpolation kernel for each output sample.
    */
   private transposePluginKernel(numFrames: number): number {
     const src = this.inputScratch;
@@ -330,6 +396,11 @@ export default class RateTransposer extends AbstractSamplePipe<
     return i;
   }
 
+  /**
+   * Returns the kernel state record if available.
+   * @param state The kernel state object.
+   * @returns The state record with previous sample values, or undefined if not present.
+   */
   private getKernelStateRecord(
     state: unknown,
   ): { prevSampleL: number; prevSampleR: number } | undefined {

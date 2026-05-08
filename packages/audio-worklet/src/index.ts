@@ -19,6 +19,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/**
+ * Main entry point for the SoundTouch audio-worklet package.
+ *
+ * @remarks
+ * Re-exports the SoundTouchNode class, its options types, and the processor name constant for use in host applications.
+ */
 export { SoundTouchNode } from './SoundTouchNode.js';
 export type {
   SoundTouchNodeConstructorOptions,

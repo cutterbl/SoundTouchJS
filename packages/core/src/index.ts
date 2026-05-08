@@ -35,6 +35,7 @@ export { default as getWebAudioNode } from './getWebAudioNode.js';
 import {
   getActiveInterpolationStrategyId,
   hasInterpolationStrategy,
+  resolveInterpolationStrategyRuntime,
   listInterpolationStrategies,
   normalizeInterpolationStrategyId,
   registerInterpolationStrategy,
@@ -46,6 +47,7 @@ import {
 export {
   getActiveInterpolationStrategyId,
   hasInterpolationStrategy,
+  resolveInterpolationStrategyRuntime,
   listInterpolationStrategies,
   normalizeInterpolationStrategyId,
   registerInterpolationStrategy,
@@ -66,7 +68,9 @@ export type { PitchShifterOptions } from './PitchShifter.js';
 export type { RateTransposerInterpolationStrategy } from './RateTransposer.js';
 export type {
   BuiltInInterpolationStrategy,
+  InterpolationStrategyParams,
   InterpolationStrategyRegistration,
+  ResolvedInterpolationStrategyRuntime,
   RateTransposerInterpolationStrategyDescriptor,
   RateTransposerInterpolationStrategyId,
   RateTransposerInterpolationStrategyOption,

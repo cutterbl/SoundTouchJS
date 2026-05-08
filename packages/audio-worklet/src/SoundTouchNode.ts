@@ -18,6 +18,7 @@
  */
 
 import type {
+  InterpolationStrategyParams,
   RateTransposerInterpolationStrategy,
   SampleBufferType,
 } from '@soundtouchjs/core';
@@ -25,6 +26,9 @@ import { DEFAULT_SAMPLE_BUFFER_TYPE, PROCESSOR_NAME } from './constants.js';
 
 /**
  * Construction options for `SoundTouchNode`.
+ *
+ * @remarks
+ * Used to configure the AudioWorkletNode and its processor, including buffer strategy and interpolation strategy.
  */
 export interface SoundTouchNodeOptions {
   /**
@@ -46,14 +50,36 @@ export interface SoundTouchNodeOptions {
   interpolationStrategy?: RateTransposerInterpolationStrategy;
 }
 
+/**
+ * Construction options for SoundTouchNode constructor.
+ * Extends SoundTouchNodeOptions with required context.
+ */
 export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions {
-  /** The AudioContext or OfflineAudioContext. */
+  /**
+   * The AudioContext or OfflineAudioContext.
+   * @remarks
+   * Required for node construction; determines the audio graph context.
+   */
+  context: BaseAudioContext;
+}
+/**
+ * Construction options for SoundTouchNode constructor.
+ * Extends SoundTouchNodeOptions with required context.
+ */
+export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions {
+  /**
+   * The AudioContext or OfflineAudioContext.
+   * @remarks
+   * Required for node construction; determines the audio graph context.
+   */
   context: BaseAudioContext;
 }
 
 /**
  * Main-thread AudioWorkletNode wrapper for SoundTouch audio processing.
- * Provides AudioParam accessors for pitch, tempo, rate, pitchSemitones, and playbackRate.
+ *
+ * @remarks
+ * Provides AudioParam accessors for pitch, tempo, rate, pitchSemitones, and playbackRate. Communicates with the render-thread processor for real-time audio transformation.
  *
  * @example
  * const stNode = new SoundTouchNode({ context: audioCtx });
@@ -62,11 +88,16 @@ export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions 
  * stNode.pitchSemitones.value = -3;
  */
 export class SoundTouchNode extends AudioWorkletNode {
+  /**
+   * The registered processor name for this node type.
+   */
   static readonly processorName = PROCESSOR_NAME;
 
   /**
    * Registers the SoundTouch processor module with the given AudioContext.
-   * Must be called before creating SoundTouchNode instances.
+   *
+   * @remarks
+   * Must be called before creating SoundTouchNode instances. Loads the processor script into the AudioWorklet.
    *
    * @param context - The AudioContext or OfflineAudioContext
    * @param processorUrl - URL or path to the processor script
@@ -83,6 +114,7 @@ export class SoundTouchNode extends AudioWorkletNode {
    *
    * @remarks
    * The module should call core registration APIs during evaluation.
+   * Loads a strategy plugin for use in the render-thread processor.
    */
   static async registerStrategyModule(
     context: BaseAudioContext,
@@ -113,6 +145,7 @@ export class SoundTouchNode extends AudioWorkletNode {
 
   /**
    * Pitch multiplier AudioParam (1.0 = original pitch).
+   * @returns The AudioParam controlling pitch.
    */
   get pitch(): AudioParam {
     return this.parameters.get('pitch')!;
@@ -120,6 +153,7 @@ export class SoundTouchNode extends AudioWorkletNode {
 
   /**
    * Tempo multiplier AudioParam (1.0 = original tempo).
+   * @returns The AudioParam controlling tempo.
    */
   get tempo(): AudioParam {
     return this.parameters.get('tempo')!;
@@ -127,6 +161,7 @@ export class SoundTouchNode extends AudioWorkletNode {
 
   /**
    * Rate multiplier AudioParam (affects both pitch and tempo).
+   * @returns The AudioParam controlling rate.
    */
   get rate(): AudioParam {
     return this.parameters.get('rate')!;
@@ -134,12 +169,43 @@ export class SoundTouchNode extends AudioWorkletNode {
 
   /**
    * Pitch shift in semitones AudioParam (integer steps for musical key changes).
+   * @returns The AudioParam controlling pitch in semitones.
    */
   get pitchSemitones(): AudioParam {
     return this.parameters.get('pitchSemitones')!;
   }
 
+  /**
+   * Playback rate AudioParam (affects all processing stages).
+   * @returns The AudioParam controlling playback rate.
+   */
   get playbackRate(): AudioParam {
     return this.parameters.get('playbackRate')!;
+  }
+
+  /**
+   * Switches interpolation strategy at runtime in the render-thread processor.
+   * @param strategy The new interpolation strategy to use.
+   */
+  setInterpolationStrategy(
+    strategy: RateTransposerInterpolationStrategy,
+  ): void {
+    this.port.postMessage({
+      type: 'set-interpolation-strategy',
+      strategy,
+    });
+  }
+
+  /**
+   * Applies a partial params update to the active interpolation strategy.
+   * @param params Partial set of parameters to update.
+   */
+  setInterpolationStrategyParams(
+    params: Partial<InterpolationStrategyParams>,
+  ): void {
+    this.port.postMessage({
+      type: 'set-interpolation-strategy-params',
+      params,
+    });
   }
 }

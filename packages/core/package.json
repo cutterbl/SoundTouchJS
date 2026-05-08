@@ -2,7 +2,8 @@
   "name": "@soundtouchjs/core",
   "version": "1.0.10",
   "description": "An audio processing library for manipulating Web Audio Contexts",
-  "license": "LGPL-3.0",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -49,6 +50,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@cxing/interpolation-strategy-lanczos": "workspace:*"
+    "@soundtouchjs/interpolation-strategy-lanczos": "workspace:*"
   }
 }

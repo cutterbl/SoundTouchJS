@@ -470,6 +470,51 @@ describe('RateTransposer', () => {
     });
   });
 
+  describe('runtime strategy updates', () => {
+    it('switches strategy at runtime', () => {
+      ensureLinearStrategyRegistered();
+      const rt = new RateTransposer({
+        createBuffers: true,
+        interpolationStrategy: 'lanczos8',
+      });
+
+      rt.setInterpolationStrategy('linear');
+
+      expect(rt.strategy).toBe('linear');
+    });
+
+    it('updates strategy params at runtime', () => {
+      const rt = new RateTransposer({
+        createBuffers: true,
+        interpolationStrategy: {
+          id: 'lanczos8',
+          params: { radius: 4 },
+        },
+      });
+
+      expect(rt.strategyParams['radius']).toBe(4);
+
+      rt.setInterpolationStrategyParams({ radius: 7 });
+
+      expect(rt.strategyParams['radius']).toBe(7);
+    });
+
+    it('preserves strategy params when cloned', () => {
+      const rt = new RateTransposer({
+        createBuffers: true,
+        interpolationStrategy: {
+          id: 'lanczos8',
+          params: { radius: 5 },
+        },
+      });
+
+      const cloned = rt.clone();
+
+      expect(cloned.strategy).toBe('lanczos8');
+      expect(cloned.strategyParams['radius']).toBe(5);
+    });
+  });
+
   describe('clear', () => {
     it('resets internal state and buffers', () => {
       const rt = new RateTransposer({ createBuffers: true });

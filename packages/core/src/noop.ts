@@ -20,6 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * No-operation function.
+ *
+ * @remarks
+ * A function that does nothing. Useful as a default callback or placeholder.
+ */
 export default function noop(): void {
   return;
 }

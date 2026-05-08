@@ -127,6 +127,19 @@ const stNode = new SoundTouchNode({
 
 If an unknown strategy id is provided, the processor logs an info message and falls back to `lanczos8`.
 
+You can also switch strategy and update params at runtime:
+
+```ts
+stNode.setInterpolationStrategy({
+  id: 'linear',
+  params: { edgeHoldFrames: 2 },
+});
+
+stNode.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
+```
+
+These updates are applied by the processor at render-block boundaries for stable transitions.
+
 ### Full example — AudioBuffer
 
 ```ts
@@ -244,4 +257,4 @@ new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
 
 ## License
 
-LGPL-3.0 — see [LICENSE](../../LICENSE) for details.
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

@@ -1,4 +1,4 @@
-import { lanczosStrategy } from '@cxing/interpolation-strategy-lanczos';
+import { lanczosStrategy } from '@soundtouchjs/interpolation-strategy-lanczos';
 
 /** Built-in interpolation strategy ids understood by the core pipeline. */
 export type BuiltInInterpolationStrategy = 'linear' | 'lanczos8';
@@ -23,10 +23,13 @@ export interface InterpolationKernel {
   createState?: () => unknown;
 }
 
+export type InterpolationStrategyParams = Record<string, number>;
+
 export type RateTransposerInterpolationStrategyId = string;
 
 export interface RateTransposerInterpolationStrategyDescriptor {
   readonly id: RateTransposerInterpolationStrategyId;
+  readonly params?: Partial<InterpolationStrategyParams>;
 }
 
 export type RateTransposerInterpolationStrategyOption =
@@ -40,6 +43,28 @@ export interface InterpolationStrategyRegistration {
   readonly baseStrategy?: BuiltInInterpolationStrategy;
   /** Optional plugin kernel implementation. */
   readonly kernel?: InterpolationKernel;
+  /** Default params merged with runtime overrides. */
+  readonly defaultParams?: InterpolationStrategyParams;
+  /** Optional params normalizer/validator. */
+  readonly normalizeParams?: (
+    params: Partial<InterpolationStrategyParams> | undefined,
+    defaults: InterpolationStrategyParams,
+  ) => InterpolationStrategyParams;
+  /** Optional hook used to apply params to kernel state. */
+  readonly applyParams?: (
+    state: unknown,
+    params: InterpolationStrategyParams,
+  ) => void;
+}
+
+export interface ResolvedInterpolationStrategyRuntime {
+  readonly id: RateTransposerInterpolationStrategyId;
+  readonly kernel: InterpolationKernel;
+  readonly params: InterpolationStrategyParams;
+  readonly applyParams?: (
+    state: unknown,
+    params: InterpolationStrategyParams,
+  ) => void;
 }
 
 interface RegisteredInterpolationStrategy {
@@ -47,6 +72,15 @@ interface RegisteredInterpolationStrategy {
   readonly baseStrategy: BuiltInInterpolationStrategy;
   readonly builtIn: boolean;
   readonly kernel?: InterpolationKernel;
+  readonly defaultParams: InterpolationStrategyParams;
+  readonly normalizeParams?: (
+    params: Partial<InterpolationStrategyParams> | undefined,
+    defaults: InterpolationStrategyParams,
+  ) => InterpolationStrategyParams;
+  readonly applyParams?: (
+    state: unknown,
+    params: InterpolationStrategyParams,
+  ) => void;
 }
 
 const strategyRegistry = new Map<
@@ -56,18 +90,24 @@ const strategyRegistry = new Map<
 
 let activeStrategyId: RateTransposerInterpolationStrategyId = 'lanczos8';
 
-function readStrategyId(
+function readStrategySelection(
   strategy?: RateTransposerInterpolationStrategyOption,
-): RateTransposerInterpolationStrategyId {
+): RateTransposerInterpolationStrategyDescriptor {
   if (typeof strategy === 'string') {
-    return strategy;
+    return { id: strategy };
   }
 
   if (strategy !== undefined) {
-    return strategy.id;
+    return strategy;
   }
 
-  return activeStrategyId;
+  return { id: activeStrategyId };
+}
+
+function readStrategyId(
+  strategy?: RateTransposerInterpolationStrategyOption,
+): RateTransposerInterpolationStrategyId {
+  return readStrategySelection(strategy).id;
 }
 
 function requireRegisteredStrategy(
@@ -92,8 +132,10 @@ export function registerInterpolationStrategy(
     baseStrategy,
     builtIn: false,
     kernel: registration.kernel,
+    defaultParams: { ...(registration.defaultParams ?? {}) },
+    normalizeParams: registration.normalizeParams,
+    applyParams: registration.applyParams,
   });
-  activeStrategyId = registration.id;
 }
 
 function registerBuiltInInterpolationStrategy(
@@ -105,7 +147,44 @@ function registerBuiltInInterpolationStrategy(
     baseStrategy,
     builtIn: true,
     kernel: registration.kernel,
+    defaultParams: { ...(registration.defaultParams ?? {}) },
+    normalizeParams: registration.normalizeParams,
+    applyParams: registration.applyParams,
   });
+}
+
+function resolveKernelRegistration(
+  registration: RegisteredInterpolationStrategy,
+  visited: Set<string> = new Set(),
+): RegisteredInterpolationStrategy {
+  if (registration.kernel !== undefined) {
+    return registration;
+  }
+
+  if (visited.has(registration.id)) {
+    throw new Error(
+      `Interpolation strategy resolution cycle detected at "${registration.id}".`,
+    );
+  }
+
+  visited.add(registration.id);
+  const next = requireRegisteredStrategy(registration.baseStrategy);
+  return resolveKernelRegistration(next, visited);
+}
+
+function normalizeParams(
+  registration: RegisteredInterpolationStrategy,
+  params: Partial<InterpolationStrategyParams> | undefined,
+): InterpolationStrategyParams {
+  const defaults = registration.defaultParams;
+  if (registration.normalizeParams !== undefined) {
+    return registration.normalizeParams(params, defaults);
+  }
+
+  return {
+    ...defaults,
+    ...(params ?? {}),
+  };
 }
 
 export function unregisterInterpolationStrategy(
@@ -177,6 +256,32 @@ export function resolveInterpolationStrategy(
     return registered.kernel;
   }
   return registered.baseStrategy;
+}
+
+/**
+ * Resolves runtime strategy state (kernel + normalized params + applier hook).
+ */
+export function resolveInterpolationStrategyRuntime(
+  strategy?: RateTransposerInterpolationStrategyOption,
+): ResolvedInterpolationStrategyRuntime {
+  const selection = readStrategySelection(strategy);
+  const registered = requireRegisteredStrategy(selection.id);
+  const kernelRegistration = resolveKernelRegistration(registered);
+  const kernel = kernelRegistration.kernel;
+  if (kernel === undefined) {
+    throw new Error(
+      `Interpolation strategy "${selection.id}" did not resolve to a kernel.`,
+    );
+  }
+
+  const params = normalizeParams(registered, selection.params);
+
+  return {
+    id: registered.id,
+    kernel,
+    params,
+    applyParams: registered.applyParams ?? kernelRegistration.applyParams,
+  };
 }
 
 registerBuiltInInterpolationStrategy({

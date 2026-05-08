@@ -6,7 +6,9 @@
       "options": {
         "configDir": "storybook/.storybook",
         "outputPath": "dist/storybook",
-        "port": 4400
+        "port": 4400,
+        "open": true,
+        "ci": false
       },
       "inputs": ["default", "^default"]
     },

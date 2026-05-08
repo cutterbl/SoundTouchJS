@@ -6,12 +6,12 @@ A real-time audio processing library for pitch shifting, tempo adjustment, and r
 
 This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes four packages:
 
-| Package                                                                                      | npm                                                 | Description                                                              |
-| -------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`@soundtouchjs/core`](packages/core/README.md)                                              | `npm install @soundtouchjs/core`                    | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
-| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                            | `npm install @soundtouchjs/audio-worklet`           | AudioWorklet implementation with `AudioParam`-based controls             |
-| [`@cxing/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md) | `npm install @cxing/interpolation-strategy-lanczos` | Lanczos interpolation strategy plugin (default strategy id: `lanczos8`)  |
-| [`@cxing/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)   | `npm install @cxing/interpolation-strategy-linear`  | Linear interpolation strategy plugin (strategy id: `linear`)             |
+| Package                                                                                             | npm                                                        | Description                                                              |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`@soundtouchjs/core`](packages/core/README.md)                                                     | `npm install @soundtouchjs/core`                           | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
+| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                   | `npm install @soundtouchjs/audio-worklet`                  | AudioWorklet implementation with `AudioParam`-based controls             |
+| [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md) | `npm install @soundtouchjs/interpolation-strategy-lanczos` | Lanczos interpolation strategy plugin (default strategy id: `lanczos8`)  |
+| [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)   | `npm install @soundtouchjs/interpolation-strategy-linear`  | Linear interpolation strategy plugin (strategy id: `linear`)             |
 
 A development [demo app](apps/demo/) is included for testing both packages in a browser.
 
@@ -109,6 +109,7 @@ pnpm install
 
 ```sh
 pnpm build              # Build all projects
+pnpm coverage:summary   # Run package coverage and write consolidated report to .coverage-reports/
 pnpm typecheck          # Typecheck all projects
 pnpm dev                # Start demo dev server (Vite on port 8080)
 pnpm prettier           # Format all files
@@ -119,8 +120,8 @@ Individual project commands via Nx:
 ```sh
 pnpm nx build core           # Build @soundtouchjs/core
 pnpm nx build audio-worklet  # Build @soundtouchjs/audio-worklet
-pnpm nx build @cxing/interpolation-strategy-lanczos
-pnpm nx build @cxing/interpolation-strategy-linear
+pnpm nx build @soundtouchjs/interpolation-strategy-lanczos
+pnpm nx build @soundtouchjs/interpolation-strategy-linear
 pnpm nx test core            # Run core tests
 pnpm nx test audio-worklet   # Run audio-worklet tests
 pnpm nx dev demo             # Dev server with HMR
@@ -156,13 +157,15 @@ The `v0.4` release is a ground-up modernization:
 
 Fork the repo, work in a branch, submit a Pull Request. Commits follow [Conventional Commits](https://www.conventionalcommits.org/) with sentence-case subjects.
 
+For pull requests, CI also runs `pnpm coverage:summary`, gates on its result, and publishes `.coverage-reports/summary.md` in the PR Checks job summary.
+
 ## In case you are interested
 
 The original SoundTouch library was written in C++ by Olli Parviainen. It was first ported to JavaScript by Ryan Berdeen, then further adapted by Jakub Fiala, Adrian Holovaty, and others. This project was converted to ES2015+ and has been expanded and maintained by Steve 'Cutter' Blades.
 
 ## License
 
-LGPL-3.0 — see [LICENSE](LICENSE) for details.
+MPL-2.0 — see [LICENSE](LICENSE) for details.
 
 [I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
 

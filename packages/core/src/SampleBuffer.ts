@@ -2,8 +2,8 @@
  * Common contract implemented by all interleaved stereo sample buffers.
  *
  * @remarks
- * Implementations store samples in frame units where each frame is two
- * contiguous float values: left then right.
+ * Defines the interface for stereo sample buffers, where each frame consists of two contiguous float values (left, right).
+ * Implementations must provide methods for appending, extracting, and consuming frames.
  */
 export interface SampleBuffer {
   /** Number of currently readable frames in the buffer. */
@@ -47,10 +47,16 @@ export interface SampleBuffer {
 
 /**
  * Selects the internal buffering strategy used by SoundTouch processing stages.
+ *
+ * @remarks
+ * Determines which buffer implementation is used for internal audio processing chains.
  */
 export type SampleBufferType = 'circular' | 'fifo';
 
 /**
  * Factory used to construct sample buffers for processing chains.
+ *
+ * @remarks
+ * Returns a new instance of a class implementing the SampleBuffer interface.
  */
 export type SampleBufferFactory = () => SampleBuffer;

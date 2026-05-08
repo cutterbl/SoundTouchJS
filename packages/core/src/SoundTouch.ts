@@ -22,7 +22,10 @@
 
 import RateTransposer from './RateTransposer.js';
 import type { RateTransposerInterpolationStrategy } from './RateTransposer.js';
-import type { RateTransposerInterpolationStrategyId } from './interpolationStrategyRegistry.js';
+import type {
+  InterpolationStrategyParams,
+  RateTransposerInterpolationStrategyId,
+} from './interpolationStrategyRegistry.js';
 import {
   createCircularStretchInputBufferAdapter,
   createFifoStretchInputBufferAdapter,
@@ -42,7 +45,10 @@ import type {
 import testFloatEqual from './testFloatEqual.js';
 
 /**
- * Configuration for `SoundTouch` construction.
+ * Configuration options for constructing a `SoundTouch` processor.
+ *
+ * @remarks
+ * Allows customization of sample rate, buffer strategy, and interpolation strategy for the SoundTouch engine.
  */
 export interface SoundTouchOptions {
   /** Processing sample rate in Hz.
@@ -77,7 +83,12 @@ export interface SoundTouchOptions {
 
 /**
  * Main processing engine for pitch shifting, tempo adjustment, and rate transposition.
- * Set pitch, tempo, rate, or pitchSemitones for real-time audio manipulation.
+ *
+ * @remarks
+ * Provides real-time audio manipulation by chaining together rate transposition and time-stretching stages.
+ * Exposes properties and methods for controlling pitch, tempo, and rate, as well as buffer access for streaming audio.
+ *
+ * Set `pitch`, `tempo`, `rate`, or `pitchSemitones` for real-time audio manipulation.
  */
 export default class SoundTouch {
   transposer: RateTransposer;
@@ -147,7 +158,11 @@ export default class SoundTouch {
     this.calculateEffectiveRateAndTempo();
   }
 
-  /** Clears both processing stages and their internal buffers. */
+  /**
+   * Clears both processing stages and their internal buffers.
+   * @remarks
+   * Resets the state of the transposer and stretch stages, including all internal buffers.
+   */
   clear(): void {
     this.transposer.clear();
     this.stretch.clear();
@@ -161,14 +176,57 @@ export default class SoundTouch {
       sampleRate: this._sampleRate,
       sampleBufferType: this._sampleBufferType,
       sampleBufferFactory: this._sampleBufferFactory,
-      interpolationStrategy: this._interpolationStrategy,
+      interpolationStrategy: {
+        id: this._interpolationStrategy,
+        params: this.transposer.strategyParams,
+      },
     });
     result.rate = this.rate;
     result.tempo = this.tempo;
     return result;
   }
 
-  /** Effective output rate after virtual controls are resolved. */
+  /**
+   * Active interpolation strategy id used by the transposer stage.
+   * @returns The current interpolation strategy identifier.
+   */
+  get interpolationStrategy(): RateTransposerInterpolationStrategyId {
+    return this._interpolationStrategy;
+  }
+
+  /**
+   * Active interpolation strategy params used by the transposer stage.
+   * @returns The current interpolation strategy parameters.
+   */
+  get interpolationStrategyParams(): Readonly<InterpolationStrategyParams> {
+    return this.transposer.strategyParams;
+  }
+
+  /**
+   * Switches interpolation strategy at runtime.
+   * @param strategy The new interpolation strategy to use.
+   */
+  setInterpolationStrategy(
+    strategy: RateTransposerInterpolationStrategy,
+  ): void {
+    this.transposer.setInterpolationStrategy(strategy);
+    this._interpolationStrategy = this.transposer.strategy;
+  }
+
+  /**
+   * Applies a partial runtime params update to the current strategy.
+   * @param params Partial set of parameters to update.
+   */
+  setInterpolationStrategyParams(
+    params: Partial<InterpolationStrategyParams>,
+  ): void {
+    this.transposer.setInterpolationStrategyParams(params);
+  }
+
+  /**
+   * Effective output rate after virtual controls are resolved.
+   * @returns The current output rate factor.
+   */
   get rate(): number {
     return this._rate;
   }
@@ -188,7 +246,10 @@ export default class SoundTouch {
     this._rate = 1.0 + 0.01 * rateChange;
   }
 
-  /** Effective output tempo after virtual controls are resolved. */
+  /**
+   * Effective output tempo after virtual controls are resolved.
+   * @returns The current output tempo factor.
+   */
   get tempo(): number {
     return this._tempo;
   }
@@ -231,18 +292,26 @@ export default class SoundTouch {
     this.pitchOctaves = pitchSemitones / 12.0;
   }
 
-  /** Input buffer for upstream interleaved stereo frames. */
+  /**
+   * Input buffer for upstream interleaved stereo frames.
+   * @returns The input buffer for writing audio frames.
+   */
   get inputBuffer(): SampleBuffer {
     return this._inputBuffer;
   }
 
-  /** Output buffer that downstream consumers read from. */
+  /**
+   * Output buffer that downstream consumers read from.
+   * @returns The output buffer for reading processed audio frames.
+   */
   get outputBuffer(): SampleBuffer {
     return this._outputBuffer;
   }
 
   /**
    * Recomputes effective tempo/rate and rewires the stage ordering when needed.
+   * @remarks
+   * Updates the internal pipeline to reflect changes in pitch, tempo, or rate.
    */
   calculateEffectiveRateAndTempo(): void {
     const previousTempo = this._tempo;
@@ -279,6 +348,8 @@ export default class SoundTouch {
 
   /**
    * Runs one processing step through the currently selected stage order.
+   * @remarks
+   * Processes available frames through the pipeline, updating output buffers.
    */
   process(): void {
     if (this._rate > 1.0) {

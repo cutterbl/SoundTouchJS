@@ -1,0 +1,203 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Getting Started" />
+
+# Getting Started with Audio Worklet
+
+Welcome! This guide will help you set up real-time audio processing in your browser—even if you’ve never used the Web Audio API before.
+
+## What’s an AudioWorklet?
+
+Think of an AudioWorklet as a “mini-program” that runs in the background, handling sound without being slowed down by the rest of your app. It’s perfect for music, games, or anything that needs smooth, real-time audio.
+
+**Why use it?**
+
+- Super low delay (no lag)
+- Keeps your audio smooth, even if your UI is busy
+- Lets you do advanced effects (like pitch shifting or tempo changes)
+
+In SoundTouchJS, you’ll use a `SoundTouchNode` to connect your audio to the worklet.
+
+## How does the audio flow?
+
+Here’s a typical setup:
+
+`source → SoundTouchNode → GainNode → destination`
+
+- **source**: Where your sound comes from (a file, a stream, or a media element)
+- **SoundTouchNode**: Where you change pitch, speed, or key
+- **GainNode**: Controls the volume
+- **destination**: Your speakers or headphones
+
+## Step 1: Install and Import
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+```
+
+## Step 2: Create an AudioContext and Register the Processor
+
+Before you can use `SoundTouchNode`, you need to “register” the processor. This is like telling the browser, “Hey, I want to use this special audio tool.”
+
+### What is `processorModuleUrl`?
+
+`processorModuleUrl` is the browser URL to the worklet processor JavaScript file.
+
+`SoundTouchNode.register(context, processorModuleUrl)` calls `audioWorklet.addModule(...)` under the hood, and `addModule` needs a real URL that the browser can fetch.
+
+Think of it as: "Where is `soundtouch-processor.js` being served from in my app?"
+
+Common ways to resolve it:
+
+#### A) Vite-style URL import (simple in many apps)
+
+```ts
+import processorModuleUrl from '@soundtouchjs/audio-worklet/processor?url';
+
+const context = new AudioContext();
+await SoundTouchNode.register(context, processorModuleUrl);
+```
+
+#### B) Static/public file path
+
+Copy or serve the processor file as a static asset (for example at `/soundtouch-processor.js`).
+
+```ts
+const context = new AudioContext();
+await SoundTouchNode.register(context, '/soundtouch-processor.js');
+```
+
+#### C) URL constructor pattern
+
+```ts
+const processorModuleUrl = new URL(
+  '@soundtouchjs/audio-worklet/processor',
+  import.meta.url,
+).toString();
+
+const context = new AudioContext();
+await SoundTouchNode.register(context, processorModuleUrl);
+```
+
+If registration fails, it is usually because the URL is wrong or the processor file is not being served by your dev/prod server.
+
+```ts
+const context = new AudioContext();
+
+await SoundTouchNode.register(context, processorModuleUrl);
+```
+
+## 3) Create and Connect Nodes
+
+```ts
+const gainNode = context.createGain();
+const soundTouchNode = new SoundTouchNode({ context });
+
+soundTouchNode.connect(gainNode);
+gainNode.connect(context.destination);
+```
+
+## 4) Pick a Source
+
+### Option A: Buffer source
+
+```ts
+const response = await fetch('/audio.mp3');
+const arrayBuffer = await response.arrayBuffer();
+const audioBuffer = await context.decodeAudioData(arrayBuffer);
+
+const source = context.createBufferSource();
+source.buffer = audioBuffer;
+source.connect(soundTouchNode);
+```
+
+### Option B: HTML audio element source
+
+```ts
+const audio = new Audio('/audio.mp3');
+audio.preload = 'auto';
+audio.preservesPitch = false;
+
+const elementSource = context.createMediaElementSource(audio);
+elementSource.connect(soundTouchNode);
+```
+
+## 5) Set Controls
+
+`SoundTouchNode` exposes `AudioParam`s you can set live.
+
+```ts
+soundTouchNode.pitch.value = 1.0;
+soundTouchNode.pitchSemitones.value = 0;
+soundTouchNode.playbackRate.value = 1.0;
+gainNode.gain.value = 1.0;
+```
+
+## 6) Start Playback
+
+### Buffer source
+
+```ts
+await context.resume();
+source.start();
+```
+
+### Audio element source
+
+```ts
+await context.resume();
+await audio.play();
+```
+
+## Minimal End-to-End Example
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+export async function playWithWorklet(
+  processorModuleUrl: string,
+): Promise<void> {
+  const context = new AudioContext();
+  await SoundTouchNode.register(context, processorModuleUrl);
+
+  const gainNode = context.createGain();
+  const stNode = new SoundTouchNode({ context });
+
+  stNode.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  const response = await fetch('/audio.mp3');
+  const arrayBuffer = await response.arrayBuffer();
+  const decoded = await context.decodeAudioData(arrayBuffer);
+
+  const source = context.createBufferSource();
+  source.buffer = decoded;
+  source.connect(stNode);
+
+  stNode.pitch.value = 1;
+  stNode.pitchSemitones.value = 0;
+  stNode.playbackRate.value = 1;
+  gainNode.gain.value = 1;
+
+  await context.resume();
+  source.start();
+}
+```
+
+## Common First-Time Issues
+
+- No sound on first play:
+  - Browsers usually require a user gesture before audio can start.
+  - Call `context.resume()` from a click/tap handler.
+
+- Processor not found:
+  - Ensure `SoundTouchNode.register(...)` ran successfully before `new SoundTouchNode(...)`.
+
+- Source plays but effects do not change:
+  - Verify your source is connected to `SoundTouchNode` (not directly to destination).
+  - Verify parameter writes are happening on the same `SoundTouchNode` instance in the graph.
+
+## Next Docs
+
+- [Processor Name](./processor-name)
+- [SoundTouchNode](./sound-touch-node)

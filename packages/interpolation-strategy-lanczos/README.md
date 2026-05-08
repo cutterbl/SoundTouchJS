@@ -1,4 +1,8 @@
-# @cxing/interpolation-strategy-lanczos
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.
+
+# @soundtouchjs/interpolation-strategy-lanczos
 
 Lanczos interpolation strategy plugin for SoundTouchJS.
 
@@ -6,14 +10,20 @@ Lanczos interpolation strategy plugin for SoundTouchJS.
 
 ```ts
 import { registerInterpolationStrategy, SoundTouch } from '@soundtouchjs/core';
-import { registerLanczosStrategy } from '@cxing/interpolation-strategy-lanczos';
+import { registerLanczosStrategy } from '@soundtouchjs/interpolation-strategy-lanczos';
 
 registerLanczosStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
   interpolationStrategy: 'lanczos8',
 });
+
+st.setInterpolationStrategyParams({ radius: 6 });
 ```
+
+## Params
+
+- `radius` (default `4`, normalized to `2..8`)
 
 ## Related docs
 
@@ -25,3 +35,4 @@ const st = new SoundTouch({
 - `lanczosKernel`: Interpolation kernel implementation.
 - `lanczosStrategy`: Strategy descriptor with id `lanczos8`.
 - `registerLanczosStrategy`: Helper that registers `lanczosStrategy` into a compatible registry.
+- `lanczosStrategy.defaultParams`: Runtime defaults for strategy params.

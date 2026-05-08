@@ -39,7 +39,9 @@ export interface SimpleFilterConstructorOptions {
 
 /**
  * Pulls samples through a SoundTouch pipe from a source.
- * Used internally for real-time processing and playback.
+ *
+ * @remarks
+ * Used internally for real-time processing and playback. This class manages the flow of audio data from a source object through a SoundTouch processing pipe, handling buffer management and playback position.
  */
 export default class SimpleFilter extends FilterSupport {
   private callback: () => void;
@@ -69,10 +71,19 @@ export default class SimpleFilter extends FilterSupport {
     this._scratchBuffer = new Float32Array(0);
   }
 
+  /**
+   * Current playback position in output frames.
+   * @returns The current output frame position.
+   */
   get position(): number {
     return this._position;
   }
 
+  /**
+   * Sets the playback position in output frames.
+   * @param position The new output frame position.
+   * @throws RangeError if the new position is invalid.
+   */
   set position(position: number) {
     if (position > this._position) {
       throw new RangeError(
@@ -88,19 +99,36 @@ export default class SimpleFilter extends FilterSupport {
     this._position = position;
   }
 
+  /**
+   * Current source position in input frames.
+   * @returns The current input frame position in the source.
+   */
   get sourcePosition(): number {
     return this._sourcePosition;
   }
 
+  /**
+   * Sets the source position in input frames.
+   * @param sourcePosition The new input frame position in the source.
+   * @remarks
+   * Resets internal buffers and state when changed.
+   */
   set sourcePosition(sourcePosition: number) {
     this.clear();
     this._sourcePosition = sourcePosition;
   }
 
+  /**
+   * Invokes the end-of-playback callback, if provided.
+   */
   onEnd(): void {
     this.callback();
   }
 
+  /**
+   * Fills the input buffer with frames extracted from the source.
+   * @param numFrames Number of frames to fill.
+   */
   override fillInputBuffer(numFrames = 0): void {
     const needed = numFrames * 2;
     if (this._scratchBuffer.length < needed) {
@@ -115,6 +143,12 @@ export default class SimpleFilter extends FilterSupport {
     this.inputBuffer!.putSamples(this._scratchBuffer, 0, numFramesExtracted);
   }
 
+  /**
+   * Extracts processed frames from the output buffer into the target array.
+   * @param target Destination array for interleaved stereo samples.
+   * @param numFrames Number of frames to extract.
+   * @returns The number of frames actually extracted.
+   */
   extract(target: Float32Array, numFrames = 0): number {
     this.fillOutputBuffer(this.outputBufferPosition + numFrames);
 
@@ -138,10 +172,17 @@ export default class SimpleFilter extends FilterSupport {
     return numFramesExtracted;
   }
 
+  /**
+   * Handles sample data events by extracting frames into the event's data buffer.
+   * @param event Object containing a Float32Array to fill with audio data.
+   */
   handleSampleData(event: { data: Float32Array }): void {
     this.extract(event.data, 4096);
   }
 
+  /**
+   * Clears internal state and resets the output buffer position.
+   */
   override clear(): void {
     super.clear();
     this.outputBufferPosition = 0;

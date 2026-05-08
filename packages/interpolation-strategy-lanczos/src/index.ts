@@ -20,6 +20,18 @@ export interface InterpolationStrategyRegistration {
   readonly baseStrategy?: BuiltInInterpolationStrategy;
   /** Kernel implementation for interpolation. */
   readonly kernel?: InterpolationKernel;
+  /** Default params merged with runtime overrides. */
+  readonly defaultParams?: Record<string, number>;
+  /** Optional params normalizer/validator. */
+  readonly normalizeParams?: (
+    params: Partial<Record<string, number>> | undefined,
+    defaults: Record<string, number>,
+  ) => Record<string, number>;
+  /** Optional hook used to apply params to kernel state. */
+  readonly applyParams?: (
+    state: unknown,
+    params: Record<string, number>,
+  ) => void;
 }
 
 export interface InterpolationStrategyRegistrar {
@@ -31,9 +43,45 @@ export interface InterpolationStrategyRegistrar {
 interface LanczosKernelState {
   prevSampleL: number;
   prevSampleR: number;
+  params: LanczosStrategyParams;
 }
 
-const LANCZOS_RADIUS = 4;
+export interface LanczosStrategyParams {
+  radius: number;
+}
+
+const LANCZOS_DEFAULT_PARAMS: LanczosStrategyParams = {
+  radius: 4,
+};
+
+function normalizeLanczosParams(
+  params: Partial<Record<string, number>> | undefined,
+  defaults: Record<string, number>,
+): Record<string, number> {
+  const merged = {
+    ...defaults,
+    ...(params ?? {}),
+  };
+  const radius = Math.max(
+    2,
+    Math.min(8, Math.round(merged['radius'] ?? defaults['radius'] ?? 4)),
+  );
+
+  return { radius };
+}
+
+function applyLanczosParams(
+  state: unknown,
+  params: Record<string, number>,
+): void {
+  if (typeof state !== 'object' || state === null) {
+    return;
+  }
+  const record = state as LanczosKernelState;
+  record.params = {
+    radius: Math.max(2, Math.round(params['radius'] ?? 4)),
+  };
+}
 
 function readFrameSample(
   src: Float32Array,
@@ -80,16 +128,17 @@ export const lanczosKernel: InterpolationKernel = (
   state,
 ) => {
   const kernelState = state as LanczosKernelState;
+  const radius = kernelState.params.radius;
   const center = Math.floor(position);
-  const start = center - (LANCZOS_RADIUS - 1);
-  const end = center + LANCZOS_RADIUS;
+  const start = center - (radius - 1);
+  const end = center + radius;
 
   let numerator = 0;
   let denominator = 0;
 
   for (let sampleIndex = start; sampleIndex <= end; sampleIndex += 1) {
     const distance = position - sampleIndex;
-    const weight = lanczosWeight(distance, LANCZOS_RADIUS);
+    const weight = lanczosWeight(distance, radius);
     numerator +=
       readFrameSample(
         src,
@@ -116,13 +165,20 @@ export const lanczosKernel: InterpolationKernel = (
   return numerator / denominator;
 };
 
-lanczosKernel.createState = () => ({ prevSampleL: 0, prevSampleR: 0 });
+lanczosKernel.createState = () => ({
+  prevSampleL: 0,
+  prevSampleR: 0,
+  params: { ...LANCZOS_DEFAULT_PARAMS },
+});
 
 /** Default Lanczos strategy registration payload. */
 export const lanczosStrategy: InterpolationStrategyRegistration = {
   id: 'lanczos8',
   baseStrategy: 'linear',
   kernel: lanczosKernel,
+  defaultParams: LANCZOS_DEFAULT_PARAMS,
+  normalizeParams: normalizeLanczosParams,
+  applyParams: applyLanczosParams,
 };
 
 /** Registers the Lanczos strategy in a compatible registry. */

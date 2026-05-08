@@ -86,16 +86,16 @@ importers:
 
   packages/audio-worklet:
     dependencies:
-      '@cxing/interpolation-strategy-lanczos':
-        specifier: workspace:*
-        version: link:../interpolation-strategy-lanczos
       '@soundtouchjs/core':
         specifier: workspace:*
         version: link:../core
+      '@soundtouchjs/interpolation-strategy-lanczos':
+        specifier: workspace:*
+        version: link:../interpolation-strategy-lanczos
 
   packages/core:
     dependencies:
-      '@cxing/interpolation-strategy-lanczos':
+      '@soundtouchjs/interpolation-strategy-lanczos':
         specifier: workspace:*
         version: link:../interpolation-strategy-lanczos
 

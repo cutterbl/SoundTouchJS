@@ -239,6 +239,29 @@ describe('SoundTouch', () => {
     });
   });
 
+  describe('runtime interpolation strategy controls', () => {
+    it('switches interpolation strategy through SoundTouch API', () => {
+      const st = new SoundTouch({ interpolationStrategy: 'lanczos8' });
+
+      st.setInterpolationStrategy('lanczos8');
+
+      expect(st.interpolationStrategy).toBe('lanczos8');
+    });
+
+    it('updates interpolation strategy params through SoundTouch API', () => {
+      const st = new SoundTouch({
+        interpolationStrategy: {
+          id: 'lanczos8',
+          params: { radius: 4 },
+        },
+      });
+
+      st.setInterpolationStrategyParams({ radius: 6 });
+
+      expect(st.interpolationStrategyParams['radius']).toBe(6);
+    });
+  });
+
   describe('clone', () => {
     it('creates an independent copy', () => {
       const st = new SoundTouch({});

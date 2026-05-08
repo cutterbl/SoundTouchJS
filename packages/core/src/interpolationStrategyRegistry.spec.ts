@@ -16,7 +16,7 @@ describe('interpolationStrategyRegistry', () => {
     expect(ids).not.toContain('linear');
   });
 
-  it('registers a strategy alias and sets it active immediately', () => {
+  it('registers a strategy alias without changing the active strategy', () => {
     const previous = getActiveInterpolationStrategyId();
 
     registerInterpolationStrategy({
@@ -25,7 +25,7 @@ describe('interpolationStrategyRegistry', () => {
     });
 
     expect(hasInterpolationStrategy('plugin/test-linear')).toBe(true);
-    expect(getActiveInterpolationStrategyId()).toBe('plugin/test-linear');
+    expect(getActiveInterpolationStrategyId()).toBe(previous);
     expect(resolveInterpolationStrategy('plugin/test-linear')).toBe('linear');
 
     expect(unregisterInterpolationStrategy('plugin/test-linear')).toBe(true);
@@ -36,8 +36,9 @@ describe('interpolationStrategyRegistry', () => {
     expect(unregisterInterpolationStrategy('lanczos8')).toBe(false);
   });
 
-  it('falls back to lanczos8 when active plugin is removed', () => {
+  it('falls back to lanczos8 when the active plugin is removed', () => {
     registerInterpolationStrategy({ id: 'plugin/test-default' });
+    setActiveInterpolationStrategy('plugin/test-default');
     expect(getActiveInterpolationStrategyId()).toBe('plugin/test-default');
 
     expect(unregisterInterpolationStrategy('plugin/test-default')).toBe(true);

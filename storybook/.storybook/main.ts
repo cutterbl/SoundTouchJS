@@ -7,6 +7,7 @@ const packageResolver = createRequire(process.cwd() + '/package.json');
 
 const config: StorybookConfig = {
   stories: [
+    '../src/stories/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../src/app/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../src/docs/**/*.mdx',
     '../../../packages/core/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',

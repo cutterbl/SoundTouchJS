@@ -4,6 +4,18 @@ import { Meta } from '@storybook/blocks';
 
 # SoundTouchNode
 
+**What is this?**
+
+`SoundTouchNode` is your main tool for changing pitch, speed, or key in real-time audio in the browser. It connects to the Web Audio API and does all the heavy lifting for you.
+
+**Why would I use it?**
+
+- You want to slow down, speed up, or shift the pitch of music or voice in a web app
+- You want smooth, real-time results (no lag)
+
+**How does it work?**
+You connect it in your audio chain, and it processes the sound as it plays—no need to wait for offline processing.
+
 ## Import
 
 ```ts
@@ -16,9 +28,9 @@ import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 It provides:
 
-- Worklet module registration helpers.
-- Constructor options for sample-buffer and interpolation strategy behavior.
-- Typed `AudioParam` getters for runtime control.
+- Worklet module registration helpers
+- Constructor options for sample-buffer and interpolation strategy behavior
+- Typed `AudioParam` getters for runtime control
 
 ## Constructor
 

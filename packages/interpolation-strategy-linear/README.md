@@ -1,4 +1,4 @@
-# @cxing/interpolation-strategy-linear
+# @soundtouchjs/interpolation-strategy-linear
 
 Linear interpolation strategy plugin for SoundTouchJS.
 
@@ -6,14 +6,20 @@ Linear interpolation strategy plugin for SoundTouchJS.
 
 ```ts
 import { registerInterpolationStrategy, SoundTouch } from '@soundtouchjs/core';
-import { registerLinearStrategy } from '@cxing/interpolation-strategy-linear';
+import { registerLinearStrategy } from '@soundtouchjs/interpolation-strategy-linear';
 
 registerLinearStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
   interpolationStrategy: 'linear',
 });
+
+st.setInterpolationStrategyParams({ edgeHoldFrames: 3 });
 ```
+
+## Params
+
+- `edgeHoldFrames` (default `1`, normalized to `0..32`)
 
 ## Related docs
 
@@ -25,3 +31,8 @@ const st = new SoundTouch({
 - `linearKernel`: Interpolation kernel implementation.
 - `linearStrategy`: Strategy descriptor with id `linear`.
 - `registerLinearStrategy`: Helper that registers `linearStrategy` into a compatible registry.
+- `linearStrategy.defaultParams`: Runtime defaults for strategy params.
+
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

@@ -1,5 +1,5 @@
 {
-  "name": "@cxing/interpolation-strategy-linear",
+  "name": "@soundtouchjs/interpolation-strategy-linear",
   "version": "0.1.0",
   "description": "Linear interpolation strategy for SoundTouchJS and audio-worklet.",
   "type": "module",
@@ -25,7 +25,8 @@
     "audio",
     "dsp"
   ],
-  "author": "@cxing",
-  "license": "MIT",
+  "author": "@soundtouchjs",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
   "dependencies": {}
 }
