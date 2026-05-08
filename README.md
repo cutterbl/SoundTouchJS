@@ -19,13 +19,14 @@ If you are new to Web Audio, start with the demo guide: [apps/demo/README.md](ap
 
 ## Documentation
 
+- Storybook docs home: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/introduction--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/introduction--docs)
 - Core package API and concepts: [packages/core/README.md](packages/core/README.md)
-- Core API reference index: [packages/core/docs/README.md](packages/core/docs/README.md)
+- Core API reference index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs)
 - AudioWorklet package API and setup: [packages/audio-worklet/README.md](packages/audio-worklet/README.md)
-- AudioWorklet API reference index: [packages/audio-worklet/docs/README.md](packages/audio-worklet/docs/README.md)
-- SoundTouchNode reference: [packages/audio-worklet/docs/sound-touch-node.md](packages/audio-worklet/docs/sound-touch-node.md)
+- AudioWorklet API reference index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
+- SoundTouchNode reference: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
 - Interpolation strategy plugins: [packages/interpolation-strategy-lanczos/README.md](packages/interpolation-strategy-lanczos/README.md), [packages/interpolation-strategy-linear/README.md](packages/interpolation-strategy-linear/README.md)
-- Beginner Web Audio + demo architecture guide: [apps/demo/README.md](apps/demo/README.md)
+- Beginner Web Audio + demo architecture guide: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
 
 ## Quick start
 

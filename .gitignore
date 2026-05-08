@@ -3,6 +3,9 @@ dist
 .dist
 .nx
 .coverage-reports
+packages/*/coverage
+coverage.json
+coverage
 *.tsbuildinfo
 .idea
 .vscode

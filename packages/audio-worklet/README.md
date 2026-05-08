@@ -10,9 +10,10 @@ npm install @soundtouchjs/audio-worklet
 
 ## API docs
 
-Detailed developer documentation for public exports is available in [`./docs`](./docs/README.md).
+Detailed developer documentation for public exports is available in Storybook: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs).
 
-- `SoundTouchNode` reference: [./docs/sound-touch-node.md](./docs/sound-touch-node.md)
+- `SoundTouchNode` reference: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
+- AudioWorklet getting started guide: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
 
 This package depends on [`@soundtouchjs/core`](../core/README.md), which will be installed automatically.
 

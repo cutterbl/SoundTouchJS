@@ -10,7 +10,7 @@ npm install @soundtouchjs/core
 
 ## API docs
 
-Detailed developer documentation for all public class and function exports is available in [`./docs`](./docs/README.md).
+Detailed developer documentation for all public class and function exports is available in Storybook: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs).
 
 ## Usage
 

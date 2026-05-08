@@ -173,9 +173,9 @@ Without wrapped progress, UI would pin at 100% while audio continues looping.
 
 ## API references
 
-- SoundTouchNode (AudioWorklet main-thread API): [../../packages/audio-worklet/docs/sound-touch-node.md](../../packages/audio-worklet/docs/sound-touch-node.md)
-- AudioWorklet docs index: [../../packages/audio-worklet/docs/README.md](../../packages/audio-worklet/docs/README.md)
-- Core docs index: [../../packages/core/docs/README.md](../../packages/core/docs/README.md)
+- SoundTouchNode (AudioWorklet main-thread API): [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
+- AudioWorklet docs index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
+- Core docs index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/core-soundtouch--docs)
 
 ## Sample buffer A/B toggle
 

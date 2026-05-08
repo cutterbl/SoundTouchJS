@@ -23,8 +23,8 @@ st.setInterpolationStrategyParams({ edgeHoldFrames: 3 });
 
 ## Related docs
 
-- Core interpolation registration API: [../core/docs/register-interpolation-strategy.md](../core/docs/register-interpolation-strategy.md)
-- Core interpolation strategy overview: [../core/docs/README.md](../core/docs/README.md)
+- Core interpolation registration API: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/interpolation-strategies-strategy-plugin-authoring--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/interpolation-strategies-strategy-plugin-authoring--docs)
+- Core interpolation strategy overview: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/interpolation-strategies--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/interpolation-strategies--docs)
 
 ## Exports
 
