@@ -1,0 +1,38 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Kaiser Strategy" />
+
+# Kaiser Strategy (Tunable Flexibility)
+
+Kaiser is a tunable windowed-sinc strategy widely used in professional resampling pipelines.
+
+## When to use it
+
+- You want one strategy that can be tuned across quality/performance targets.
+- You need explicit control over transition and rejection characteristics.
+- You are doing profile-driven optimization for a specific workload.
+
+## Runtime id and params
+
+- id: kaiser8
+- params:
+  - radius (default 4, normalized to 2..16)
+  - beta (default 8.6, normalized to 0..20)
+
+## Example
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerKaiserStrategy } from '@soundtouchjs/interpolation-strategy-kaiser';
+
+registerKaiserStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: {
+    id: 'kaiser8',
+    params: { radius: 8, beta: 10 },
+  },
+});
+```
+
+Start with radius 4 to 6 and beta 8 to 10, then tune based on your artifact tolerance and CPU budget.

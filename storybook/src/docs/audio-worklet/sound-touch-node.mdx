@@ -49,6 +49,8 @@ new SoundTouchNode({
 - `processorUrl`: optional convenience field retained in options type (registration still done via `register`)
 - `sampleBufferType`: `'circular' | 'fifo'` (defaults internally to package constant)
 - `interpolationStrategy`: strategy id/descriptor understood by `@soundtouchjs/core`
+  - built-in ids: `lanczos8`, `linear`
+  - plugin ids (after strategy-module registration): `hann8`, `blackman8`, `kaiser8`
 
 ## Static methods
 

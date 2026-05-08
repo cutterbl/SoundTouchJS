@@ -156,12 +156,15 @@ export const InterpolationStrategy: Story = {
       title="Interpolation strategy (Kitchen sink)"
       mode="interpolation-strategy"
       description="Experiment with volume, pitch, playback rate, loop, track selection, and interpolation strategy in one place. Selecting a different track rebuilds the audio context and node graph."
-      codeSample={`const context = new AudioContext();
+      codeSample={`import strategyInstallerModuleUrl from '../worklet/interpolation-strategies.installers.ts?url';
+
+    const context = new AudioContext();
 await SoundTouchNode.register(context, processorModuleUrl);
+    await SoundTouchNode.registerStrategyModule(context, strategyInstallerModuleUrl);
 
 const soundTouchNode = new SoundTouchNode({
   context,
-  interpolationStrategy: 'linear', // non-default; default is 'lanczos8'
+  interpolationStrategy: 'hann8', // plugin strategies also supported
 });
 
 const rateSlider = document.querySelector<HTMLInputElement>('#rate');
@@ -169,7 +172,7 @@ rateSlider?.addEventListener('input', (event) => {
   const input = event.currentTarget as HTMLInputElement;
   soundTouchNode.playbackRate.value = Number(input.value);
 });`}
-      explanation="Lanczos8 is the default strategy and typically offers higher quality resampling. Linear interpolation can be faster and may be sufficient for low-latency or preview workflows."
+      explanation="Lanczos8 is the default strategy. Linear is typically fastest, Hann is a balanced general-purpose option, Blackman improves stopband rejection, and Kaiser is tunable with radius/beta style controls in plugin strategies."
     />
   ),
 };

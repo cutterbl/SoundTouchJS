@@ -1,0 +1,34 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Hann Strategy" />
+
+# Hann Strategy (Balanced General Purpose)
+
+Hann is a windowed-sinc style strategy that balances quality and cost well for many workloads.
+
+## When to use it
+
+- You want better smoothing than linear.
+- You want lighter processing than higher-cost window options.
+- You need a general-purpose fallback for mixed audio content.
+
+## Runtime id and params
+
+- id: hann8
+- params:
+  - radius (default 4, normalized to 2..8)
+
+## Example
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerHannStrategy } from '@soundtouchjs/interpolation-strategy-hann';
+
+registerHannStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: { id: 'hann8', params: { radius: 6 } },
+});
+```
+
+Use larger radius for smoother output at higher CPU cost.

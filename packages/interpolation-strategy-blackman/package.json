@@ -1,0 +1,32 @@
+{
+  "name": "@soundtouchjs/interpolation-strategy-blackman",
+  "version": "0.1.0",
+  "description": "Blackman interpolation strategy for SoundTouchJS and audio-worklet.",
+  "type": "module",
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./.dist/index.js",
+      "types": "./.dist/index.d.ts"
+    }
+  },
+  "files": [
+    ".dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "soundtouchjs",
+    "interpolation",
+    "blackman",
+    "audio",
+    "dsp"
+  ],
+  "author": "@soundtouchjs",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
+  "dependencies": {}
+}

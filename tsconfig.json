@@ -17,6 +17,15 @@
     },
     {
       "path": "./packages/interpolation-strategy-linear"
+    },
+    {
+      "path": "./packages/interpolation-strategy-hann"
+    },
+    {
+      "path": "./packages/interpolation-strategy-blackman"
+    },
+    {
+      "path": "./packages/interpolation-strategy-kaiser"
     }
   ]
 }

@@ -18,6 +18,9 @@ export default defineConfig(() => ({
     alias: {
       '@soundtouchjs/core': `${import.meta.dirname}/../packages/core/src/index.ts`,
       '@soundtouchjs/audio-worklet': `${import.meta.dirname}/../packages/audio-worklet/src/index.ts`,
+      '@soundtouchjs/interpolation-strategy-blackman': `${import.meta.dirname}/../packages/interpolation-strategy-blackman/src/index.ts`,
+      '@soundtouchjs/interpolation-strategy-hann': `${import.meta.dirname}/../packages/interpolation-strategy-hann/src/index.ts`,
+      '@soundtouchjs/interpolation-strategy-kaiser': `${import.meta.dirname}/../packages/interpolation-strategy-kaiser/src/index.ts`,
       '@soundtouchjs/interpolation-strategy-lanczos': `${import.meta.dirname}/../packages/interpolation-strategy-lanczos/src/index.ts`,
       '@soundtouchjs/interpolation-strategy-linear': `${import.meta.dirname}/../packages/interpolation-strategy-linear/src/index.ts`,
     },

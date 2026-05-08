@@ -1,0 +1,34 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Blackman Strategy" />
+
+# Blackman Strategy (Stronger Stopband Rejection)
+
+Blackman uses a stronger window profile than Hann, usually improving stopband rejection while widening the transition region.
+
+## When to use it
+
+- You want tighter suppression of unwanted high-frequency artifacts.
+- You can accept slightly wider transitions versus simpler windows.
+- You prioritize quality over absolute minimum CPU.
+
+## Runtime id and params
+
+- id: blackman8
+- params:
+  - radius (default 4, normalized to 2..8)
+
+## Example
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerBlackmanStrategy } from '@soundtouchjs/interpolation-strategy-blackman';
+
+registerBlackmanStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: { id: 'blackman8', params: { radius: 6 } },
+});
+```
+
+If you hear softening from transition width at larger edits, tune radius and compare against Hann or Kaiser.

@@ -1,0 +1,38 @@
+{
+  "name": "@soundtouchjs/interpolation-strategy-blackman",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/interpolation-strategy-blackman/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-blackman",
+        "command": "tsc -p tsconfig.json"
+      },
+      "outputs": ["{projectRoot}/.dist"],
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-blackman",
+        "command": "tsc --build tsconfig.json --emitDeclarationOnly"
+      },
+      "outputs": [
+        "{projectRoot}/.dist/**/*.d.ts",
+        "{projectRoot}/.dist/**/*.d.ts.map",
+        "{projectRoot}/.dist/tsconfig.tsbuildinfo"
+      ],
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/interpolation-strategy-blackman",
+        "command": "vitest run --passWithNoTests"
+      }
+    }
+  },
+  "tags": []
+}

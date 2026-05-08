@@ -18,7 +18,22 @@
     "baseUrl": ".",
     "paths": {
       "@soundtouchjs/core": ["packages/core/src/index.ts"],
-      "@soundtouchjs/audio-worklet": ["packages/audio-worklet/src/index.ts"]
+      "@soundtouchjs/audio-worklet": ["packages/audio-worklet/src/index.ts"],
+      "@soundtouchjs/interpolation-strategy-blackman": [
+        "packages/interpolation-strategy-blackman/src/index.ts"
+      ],
+      "@soundtouchjs/interpolation-strategy-hann": [
+        "packages/interpolation-strategy-hann/src/index.ts"
+      ],
+      "@soundtouchjs/interpolation-strategy-kaiser": [
+        "packages/interpolation-strategy-kaiser/src/index.ts"
+      ],
+      "@soundtouchjs/interpolation-strategy-lanczos": [
+        "packages/interpolation-strategy-lanczos/src/index.ts"
+      ],
+      "@soundtouchjs/interpolation-strategy-linear": [
+        "packages/interpolation-strategy-linear/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "dist"]

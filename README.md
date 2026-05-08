@@ -4,7 +4,7 @@ A real-time audio processing library for pitch shifting, tempo adjustment, and r
 
 ## Monorepo
 
-This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes four packages:
+This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes seven packages:
 
 | Package                                                                                             | npm                                                        | Description                                                              |
 | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -12,6 +12,9 @@ This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnp
 | [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                   | `npm install @soundtouchjs/audio-worklet`                  | AudioWorklet implementation with `AudioParam`-based controls             |
 | [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md) | `npm install @soundtouchjs/interpolation-strategy-lanczos` | Lanczos interpolation strategy plugin (default strategy id: `lanczos8`)  |
 | [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)   | `npm install @soundtouchjs/interpolation-strategy-linear`  | Linear interpolation strategy plugin (strategy id: `linear`)             |
+| [`@soundtouchjs/interpolation-strategy-hann`](packages/interpolation-strategy-hann/README.md)       | `npm install @soundtouchjs/interpolation-strategy-hann`    | Hann interpolation strategy plugin (strategy id: `hann8`)                |
+| [`@soundtouchjs/interpolation-strategy-blackman`](packages/interpolation-strategy-blackman/README.md) | `npm install @soundtouchjs/interpolation-strategy-blackman` | Blackman interpolation strategy plugin (strategy id: `blackman8`)        |
+| [`@soundtouchjs/interpolation-strategy-kaiser`](packages/interpolation-strategy-kaiser/README.md)   | `npm install @soundtouchjs/interpolation-strategy-kaiser`  | Kaiser interpolation strategy plugin (strategy id: `kaiser8`)            |
 
 A development [demo app](apps/demo/) is included for testing both packages in a browser.
 
@@ -25,7 +28,7 @@ If you are new to Web Audio, start with the demo guide: [apps/demo/README.md](ap
 - AudioWorklet package API and setup: [packages/audio-worklet/README.md](packages/audio-worklet/README.md)
 - AudioWorklet API reference index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
 - SoundTouchNode reference: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
-- Interpolation strategy plugins: [packages/interpolation-strategy-lanczos/README.md](packages/interpolation-strategy-lanczos/README.md), [packages/interpolation-strategy-linear/README.md](packages/interpolation-strategy-linear/README.md)
+- Interpolation strategy plugins: [packages/interpolation-strategy-lanczos/README.md](packages/interpolation-strategy-lanczos/README.md), [packages/interpolation-strategy-linear/README.md](packages/interpolation-strategy-linear/README.md), [packages/interpolation-strategy-hann/README.md](packages/interpolation-strategy-hann/README.md), [packages/interpolation-strategy-blackman/README.md](packages/interpolation-strategy-blackman/README.md), [packages/interpolation-strategy-kaiser/README.md](packages/interpolation-strategy-kaiser/README.md)
 - Beginner Web Audio + demo architecture guide: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
 
 ## Quick start
@@ -123,6 +126,9 @@ pnpm nx build core           # Build @soundtouchjs/core
 pnpm nx build audio-worklet  # Build @soundtouchjs/audio-worklet
 pnpm nx build @soundtouchjs/interpolation-strategy-lanczos
 pnpm nx build @soundtouchjs/interpolation-strategy-linear
+pnpm nx build @soundtouchjs/interpolation-strategy-hann
+pnpm nx build @soundtouchjs/interpolation-strategy-blackman
+pnpm nx build @soundtouchjs/interpolation-strategy-kaiser
 pnpm nx test core            # Run core tests
 pnpm nx test audio-worklet   # Run audio-worklet tests
 pnpm nx dev demo             # Dev server with HMR

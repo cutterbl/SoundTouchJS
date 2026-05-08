@@ -19,6 +19,7 @@ import downtownTrack from '../../../apps/demo/public/bensound-downtown.mp3?url';
 import happinessTrack from '../../../apps/demo/public/bensound-happiness.mp3?url';
 import hipjazzTrack from '../../../apps/demo/public/bensound-hipjazz.mp3?url';
 import retrosoulTrack from '../../../apps/demo/public/bensound-retrosoul.mp3?url';
+import interpolationStrategiesInstallerUrl from '../worklet/interpolation-strategies.installers.ts?url';
 
 interface AudioTrack {
   readonly id: string;
@@ -120,6 +121,17 @@ const PITCH_SEMITONE_TICKS: readonly DatalistTick[] = [
   { value: 5, label: '5' },
   { value: 6, label: '6' },
   { value: 7, label: '7' },
+];
+
+const INTERPOLATION_STRATEGY_OPTIONS: ReadonlyArray<{
+  readonly value: RateTransposerInterpolationStrategy;
+  readonly label: string;
+}> = [
+  { value: 'lanczos8', label: 'Lanczos8 (default)' },
+  { value: 'linear', label: 'Linear' },
+  { value: 'hann8', label: 'Hann' },
+  { value: 'blackman8', label: 'Blackman' },
+  { value: 'kaiser8', label: 'Kaiser' },
 ];
 
 function formatTime(seconds: number): string {
@@ -283,6 +295,10 @@ export function AudioWorkletPlayground({
   const createGraph = useCallback(async (): Promise<void> => {
     const context = new AudioContext();
     await SoundTouchNode.register(context, processorModuleUrl);
+    await SoundTouchNode.registerStrategyModule(
+      context,
+      interpolationStrategiesInstallerUrl,
+    );
 
     const gainNode = context.createGain();
     const soundTouchNode = new SoundTouchNode({
@@ -827,28 +843,19 @@ export function AudioWorkletPlayground({
         {showInterpolationStrategy ? (
           <fieldset style={{ border: '1px solid #d1d5db', borderRadius: 6 }}>
             <legend>Interpolation strategy</legend>
-            <label style={{ marginRight: 12 }}>
-              <input
-                type="radio"
-                name="interpolation-strategy"
-                value="lanczos8"
-                checked={interpolationStrategy === 'lanczos8'}
-                onChange={() => setInterpolationStrategy('lanczos8')}
-                disabled={isLoading}
-              />{' '}
-              Lanczos8 (default)
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="interpolation-strategy"
-                value="linear"
-                checked={interpolationStrategy === 'linear'}
-                onChange={() => setInterpolationStrategy('linear')}
-                disabled={isLoading}
-              />{' '}
-              Linear
-            </label>
+            {INTERPOLATION_STRATEGY_OPTIONS.map((option) => (
+              <label key={option.value} style={{ marginRight: 12 }}>
+                <input
+                  type="radio"
+                  name="interpolation-strategy"
+                  value={option.value}
+                  checked={interpolationStrategy === option.value}
+                  onChange={() => setInterpolationStrategy(option.value)}
+                  disabled={isLoading}
+                />{' '}
+                {option.label}
+              </label>
+            ))}
           </fieldset>
         ) : null}
       </div>
