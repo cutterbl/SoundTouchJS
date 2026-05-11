@@ -229,7 +229,7 @@ function createStereoSignal(frameCount: number): Float32Array {
 }
 
 function processInBlocks(
-  strategy: 'linear' | 'lanczos8',
+  strategy: 'linear' | 'lanczos',
   rate: number,
   inputFrames: number,
   blockFrames: number,
@@ -285,7 +285,7 @@ function createStereoSineSignal(
 }
 
 function transposeSignalInBlocks(
-  strategy: 'linear' | 'lanczos8',
+  strategy: 'linear' | 'lanczos',
   rate: number,
   sourceInterleaved: Float32Array,
   blockFrames: number,
@@ -444,8 +444,8 @@ describe('RateTransposer', () => {
     });
 
     it('accepts interpolationStrategy option', () => {
-      const rt = new RateTransposer({ interpolationStrategy: 'lanczos8' });
-      expect(rt.strategy).toBe('lanczos8');
+      const rt = new RateTransposer({ interpolationStrategy: 'lanczos' });
+      expect(rt.strategy).toBe('lanczos');
       expect(rt.inputBuffer).toBeNull();
       expect(rt.outputBuffer).toBeNull();
     });
@@ -475,7 +475,7 @@ describe('RateTransposer', () => {
       ensureLinearStrategyRegistered();
       const rt = new RateTransposer({
         createBuffers: true,
-        interpolationStrategy: 'lanczos8',
+        interpolationStrategy: 'lanczos',
       });
 
       rt.setInterpolationStrategy('linear');
@@ -487,8 +487,8 @@ describe('RateTransposer', () => {
       const rt = new RateTransposer({
         createBuffers: true,
         interpolationStrategy: {
-          id: 'lanczos8',
-          params: { radius: 4 },
+          id: 'lanczos',
+          params: { zeroCrossings: 4 },
         },
       });
 
@@ -503,14 +503,14 @@ describe('RateTransposer', () => {
       const rt = new RateTransposer({
         createBuffers: true,
         interpolationStrategy: {
-          id: 'lanczos8',
-          params: { radius: 5 },
+          id: 'lanczos',
+          params: { zeroCrossings: 5 },
         },
       });
 
       const cloned = rt.clone();
 
-      expect(cloned.strategy).toBe('lanczos8');
+      expect(cloned.strategy).toBe('lanczos');
       expect(cloned.strategyParams['radius']).toBe(5);
     });
   });
@@ -579,10 +579,10 @@ describe('RateTransposer', () => {
       expect(out2).toBeLessThan(out1);
     });
 
-    it('produces finite output when lanczos8 interpolation is selected', () => {
+    it('produces finite output when lanczos interpolation is selected', () => {
       const rt = new RateTransposer({
         createBuffers: true,
-        interpolationStrategy: 'lanczos8',
+        interpolationStrategy: 'lanczos',
       });
       rt.rate = 1.0;
 
@@ -604,8 +604,8 @@ describe('RateTransposer', () => {
       }
     });
 
-    it('stays finite and bounded across repeated 128-frame lanczos8 blocks', () => {
-      const output = processInBlocks('lanczos8', 1.17, 4096, 128);
+    it('stays finite and bounded across repeated 128-frame lanczos blocks', () => {
+      const output = processInBlocks('lanczos', 1.17, 4096, 128);
 
       expect(output.length).toBeGreaterThan(0);
 
@@ -634,7 +634,7 @@ describe('RateTransposer', () => {
 
     it('produces a different waveform than linear for the same chunked input', () => {
       const linear = processInBlocks('linear', 1.33, 3072, 113);
-      const lanczos = processInBlocks('lanczos8', 1.33, 3072, 113);
+      const lanczos = processInBlocks('lanczos', 1.33, 3072, 113);
 
       expect(lanczos.length).toBe(linear.length);
 
@@ -656,7 +656,7 @@ describe('RateTransposer', () => {
       const source = createStereoSineSignal(4096, inputFrequency);
 
       const linear = transposeSignalInBlocks('linear', rate, source, 127);
-      const lanczos = transposeSignalInBlocks('lanczos8', rate, source, 127);
+      const lanczos = transposeSignalInBlocks('lanczos', rate, source, 127);
 
       const warmupFrames = 64;
       const linearFit = estimateSineResidualRmse(

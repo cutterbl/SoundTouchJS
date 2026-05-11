@@ -117,7 +117,7 @@ These ranges are intentionally broader than the typical musical sweet spot, but 
 
 ### Interpolation strategy
 
-AudioWorklet processing defaults to `lanczos8`. You can pass an alternate strategy id at node construction:
+AudioWorklet processing defaults to `lanczos`. You can pass an alternate strategy id at node construction:
 
 ```ts
 const stNode = new SoundTouchNode({
@@ -126,7 +126,7 @@ const stNode = new SoundTouchNode({
 });
 ```
 
-If an unknown strategy id is provided, the processor logs an info message and falls back to `lanczos8`.
+If an unknown strategy id is provided, the processor logs an info message and falls back to `lanczos`.
 
 You can also switch strategy and update params at runtime:
 

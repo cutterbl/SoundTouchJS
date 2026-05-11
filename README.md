@@ -6,15 +6,15 @@ A real-time audio processing library for pitch shifting, tempo adjustment, and r
 
 This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes seven packages:
 
-| Package                                                                                             | npm                                                        | Description                                                              |
-| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`@soundtouchjs/core`](packages/core/README.md)                                                     | `npm install @soundtouchjs/core`                           | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
-| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                   | `npm install @soundtouchjs/audio-worklet`                  | AudioWorklet implementation with `AudioParam`-based controls             |
-| [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md) | `npm install @soundtouchjs/interpolation-strategy-lanczos` | Lanczos interpolation strategy plugin (default strategy id: `lanczos8`)  |
-| [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)   | `npm install @soundtouchjs/interpolation-strategy-linear`  | Linear interpolation strategy plugin (strategy id: `linear`)             |
-| [`@soundtouchjs/interpolation-strategy-hann`](packages/interpolation-strategy-hann/README.md)       | `npm install @soundtouchjs/interpolation-strategy-hann`    | Hann interpolation strategy plugin (strategy id: `hann8`)                |
-| [`@soundtouchjs/interpolation-strategy-blackman`](packages/interpolation-strategy-blackman/README.md) | `npm install @soundtouchjs/interpolation-strategy-blackman` | Blackman interpolation strategy plugin (strategy id: `blackman8`)        |
-| [`@soundtouchjs/interpolation-strategy-kaiser`](packages/interpolation-strategy-kaiser/README.md)   | `npm install @soundtouchjs/interpolation-strategy-kaiser`  | Kaiser interpolation strategy plugin (strategy id: `kaiser8`)            |
+| Package                                                                                               | npm                                                         | Description                                                              |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`@soundtouchjs/core`](packages/core/README.md)                                                       | `npm install @soundtouchjs/core`                            | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
+| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                     | `npm install @soundtouchjs/audio-worklet`                   | AudioWorklet implementation with `AudioParam`-based controls             |
+| [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md)   | `npm install @soundtouchjs/interpolation-strategy-lanczos`  | Lanczos interpolation strategy plugin (default strategy id: `lanczos`)  |
+| [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)     | `npm install @soundtouchjs/interpolation-strategy-linear`   | Linear interpolation strategy plugin (strategy id: `linear`)             |
+| [`@soundtouchjs/interpolation-strategy-hann`](packages/interpolation-strategy-hann/README.md)         | `npm install @soundtouchjs/interpolation-strategy-hann`     | Hann interpolation strategy plugin (strategy id: `hann`)                |
+| [`@soundtouchjs/interpolation-strategy-blackman`](packages/interpolation-strategy-blackman/README.md) | `npm install @soundtouchjs/interpolation-strategy-blackman` | Blackman interpolation strategy plugin (strategy id: `blackman`)        |
+| [`@soundtouchjs/interpolation-strategy-kaiser`](packages/interpolation-strategy-kaiser/README.md)     | `npm install @soundtouchjs/interpolation-strategy-kaiser`   | Kaiser interpolation strategy plugin (strategy id: `kaiser`)            |
 
 A development [demo app](apps/demo/) is included for testing both packages in a browser.
 
@@ -57,7 +57,7 @@ source.start();
 
 The audio-worklet package exposes wider real-time control ranges for `pitch`, `tempo`, `rate`, and `playbackRate` than earlier releases. Those controls are intentionally capped to balance flexibility with predictable real-time behavior: more extreme values can increase artifacts, reduce output quality, and make buffer behavior less stable on small AudioWorklet render blocks.
 
-Interpolation defaults to `lanczos8` (Lanczos kernel plugin) in both core and audio-worklet flows. You can opt into `linear` for A/B testing and latency/quality comparisons.
+Interpolation defaults to `lanczos` (Lanczos kernel plugin) in both core and audio-worklet flows. You can opt into `linear` for A/B testing and latency/quality comparisons.
 
 ### PitchShifter (ScriptProcessorNode)
 
@@ -154,7 +154,7 @@ The `v0.4` release is a ground-up modernization:
 - **TypeScript**: Full rewrite — strict mode, no `any`, complete type exports
 - **ESM only**: Pure ES modules targeting ES2024 (no CommonJS)
 - **AudioWorklet**: New `@soundtouchjs/audio-worklet` package replaces the [separate AudioWorklet repo](https://github.com/cutterbl/soundtouchjs-audio-worklet)
-- **Interpolation plugin model**: Strategy registry with plugin packages; `lanczos8` as default, `linear` as optional override
+- **Interpolation plugin model**: Strategy registry with plugin packages; `lanczos` as default, `linear` as optional override
 - **ES2024 optimizations**: Resizable `ArrayBuffer` in `FifoSampleBuffer`, scratch buffer reuse, dirty-flag overlap buffers
 - **pnpm workspaces**: Workspace protocol (`workspace:*`) for inter-package dependencies
 - **Tooling**: Vite dev server, Vitest test runner, Prettier formatting, commitlint + husky, GitHub Actions CI, `nx release` for versioning and publishing

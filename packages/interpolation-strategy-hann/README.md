@@ -15,10 +15,10 @@ import { registerHannStrategy } from '@soundtouchjs/interpolation-strategy-hann'
 registerHannStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
-  interpolationStrategy: 'hann8',
+  interpolationStrategy: 'hann',
 });
 
-st.setInterpolationStrategyParams({ radius: 6 });
+st.setInterpolationStrategyParams({ zeroCrossings: 6 });
 ```
 
 ## Profile
@@ -27,7 +27,7 @@ Good general-purpose quality with moderate roll-off.
 
 ## Params
 
-- `radius` (default `4`, normalized to `2..8`)
+- `zeroCrossings` (default `4`, normalized to `2..8`)
 
 ## Related docs
 
@@ -37,6 +37,6 @@ Good general-purpose quality with moderate roll-off.
 ## Exports
 
 - `hannKernel`: Interpolation kernel implementation.
-- `hannStrategy`: Strategy descriptor with id `hann8`.
+- `hannStrategy`: Strategy descriptor with id `hann`.
 - `registerHannStrategy`: Helper that registers `hannStrategy` into a compatible registry.
 - `hannStrategy.defaultParams`: Runtime defaults for strategy params.

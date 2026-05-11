@@ -12,12 +12,26 @@ Kaiser is a tunable windowed-sinc strategy widely used in professional resamplin
 - You need explicit control over transition and rejection characteristics.
 - You are doing profile-driven optimization for a specific workload.
 
-## Runtime id and params
 
-- id: kaiser8
-- params:
-  - radius (default 4, normalized to 2..16)
-  - beta (default 8.6, normalized to 0..20)
+## Tunable Parameters
+
+- **`zeroCrossings`**: How “wide” the smoothing is. Bigger = smoother, but more CPU. Try 4 to start (range: 2–16).
+- **`beta`**: Kaiser window shape parameter (0–20, default: 8.6). Higher = sharper cutoff, more ringing.
+- **`normalize`**: If true, output is normalized so weights sum to 1. Usually not needed, but can help with edge cases (default: false).
+- **`windowPower`**: Exponent to raise the Kaiser window, sharpening or smoothing the window shape (default: 1).
+
+**Examples:**
+
+```ts
+// Default
+params: { zeroCrossings: 4, beta: 8.6 }
+// Wider kernel
+params: { zeroCrossings: 8, beta: 10 }
+// Enable normalization
+params: { zeroCrossings: 4, beta: 8.6, normalize: true }
+// Sharper window
+params: { zeroCrossings: 4, beta: 8.6, windowPower: 2 }
+```
 
 ## Example
 
@@ -29,10 +43,10 @@ registerKaiserStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
   interpolationStrategy: {
-    id: 'kaiser8',
-    params: { radius: 8, beta: 10 },
+    id: 'kaiser',
+    params: { zeroCrossings: 8, beta: 10 },
   },
 });
 ```
 
-Start with radius 4 to 6 and beta 8 to 10, then tune based on your artifact tolerance and CPU budget.
+Start with zeroCrossings 4 to 6 and beta 8 to 10, then tune based on your artifact tolerance and CPU budget.

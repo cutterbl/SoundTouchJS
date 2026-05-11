@@ -12,11 +12,25 @@ Hann is a windowed-sinc style strategy that balances quality and cost well for m
 - You want lighter processing than higher-cost window options.
 - You need a general-purpose fallback for mixed audio content.
 
-## Runtime id and params
 
-- id: hann8
-- params:
-  - radius (default 4, normalized to 2..8)
+## Tunable Parameters
+
+- **`zeroCrossings`**: How “wide” the smoothing is. Bigger = smoother, but more CPU. Try 4 to start (range: 2–8).
+- **`normalize`**: If true, output is normalized so weights sum to 1. Usually not needed, but can help with edge cases (default: false).
+- **`windowPower`**: Exponent to raise the Hann window, sharpening or smoothing the window shape (default: 1).
+
+**Examples:**
+
+```ts
+// Default
+params: { zeroCrossings: 4 }
+// Wider kernel
+params: { zeroCrossings: 6 }
+// Enable normalization
+params: { zeroCrossings: 4, normalize: true }
+// Sharper window
+params: { zeroCrossings: 4, windowPower: 2 }
+```
 
 ## Example
 
@@ -27,8 +41,8 @@ import { registerHannStrategy } from '@soundtouchjs/interpolation-strategy-hann'
 registerHannStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
-  interpolationStrategy: { id: 'hann8', params: { radius: 6 } },
+  interpolationStrategy: { id: 'hann', params: { zeroCrossings: 6 } },
 });
 ```
 
-Use larger radius for smoother output at higher CPU cost.
+Use larger zeroCrossings for smoother output at higher CPU cost.

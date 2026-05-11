@@ -1,5 +1,12 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+  existsSync,
+} from 'node:fs';
 import path from 'node:path';
 
 const ROOT_DIR = process.cwd();
@@ -42,7 +49,8 @@ function readPackageInfos() {
     infos.push({
       dirName: entry.name,
       relativePath: path.join('packages', entry.name),
-      packageName: typeof packageJson.name === 'string' ? packageJson.name : entry.name,
+      packageName:
+        typeof packageJson.name === 'string' ? packageJson.name : entry.name,
       packageDir,
     });
   }
@@ -125,7 +133,9 @@ function isAboveThresholds(branchesPct, functionsPct, thresholds) {
   if (branchesPct === null || functionsPct === null) {
     return false;
   }
-  return branchesPct > thresholds.branches && functionsPct > thresholds.functions;
+  return (
+    branchesPct > thresholds.branches && functionsPct > thresholds.functions
+  );
 }
 
 function generateSummary(results) {
@@ -142,18 +152,28 @@ function generateSummary(results) {
   }
 
   const totalBranchesPct =
-    totalBranchesTotal > 0 ? (totalBranchesCovered / totalBranchesTotal) * 100 : null;
+    totalBranchesTotal > 0
+      ? (totalBranchesCovered / totalBranchesTotal) * 100
+      : null;
   const totalFunctionsPct =
-    totalFunctionsTotal > 0 ? (totalFunctionsCovered / totalFunctionsTotal) * 100 : null;
+    totalFunctionsTotal > 0
+      ? (totalFunctionsCovered / totalFunctionsTotal) * 100
+      : null;
 
   const lines = [];
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push('');
-  lines.push('| Status | Package | Branches | Functions | +5 Target | Test Run |');
+  lines.push(
+    '| Status | Package | Branches | Functions | +5 Target | Test Run |',
+  );
   lines.push('| --- | --- | ---: | ---: | --- | --- |');
 
   for (const result of results) {
-    const meetsBase = isAboveThresholds(result.branchesPct, result.functionsPct, BASE_THRESHOLDS);
+    const meetsBase = isAboveThresholds(
+      result.branchesPct,
+      result.functionsPct,
+      BASE_THRESHOLDS,
+    );
     const meetsTarget = isAboveThresholds(
       result.branchesPct,
       result.functionsPct,
@@ -162,13 +182,18 @@ function generateSummary(results) {
 
     const status = meetsBase ? '🟢' : '🔴';
     const target = meetsTarget ? 'YES' : 'NO';
-    const testRun = result.exitCode === 0 ? 'PASS' : `FAIL (${result.exitCode})`;
+    const testRun =
+      result.exitCode === 0 ? 'PASS' : `FAIL (${result.exitCode})`;
     lines.push(
       `| ${status} | ${result.packageName} | ${pct(result.branchesPct)} | ${pct(result.functionsPct)} | ${target} | ${testRun} |`,
     );
   }
 
-  const totalMeetsBase = isAboveThresholds(totalBranchesPct, totalFunctionsPct, BASE_THRESHOLDS);
+  const totalMeetsBase = isAboveThresholds(
+    totalBranchesPct,
+    totalFunctionsPct,
+    BASE_THRESHOLDS,
+  );
   const totalMeetsTarget = isAboveThresholds(
     totalBranchesPct,
     totalFunctionsPct,
@@ -179,7 +204,11 @@ function generateSummary(results) {
     `| ${totalMeetsBase ? '🟢' : '🔴'} | TOTAL | ${pct(totalBranchesPct)} | ${pct(totalFunctionsPct)} | ${totalMeetsTarget ? 'YES' : 'NO'} | n/a |`,
   );
 
-  writeFileSync(path.join(OUTPUT_DIR, 'summary.md'), `${lines.join('\n')}\n`, 'utf8');
+  writeFileSync(
+    path.join(OUTPUT_DIR, 'summary.md'),
+    `${lines.join('\n')}\n`,
+    'utf8',
+  );
 }
 
 function main() {

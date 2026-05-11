@@ -12,12 +12,12 @@ describe('lanczos interpolation strategy', () => {
       const state = lanczosKernel.createState?.() as {
         prevSampleL: number;
         prevSampleR: number;
-        params: { radius: number };
+        params: { zeroCrossings: number };
       };
 
       expect(state.prevSampleL).toBe(0);
       expect(state.prevSampleR).toBe(0);
-      expect(state.params.radius).toBe(4);
+      expect(state.params.zeroCrossings).toBe(4);
     });
   });
 
@@ -27,7 +27,7 @@ describe('lanczos interpolation strategy', () => {
       const state = {
         prevSampleL: 0,
         prevSampleR: 0,
-        params: { radius: 4 },
+        params: { zeroCrossings: 4 },
       };
 
       const value = lanczosKernel(src, 0, 4, 1.5, 0, state);
@@ -39,7 +39,7 @@ describe('lanczos interpolation strategy', () => {
       const state = {
         prevSampleL: 9,
         prevSampleR: 11,
-        params: { radius: 4 },
+        params: { zeroCrossings: 4 },
       };
 
       const value = lanczosKernel(src, 0, 2, -0.4, 0, state);
@@ -55,7 +55,7 @@ describe('lanczos interpolation strategy', () => {
       const state = {
         prevSampleL: 0,
         prevSampleR: 0,
-        params: { radius: 4 },
+        params: { zeroCrossings: 4 },
       };
 
       const value = lanczosKernel(src, 0, 2, 20, 1, state);
@@ -67,7 +67,7 @@ describe('lanczos interpolation strategy', () => {
       const state = {
         prevSampleL: 0,
         prevSampleR: 0,
-        params: { radius: 0 },
+        params: { zeroCrossings: 0 },
       };
 
       const value = lanczosKernel(src, 0, 2, 0.49, 0, state);
@@ -76,13 +76,14 @@ describe('lanczos interpolation strategy', () => {
   });
 
   describe('lanczosStrategy', () => {
-    it('normalizes radius and applies params to state', () => {
+
+    it('normalizes zeroCrossings and normalize and applies params to state', () => {
       const normalizedLow = lanczosStrategy.normalizeParams?.(
-        { radius: 1 },
+        { zeroCrossings: 1, normalize: 0 },
         lanczosStrategy.defaultParams ?? {},
       );
       const normalizedHigh = lanczosStrategy.normalizeParams?.(
-        { radius: 99 },
+        { zeroCrossings: 99, normalize: 1 },
         lanczosStrategy.defaultParams ?? {},
       );
       const normalizedUndefined = lanczosStrategy.normalizeParams?.(
@@ -90,27 +91,46 @@ describe('lanczos interpolation strategy', () => {
         {},
       );
 
-      expect(normalizedLow?.radius).toBe(2);
-      expect(normalizedHigh?.radius).toBe(8);
-      expect(normalizedUndefined?.radius).toBe(4);
+      expect(normalizedLow?.zeroCrossings).toBe(2);
+      expect(normalizedLow?.normalize).toBe(false);
+      expect(normalizedHigh?.zeroCrossings).toBe(8);
+      expect(normalizedHigh?.normalize).toBe(true);
+      expect(normalizedUndefined?.zeroCrossings).toBe(4);
 
       const state = {
         prevSampleL: 0,
         prevSampleR: 0,
-        params: { radius: 4 },
+        params: { zeroCrossings: 4, normalize: false },
       };
-      lanczosStrategy.applyParams?.(state, { radius: 6 });
-      expect(state.params.radius).toBe(6);
+      lanczosStrategy.applyParams?.(state, { zeroCrossings: 6, normalize: 1 });
+      expect(state.params.zeroCrossings).toBe(6);
+      expect(state.params.normalize).toBe(true);
       lanczosStrategy.applyParams?.(state, {});
-      expect(state.params.radius).toBe(4);
+      expect(state.params.zeroCrossings).toBe(4);
 
-      expect(() => lanczosStrategy.applyParams?.(null, { radius: 6 })).not.toThrow();
+      expect(() =>
+        lanczosStrategy.applyParams?.(null, { zeroCrossings: 6 }),
+      ).not.toThrow();
+    });
+
+    it('produces correct output for normalize param', () => {
+      const src = new Float32Array([1, 2, 3, 4, 5, 6, 7, 8]);
+      // normalize = false (default)
+      let state = { prevSampleL: 0, prevSampleR: 0, params: { zeroCrossings: 4, normalize: false } };
+      const valDefault = lanczosKernel(src, 0, 4, 1.5, 0, state);
+      // normalize = true
+      state = { prevSampleL: 0, prevSampleR: 0, params: { zeroCrossings: 4, normalize: true } };
+      const valNorm = lanczosKernel(src, 0, 4, 1.5, 0, state);
+      // Should be very close, but normalization guarantees weights sum to 1
+      expect(valNorm).toBeCloseTo(valDefault, 6);
     });
 
     it('registers the strategy through helper', () => {
       const registerInterpolationStrategy = vi.fn();
       registerLanczosStrategy({ registerInterpolationStrategy });
-      expect(registerInterpolationStrategy).toHaveBeenCalledWith(lanczosStrategy);
+      expect(registerInterpolationStrategy).toHaveBeenCalledWith(
+        lanczosStrategy,
+      );
     });
   });
 });

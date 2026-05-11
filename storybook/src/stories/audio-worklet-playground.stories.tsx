@@ -1,3 +1,22 @@
+export const Tempo: Story = {
+  render: () => (
+    <AudioWorkletPlayground
+      title="Tempo"
+      mode="tempo"
+      description="Adjust tempo (time-stretch) without changing pitch. Selecting a different track rebuilds the audio context and node graph."
+      codeSample={`const context = new AudioContext();
+await SoundTouchNode.register(context, processorModuleUrl);
+const soundTouchNode = new SoundTouchNode({ context });
+
+const tempoSlider = document.querySelector<HTMLInputElement>('#tempo');
+tempoSlider?.addEventListener('input', (event) => {
+  const input = event.currentTarget as HTMLInputElement;
+  soundTouchNode.tempo.value = Number(input.value);
+});`}
+      explanation="Tempo changes playback speed without affecting pitch. Use values below 1 to slow down, above 1 to speed up. Useful for practice, transcription, or creative effects."
+    />
+  ),
+};
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AudioWorkletPlayground } from './AudioWorkletPlayground';
@@ -153,7 +172,7 @@ volumeSlider?.addEventListener('input', (event) => {
 export const InterpolationStrategy: Story = {
   render: () => (
     <AudioWorkletPlayground
-      title="Interpolation strategy (Kitchen sink)"
+      title="Interpolation strategy"
       mode="interpolation-strategy"
       description="Experiment with volume, pitch, playback rate, loop, track selection, and interpolation strategy in one place. Selecting a different track rebuilds the audio context and node graph."
       codeSample={`import strategyInstallerModuleUrl from '../worklet/interpolation-strategies.installers.ts?url';
@@ -164,7 +183,7 @@ await SoundTouchNode.register(context, processorModuleUrl);
 
 const soundTouchNode = new SoundTouchNode({
   context,
-  interpolationStrategy: 'hann8', // plugin strategies also supported
+  interpolationStrategy: 'hann', // plugin strategies also supported
 });
 
 const rateSlider = document.querySelector<HTMLInputElement>('#rate');
@@ -172,15 +191,15 @@ rateSlider?.addEventListener('input', (event) => {
   const input = event.currentTarget as HTMLInputElement;
   soundTouchNode.playbackRate.value = Number(input.value);
 });`}
-      explanation="Lanczos8 is the default strategy. Linear is typically fastest, Hann is a balanced general-purpose option, Blackman improves stopband rejection, and Kaiser is tunable with radius/beta style controls in plugin strategies."
+      explanation="Lanczos is the default strategy. Linear is typically fastest, Hann is a balanced general-purpose option, Blackman improves stopband rejection, and Kaiser is tunable with zeroCrossings/beta style controls in plugin strategies."
     />
   ),
 };
 
-export const ElementTransportKitchenSink: Story = {
+export const AudioElement: Story = {
   render: () => (
     <AudioWorkletPlayground
-      title="Element transport (Kitchen sink)"
+      title="Audio Element"
       mode="element-kitchen-sink"
       sourceMode="element"
       description="Experiment with pitch, pitch semitones, loop, track selection, and seek while native HTMLAudioElement controls own transport, volume, and playback rate."

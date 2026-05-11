@@ -188,7 +188,7 @@ Default (no query flag) keeps circular sample buffers enabled.
 
 ## Interpolation A/B toggle
 
-The demo defaults to Lanczos interpolation (`lanczos8`) and supports a linear override.
+The demo defaults to Lanczos interpolation (`lanczos`) and supports a linear override.
 
 1. URL: open the demo with `?interpolationStrategy=linear`
 2. UI: use the "Use linear interpolation" checkbox (it reloads with the query flag)

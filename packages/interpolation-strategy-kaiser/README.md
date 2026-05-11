@@ -15,10 +15,10 @@ import { registerKaiserStrategy } from '@soundtouchjs/interpolation-strategy-kai
 registerKaiserStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
-  interpolationStrategy: 'kaiser8',
+  interpolationStrategy: 'kaiser',
 });
 
-st.setInterpolationStrategyParams({ radius: 6, beta: 10 });
+st.setInterpolationStrategyParams({ zeroCrossings: 6, beta: 10 });
 ```
 
 ## Profile
@@ -27,7 +27,7 @@ Tunable windowed-sinc strategy with strong flexibility for quality and transitio
 
 ## Params
 
-- `radius` (default `4`, normalized to `2..16`)
+- `zeroCrossings` (default `4`, normalized to `2..16`)
 - `beta` (default `8.6`, normalized to `0..20`)
 
 ## Related docs
@@ -38,6 +38,6 @@ Tunable windowed-sinc strategy with strong flexibility for quality and transitio
 ## Exports
 
 - `kaiserKernel`: Interpolation kernel implementation.
-- `kaiserStrategy`: Strategy descriptor with id `kaiser8`.
+- `kaiserStrategy`: Strategy descriptor with id `kaiser`.
 - `registerKaiserStrategy`: Helper that registers `kaiserStrategy` into a compatible registry.
 - `kaiserStrategy.defaultParams`: Runtime defaults for strategy params.

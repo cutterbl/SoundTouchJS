@@ -15,10 +15,10 @@ import { registerBlackmanStrategy } from '@soundtouchjs/interpolation-strategy-b
 registerBlackmanStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
-  interpolationStrategy: 'blackman8',
+  interpolationStrategy: 'blackman',
 });
 
-st.setInterpolationStrategyParams({ radius: 6 });
+st.setInterpolationStrategyParams({ zeroCrossings: 6 });
 ```
 
 ## Profile
@@ -27,7 +27,7 @@ Better stopband rejection than Hann with a slightly wider transition band.
 
 ## Params
 
-- `radius` (default `4`, normalized to `2..8`)
+- `zeroCrossings` (default `4`, normalized to `2..8`)
 
 ## Related docs
 
@@ -37,6 +37,6 @@ Better stopband rejection than Hann with a slightly wider transition band.
 ## Exports
 
 - `blackmanKernel`: Interpolation kernel implementation.
-- `blackmanStrategy`: Strategy descriptor with id `blackman8`.
+- `blackmanStrategy`: Strategy descriptor with id `blackman`.
 - `registerBlackmanStrategy`: Helper that registers `blackmanStrategy` into a compatible registry.
 - `blackmanStrategy.defaultParams`: Runtime defaults for strategy params.

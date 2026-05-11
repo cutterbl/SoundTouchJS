@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 type RegisteredProcessorCtor = new (options?: {
   processorOptions?: {
     sampleBufferType?: 'circular' | 'fifo';
-    interpolationStrategy?: 'linear' | 'lanczos8';
+    interpolationStrategy?: 'linear' | 'lanczos';
   };
 }) => {
   process: (
@@ -62,7 +62,7 @@ vi.mock('@soundtouchjs/core', () => {
       if (strategy === 'not-a-real-strategy') {
         throw new Error('unknown interpolation strategy');
       }
-      return 'lanczos8';
+      return 'lanczos';
     },
   };
 });
@@ -98,7 +98,7 @@ beforeEach(() => {
 });
 
 describe('processor', () => {
-  it('falls back to lanczos8 and logs info for unknown interpolation strategy', async () => {
+  it('falls back to lanczos and logs info for unknown interpolation strategy', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
     await import('./processor.js');
     expect(registeredCtor).toBeDefined();
@@ -112,13 +112,13 @@ describe('processor', () => {
     expect(soundTouchCtorArgs[0]).toEqual(
       expect.objectContaining({
         sampleBufferType: 'circular',
-        interpolationStrategy: 'lanczos8',
+        interpolationStrategy: 'lanczos',
       }),
     );
     expect(infoSpy).toHaveBeenCalledWith(
       expect.stringContaining('Unknown interpolation strategy id:'),
       'not-a-real-strategy',
-      expect.stringContaining('falling back to lanczos8.'),
+      expect.stringContaining('falling back to lanczos.'),
     );
     infoSpy.mockRestore();
   });
@@ -150,17 +150,13 @@ describe('processor', () => {
     const outputRight = new Float32Array(2);
     outputFrameCount = 0;
 
-    const ok = instance.process(
-      [[inputLeft]],
-      [[outputLeft, outputRight]],
-      {
-        pitch: new Float32Array([1]),
-        tempo: new Float32Array([1]),
-        rate: new Float32Array([1]),
-        pitchSemitones: new Float32Array([0]),
-        playbackRate: new Float32Array([1]),
-      },
-    );
+    const ok = instance.process([[inputLeft]], [[outputLeft, outputRight]], {
+      pitch: new Float32Array([1]),
+      tempo: new Float32Array([1]),
+      rate: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    });
 
     expect(ok).toBe(true);
     expect(setInterpolationStrategy).toHaveBeenCalledWith('linear');
@@ -208,17 +204,13 @@ describe('processor', () => {
     const outputLeft = new Float32Array(2);
     const outputRight = new Float32Array(2);
 
-    instance.process(
-      [[inputLeft]],
-      [[outputLeft, outputRight]],
-      {
-        pitch: new Float32Array([1]),
-        tempo: new Float32Array([1]),
-        rate: new Float32Array([1]),
-        pitchSemitones: new Float32Array([0]),
-        playbackRate: new Float32Array([1]),
-      },
-    );
+    instance.process([[inputLeft]], [[outputLeft, outputRight]], {
+      pitch: new Float32Array([1]),
+      tempo: new Float32Array([1]),
+      rate: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    });
 
     expect(infoSpy).toHaveBeenCalledWith(
       '[SoundTouchProcessor] Failed to switch interpolation strategy:',
@@ -252,12 +244,14 @@ describe('processor', () => {
   it('handles mono input/output channel fallback and buffer resize path', async () => {
     await import('./processor.js');
 
-    extract.mockImplementation((target: Float32Array, _start: number, frames: number) => {
-      for (let i = 0; i < frames; i++) {
-        target[i * 2] = i;
-        target[i * 2 + 1] = i + 0.5;
-      }
-    });
+    extract.mockImplementation(
+      (target: Float32Array, _start: number, frames: number) => {
+        for (let i = 0; i < frames; i++) {
+          target[i * 2] = i;
+          target[i * 2 + 1] = i + 0.5;
+        }
+      },
+    );
     outputFrameCount = 256;
 
     const instance = new registeredCtor!({
@@ -270,17 +264,13 @@ describe('processor', () => {
     }
     const monoOutput = new Float32Array(256);
 
-    const ok = instance.process(
-      [[monoInput]],
-      [[monoOutput]],
-      {
-        pitch: new Float32Array([1]),
-        tempo: new Float32Array([1]),
-        rate: new Float32Array([1]),
-        pitchSemitones: new Float32Array([0]),
-        playbackRate: new Float32Array([1]),
-      },
-    );
+    const ok = instance.process([[monoInput]], [[monoOutput]], {
+      pitch: new Float32Array([1]),
+      tempo: new Float32Array([1]),
+      rate: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    });
 
     expect(ok).toBe(true);
     expect(putSamples).toHaveBeenCalledWith(expect.any(Float32Array), 0, 256);
@@ -298,7 +288,7 @@ describe('processor', () => {
       new registeredCtor!({
         processorOptions: {
           sampleBufferType: 'circular',
-          interpolationStrategy: 'lanczos8',
+          interpolationStrategy: 'lanczos',
         },
       });
 
@@ -306,7 +296,7 @@ describe('processor', () => {
       expect(soundTouchCtorArgs[0]).toEqual(
         expect.objectContaining({
           sampleBufferType: 'circular',
-          interpolationStrategy: 'lanczos8',
+          interpolationStrategy: 'lanczos',
         }),
       );
     });
@@ -357,7 +347,7 @@ describe('processor', () => {
       expect(outputRight[1]).toBeCloseTo(0.4, 6);
     });
 
-    it('stays stable across repeated render quanta with lanczos8 and underflow', async () => {
+    it('stays stable across repeated render quanta with lanczos and underflow', async () => {
       await import('./processor.js');
 
       expect(registeredCtor).toBeDefined();
@@ -379,7 +369,7 @@ describe('processor', () => {
 
       const instance = new registeredCtor!({
         processorOptions: {
-          interpolationStrategy: 'lanczos8',
+          interpolationStrategy: 'lanczos',
           sampleBufferType: 'circular',
         },
       });
@@ -429,7 +419,7 @@ describe('processor', () => {
       expect(soundTouchCtorArgs).toHaveLength(1);
       expect(soundTouchCtorArgs[0]).toEqual(
         expect.objectContaining({
-          interpolationStrategy: 'lanczos8',
+          interpolationStrategy: 'lanczos',
           sampleBufferType: 'circular',
         }),
       );

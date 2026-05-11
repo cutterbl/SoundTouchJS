@@ -115,6 +115,7 @@ export default class RateTransposer extends AbstractSamplePipe<
     | ((state: unknown, params: InterpolationStrategyParams) => void)
     | undefined;
 
+
   /**
    * Creates a RateTransposer instance.
    * @param options Constructor options.
@@ -141,12 +142,12 @@ export default class RateTransposer extends AbstractSamplePipe<
     this.sampleBufferAdapterFactory = sampleBufferAdapterFactory;
     this.sampleBufferFactory = sampleBufferFactory;
     this.inputAdapter = sampleBufferAdapterFactory();
-    this.interpolationStrategy = 'lanczos8';
+    this.interpolationStrategy = 'lanczos';
     this.resolvedInterpolationKernel = () => 0;
     this.kernelState = undefined;
     this.interpolationStrategyParams = {};
     this.applyKernelParams = undefined;
-    this.setInterpolationStrategy(interpolationStrategy ?? 'lanczos8');
+    this.setInterpolationStrategy(interpolationStrategy ?? 'lanczos');
   }
 
   /**
@@ -201,6 +202,7 @@ export default class RateTransposer extends AbstractSamplePipe<
         this.interpolationStrategyParams,
       );
     }
+
     this.reset();
   }
 
@@ -211,10 +213,15 @@ export default class RateTransposer extends AbstractSamplePipe<
   setInterpolationStrategyParams(
     params: Partial<InterpolationStrategyParams>,
   ): void {
-    this.interpolationStrategyParams = {
+    const nextParams: InterpolationStrategyParams = {
       ...this.interpolationStrategyParams,
-      ...params,
     };
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        nextParams[key] = value;
+      }
+    }
+    this.interpolationStrategyParams = nextParams;
 
     if (this.applyKernelParams !== undefined) {
       this.applyKernelParams(

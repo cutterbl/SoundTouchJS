@@ -63,7 +63,7 @@ const shifter = new PitchShifter({
 
 ### Interpolation strategy selection
 
-`RateTransposer` now resolves interpolation through a strategy registry. The default strategy id is `lanczos8`.
+`RateTransposer` now resolves interpolation through a strategy registry. The default strategy id is `lanczos`.
 
 Strategy registration adds strategies to the registry, but no longer changes the process-wide active strategy automatically.
 
@@ -85,8 +85,8 @@ To configure strategy params and update them at runtime:
 ```ts
 const st = new SoundTouch({
   interpolationStrategy: {
-    id: 'lanczos8',
-    params: { radius: 4 },
+    id: 'lanczos',
+    params: { zeroCrossings: 4 },
   },
 });
 
@@ -100,14 +100,14 @@ st.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
 
 Current mutable params:
 
-- `lanczos8`: `radius` (default `4`, normalized to `2..8`)
+- `lanczos`: `radius` (default `4`, normalized to `2..8`)
 - `linear`: `edgeHoldFrames` (default `1`, normalized to `0..32`)
 
 To use default Lanczos explicitly:
 
 ```ts
 const st = new SoundTouch({
-  interpolationStrategy: 'lanczos8',
+  interpolationStrategy: 'lanczos',
 });
 ```
 
@@ -188,7 +188,7 @@ new SimpleFilter({ sourceSound: source, pipe: soundTouch });
 - **TypeScript**: Full rewrite — strict mode, zero `any`, complete type exports
 - **ESM only**: Pure ES modules targeting ES2024 (`import`/`export`, no CommonJS)
 - **ES2024 buffers**: `FifoSampleBuffer` uses resizable `ArrayBuffer` for zero-allocation growth
-- **Interpolation plugin architecture**: strategy registry with `lanczos8` default and pluggable strategies
+- **Interpolation plugin architecture**: strategy registry with `lanczos` default and pluggable strategies
 - **Optimized internals**: Scratch buffer reuse in `SimpleFilter`, dirty-flag overlap buffers in `Stretch`
 - **Zero runtime dependencies**
 

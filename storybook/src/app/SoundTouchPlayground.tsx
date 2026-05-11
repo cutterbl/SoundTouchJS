@@ -18,7 +18,7 @@ import retrosoulTrack from '../../../apps/demo/public/bensound-retrosoul.mp3?url
 
 type SourceMode = 'buffer' | 'element';
 type SampleBufferType = 'fifo' | 'circular';
-type InterpolationStrategy = 'linear' | 'lanczos8';
+type InterpolationStrategy = 'linear' | 'lanczos';
 
 interface AudioTrack {
   id: string;

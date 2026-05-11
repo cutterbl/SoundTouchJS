@@ -130,7 +130,7 @@ describe('PitchShifter', () => {
             context: ctx,
             buffer,
             bufferSize: 4096,
-            interpolationStrategy: 'lanczos8',
+            interpolationStrategy: 'lanczos',
           }),
       ).not.toThrow();
     });

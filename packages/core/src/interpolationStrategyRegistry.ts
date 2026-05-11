@@ -1,7 +1,7 @@
 import { lanczosStrategy } from '@soundtouchjs/interpolation-strategy-lanczos';
 
 /** Built-in interpolation strategy ids understood by the core pipeline. */
-export type BuiltInInterpolationStrategy = 'linear' | 'lanczos8';
+export type BuiltInInterpolationStrategy = 'linear' | 'lanczos';
 
 /**
  * Kernel contract for interpolation plugins.
@@ -88,7 +88,7 @@ const strategyRegistry = new Map<
   RegisteredInterpolationStrategy
 >();
 
-let activeStrategyId: RateTransposerInterpolationStrategyId = 'lanczos8';
+let activeStrategyId: RateTransposerInterpolationStrategyId = 'lanczos';
 
 function readStrategySelection(
   strategy?: RateTransposerInterpolationStrategyOption,
@@ -126,7 +126,7 @@ function requireRegisteredStrategy(
 export function registerInterpolationStrategy(
   registration: InterpolationStrategyRegistration,
 ): void {
-  const baseStrategy = registration.baseStrategy ?? 'lanczos8';
+  const baseStrategy = registration.baseStrategy ?? 'lanczos';
   strategyRegistry.set(registration.id, {
     id: registration.id,
     baseStrategy,
@@ -141,7 +141,7 @@ export function registerInterpolationStrategy(
 function registerBuiltInInterpolationStrategy(
   registration: InterpolationStrategyRegistration,
 ): void {
-  const baseStrategy = registration.baseStrategy ?? 'lanczos8';
+  const baseStrategy = registration.baseStrategy ?? 'lanczos';
   strategyRegistry.set(registration.id, {
     id: registration.id,
     baseStrategy,
@@ -181,10 +181,16 @@ function normalizeParams(
     return registration.normalizeParams(params, defaults);
   }
 
-  return {
-    ...defaults,
-    ...(params ?? {}),
-  };
+  const normalized: InterpolationStrategyParams = { ...defaults };
+  if (params !== undefined) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        normalized[key] = value;
+      }
+    }
+  }
+
+  return normalized;
 }
 
 export function unregisterInterpolationStrategy(
@@ -197,7 +203,7 @@ export function unregisterInterpolationStrategy(
 
   const deleted = strategyRegistry.delete(strategyId);
   if (deleted && activeStrategyId === strategyId) {
-    activeStrategyId = 'lanczos8';
+    activeStrategyId = 'lanczos';
   }
 
   return deleted;
@@ -286,5 +292,5 @@ export function resolveInterpolationStrategyRuntime(
 
 registerBuiltInInterpolationStrategy({
   ...lanczosStrategy,
-  baseStrategy: 'lanczos8',
+  baseStrategy: 'lanczos',
 });

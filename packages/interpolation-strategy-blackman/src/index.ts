@@ -1,4 +1,4 @@
-export type BuiltInInterpolationStrategy = 'linear' | 'lanczos8';
+export type BuiltInInterpolationStrategy = 'linear' | 'lanczos';
 
 export interface InterpolationKernel {
   (
@@ -39,40 +39,65 @@ interface BlackmanKernelState {
   params: BlackmanStrategyParams;
 }
 
-export interface BlackmanStrategyParams extends Record<string, number> {
-  radius: number;
+
+/**
+ * Parameters for the Blackman interpolation strategy.
+ *
+ * @property zeroCrossings Kernel half-width in zero-crossings (2–8, default: 4)
+ * @property normalize If true, output is normalized so weights sum to 1 (default: false)
+ * @property alpha Blackman window alpha coefficient (default: 0.42)
+ * @property beta Blackman window beta coefficient (default: 0.5)
+ * @property gamma Blackman window gamma coefficient (default: 0.08)
+ */
+export interface BlackmanStrategyParams extends Record<string, number | boolean> {
+  zeroCrossings: number;
+  normalize?: boolean;
+  alpha?: number;
+  beta?: number;
+  gamma?: number;
 }
 
 const BLACKMAN_DEFAULT_PARAMS: BlackmanStrategyParams = {
-  radius: 4,
+  zeroCrossings: 4,
+  normalize: false,
+  alpha: 0.42,
+  beta: 0.5,
+  gamma: 0.08,
 };
 
 function normalizeBlackmanParams(
-  params: Partial<Record<string, number>> | undefined,
-  defaults: Record<string, number>,
-): Record<string, number> {
+  params: Partial<Record<string, number | boolean>> | undefined,
+  defaults: Record<string, number | boolean>,
+): Record<string, number | boolean> {
   const merged = {
     ...defaults,
     ...(params ?? {}),
   };
-  const radius = Math.max(
+  const zeroCrossings = Math.max(
     2,
-    Math.min(8, Math.round(merged['radius'] ?? defaults['radius'] ?? 4)),
+    Math.min(8, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
   );
-
-  return { radius };
+  const normalize = Boolean(merged['normalize']);
+  const alpha = Number(merged['alpha'] ?? 0.42);
+  const beta = Number(merged['beta'] ?? 0.5);
+  const gamma = Number(merged['gamma'] ?? 0.08);
+  return { zeroCrossings, normalize, alpha, beta, gamma };
 }
 
 function applyBlackmanParams(
   state: unknown,
-  params: Record<string, number>,
+  params: Record<string, number | boolean>,
 ): void {
   if (typeof state !== 'object' || state === null) {
     return;
   }
   const record = state as BlackmanKernelState;
   record.params = {
-    radius: Math.max(2, Math.round(params['radius'] ?? 4)),
+    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    normalize: Boolean(params['normalize']),
+    alpha: Number(params['alpha'] ?? 0.42),
+    beta: Number(params['beta'] ?? 0.5),
+    gamma: Number(params['gamma'] ?? 0.08),
   };
 }
 
@@ -104,23 +129,23 @@ function normalizedSinc(x: number): number {
   return Math.sin(value) / value;
 }
 
-function blackmanWindow(distance: number, radius: number): number {
+function blackmanWindow(distance: number, radius: number, alpha: number, beta: number, gamma: number): number {
   const absDistance = Math.abs(distance);
   if (absDistance >= radius) {
     return 0;
   }
-
   const ratio = absDistance / radius;
   return (
-    0.42 +
-    0.5 * Math.cos(Math.PI * ratio) +
-    0.08 * Math.cos(2 * Math.PI * ratio)
+    alpha +
+    beta * Math.cos(Math.PI * ratio) +
+    gamma * Math.cos(2 * Math.PI * ratio)
   );
 }
 
-function blackmanWeight(distance: number, radius: number): number {
-  return normalizedSinc(distance) * blackmanWindow(distance, radius);
+function blackmanWeight(distance: number, radius: number, alpha: number, beta: number, gamma: number): number {
+  return normalizedSinc(distance) * blackmanWindow(distance, radius, alpha, beta, gamma);
 }
+
 
 export const blackmanKernel: InterpolationKernel = (
   src,
@@ -131,7 +156,11 @@ export const blackmanKernel: InterpolationKernel = (
   state,
 ) => {
   const kernelState = state as BlackmanKernelState;
-  const radius = kernelState.params.radius;
+  const radius = kernelState.params.zeroCrossings;
+  const normalize = Boolean(kernelState.params.normalize);
+  const alpha = typeof kernelState.params.alpha === 'number' ? kernelState.params.alpha : 0.42;
+  const beta = typeof kernelState.params.beta === 'number' ? kernelState.params.beta : 0.5;
+  const gamma = typeof kernelState.params.gamma === 'number' ? kernelState.params.gamma : 0.08;
   const center = Math.floor(position);
   const start = center - (radius - 1);
   const end = center + radius;
@@ -141,7 +170,7 @@ export const blackmanKernel: InterpolationKernel = (
 
   for (let sampleIndex = start; sampleIndex <= end; sampleIndex += 1) {
     const distance = position - sampleIndex;
-    const weight = blackmanWeight(distance, radius);
+    const weight = blackmanWeight(distance, radius, alpha, beta, gamma);
     numerator +=
       readFrameSample(
         src,
@@ -165,7 +194,7 @@ export const blackmanKernel: InterpolationKernel = (
     );
   }
 
-  return numerator / denominator;
+  return normalize ? numerator / denominator : numerator / (denominator || 1);
 };
 
 blackmanKernel.createState = () => ({
@@ -175,7 +204,7 @@ blackmanKernel.createState = () => ({
 });
 
 export const blackmanStrategy: InterpolationStrategyRegistration = {
-  id: 'blackman8',
+  id: 'blackman',
   baseStrategy: 'linear',
   kernel: blackmanKernel,
   defaultParams: BLACKMAN_DEFAULT_PARAMS,

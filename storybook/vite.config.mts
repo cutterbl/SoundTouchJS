@@ -37,4 +37,5 @@ export default defineConfig(() => ({
       transformMixedEsModules: true,
     },
   },
+  publicDir: '../apps/demo/public',
 }));

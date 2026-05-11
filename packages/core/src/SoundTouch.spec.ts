@@ -95,7 +95,7 @@ describe('SoundTouch', () => {
     });
 
     it('accepts interpolationStrategy option', () => {
-      const st = new SoundTouch({ interpolationStrategy: 'lanczos8' });
+      const st = new SoundTouch({ interpolationStrategy: 'lanczos' });
       expect(st.transposer).toBeInstanceOf(RateTransposer);
     });
 
@@ -241,18 +241,18 @@ describe('SoundTouch', () => {
 
   describe('runtime interpolation strategy controls', () => {
     it('switches interpolation strategy through SoundTouch API', () => {
-      const st = new SoundTouch({ interpolationStrategy: 'lanczos8' });
+      const st = new SoundTouch({ interpolationStrategy: 'lanczos' });
 
-      st.setInterpolationStrategy('lanczos8');
+      st.setInterpolationStrategy('lanczos');
 
-      expect(st.interpolationStrategy).toBe('lanczos8');
+      expect(st.interpolationStrategy).toBe('lanczos');
     });
 
     it('updates interpolation strategy params through SoundTouch API', () => {
       const st = new SoundTouch({
         interpolationStrategy: {
-          id: 'lanczos8',
-          params: { radius: 4 },
+          id: 'lanczos',
+          params: { zeroCrossings: 4 },
         },
       });
 

@@ -1,7 +1,7 @@
 import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 type SourceMode = 'buffer' | 'element';
-type InterpolationStrategy = 'linear' | 'lanczos8';
+type InterpolationStrategy = 'linear' | 'lanczos';
 
 /**
  * Demo architecture in one sentence:
@@ -74,7 +74,7 @@ const useFifoSampleBuffers = searchParams.get('sampleBufferType') === 'fifo';
 const interpolationStrategy: InterpolationStrategy =
   searchParams.get('interpolationStrategy') === 'linear'
     ? 'linear'
-    : 'lanczos8';
+    : 'lanczos';
 
 function getAdapterModeLabel(): string {
   return useFifoSampleBuffers
@@ -83,13 +83,13 @@ function getAdapterModeLabel(): string {
 }
 
 function getInterpolationModeLabel(): string {
-  return interpolationStrategy === 'lanczos8'
+  return interpolationStrategy === 'lanczos'
     ? 'Lanczos interpolation enabled (default)'
     : 'Linear interpolation enabled (override)';
 }
 
 function getNodeOptionsSnippet(): string {
-  if (!useFifoSampleBuffers && interpolationStrategy === 'lanczos8') {
+  if (!useFifoSampleBuffers && interpolationStrategy === 'lanczos') {
     return 'const stNode = new SoundTouchNode({ context: audioCtx });';
   }
 

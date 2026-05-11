@@ -1,4 +1,4 @@
-export type BuiltInInterpolationStrategy = 'linear' | 'lanczos8';
+export type BuiltInInterpolationStrategy = 'linear' | 'lanczos';
 
 /** Kernel contract compatible with the core interpolation registry. */
 export interface InterpolationKernel {
@@ -46,12 +46,27 @@ interface LinearKernelState {
   params: LinearStrategyParams;
 }
 
+
+/**
+ * Parameters for the Linear interpolation strategy.
+ *
+ * @property edgeHoldFrames Number of frames to hold at edges (0–32, default: 1)
+ * @property blend Blend between nearest (0) and linear (1) interpolation (0–1, default: 1)
+ * @property normalize If true, output is normalized so weights sum to 1 (default: false)
+ * @property zeroCrossings Alias for edgeHoldFrames (optional, overrides edgeHoldFrames if set)
+ */
 export interface LinearStrategyParams {
   edgeHoldFrames: number;
+  blend?: number;
+  normalize?: boolean;
+  zeroCrossings?: number;
 }
 
-const LINEAR_DEFAULT_PARAMS: LinearStrategyParams = {
+// Use Record<string, number> for defaultParams to match InterpolationStrategyRegistration
+const LINEAR_DEFAULT_PARAMS: Record<string, number> = {
   edgeHoldFrames: 1,
+  blend: 1,
+  normalize: 0,
 };
 
 function normalizeLinearParams(
@@ -62,15 +77,14 @@ function normalizeLinearParams(
     ...defaults,
     ...(params ?? {}),
   };
-  const edgeHoldFrames = Math.max(
-    0,
-    Math.min(
-      32,
-      Math.round(merged['edgeHoldFrames'] ?? defaults['edgeHoldFrames'] ?? 1),
-    ),
-  );
-
-  return { edgeHoldFrames };
+  // zeroCrossings is an alias for edgeHoldFrames if set
+  const edgeHoldFrames = merged['zeroCrossings'] !== undefined
+    ? Math.max(0, Math.min(32, Math.round(merged['zeroCrossings'])))
+    : Math.max(0, Math.min(32, Math.round(merged['edgeHoldFrames'] ?? defaults['edgeHoldFrames'] ?? 1)));
+  const blend = Math.max(0, Math.min(1, Number(merged['blend'] ?? 1)));
+  // Cast boolean to number for compatibility
+  const normalize = merged['normalize'] ? 1 : 0;
+  return { edgeHoldFrames, blend, normalize };
 }
 
 function applyLinearParams(
@@ -83,6 +97,9 @@ function applyLinearParams(
   const record = state as LinearKernelState;
   record.params = {
     edgeHoldFrames: Math.max(0, Math.round(params['edgeHoldFrames'] ?? 1)),
+    blend: Math.max(0, Math.min(1, Number(params['blend'] ?? 1))),
+    // Accept both boolean and number for normalize
+    normalize: Boolean(params['normalize']),
   };
 }
 
@@ -113,6 +130,7 @@ function readFrameSample(
   return src[srcOffset + 2 * frameIndex + channel];
 }
 
+
 export const linearKernel: InterpolationKernel = (
   src,
   srcOffset,
@@ -125,12 +143,25 @@ export const linearKernel: InterpolationKernel = (
   const left = Math.floor(position);
   const right = left + 1;
   const frac = position - left;
-  return (
-    (1 - frac) *
-      readFrameSample(src, srcOffset, numFrames, left, channel, kernelState) +
-    frac *
-      readFrameSample(src, srcOffset, numFrames, right, channel, kernelState)
-  );
+  const blend = typeof kernelState.params.blend === 'number' ? kernelState.params.blend : 1;
+  const normalize = Boolean(kernelState.params.normalize);
+  // Nearest and linear values
+  const leftVal = readFrameSample(src, srcOffset, numFrames, left, channel, kernelState);
+  const rightVal = readFrameSample(src, srcOffset, numFrames, right, channel, kernelState);
+  const linearVal = (1 - frac) * leftVal + frac * rightVal;
+  const nearestVal = frac < 0.5 ? leftVal : rightVal;
+  let result = blend * linearVal + (1 - blend) * nearestVal;
+  if (normalize) {
+    // For linear, normalization is trivial: weights sum to 1
+    // But if blend < 1, normalize the weights
+    const wLeft = blend * (1 - frac) + (1 - blend) * (frac < 0.5 ? 1 : 0);
+    const wRight = blend * frac + (1 - blend) * (frac >= 0.5 ? 1 : 0);
+    const wSum = wLeft + wRight;
+    if (wSum !== 0) {
+      result = (wLeft * leftVal + wRight * rightVal) / wSum;
+    }
+  }
+  return result;
 };
 
 linearKernel.createState = () => ({

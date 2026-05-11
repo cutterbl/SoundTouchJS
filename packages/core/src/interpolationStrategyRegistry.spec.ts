@@ -12,7 +12,7 @@ import {
 describe('interpolationStrategyRegistry', () => {
   it('exposes only the default built-in strategy', () => {
     const ids = listInterpolationStrategies();
-    expect(ids).toContain('lanczos8');
+    expect(ids).toContain('lanczos');
     expect(ids).not.toContain('linear');
   });
 
@@ -33,16 +33,16 @@ describe('interpolationStrategyRegistry', () => {
   });
 
   it('does not unregister built-ins', () => {
-    expect(unregisterInterpolationStrategy('lanczos8')).toBe(false);
+    expect(unregisterInterpolationStrategy('lanczos')).toBe(false);
   });
 
-  it('falls back to lanczos8 when the active plugin is removed', () => {
+  it('falls back to lanczos when the active plugin is removed', () => {
     registerInterpolationStrategy({ id: 'plugin/test-default' });
     setActiveInterpolationStrategy('plugin/test-default');
     expect(getActiveInterpolationStrategyId()).toBe('plugin/test-default');
 
     expect(unregisterInterpolationStrategy('plugin/test-default')).toBe(true);
-    expect(getActiveInterpolationStrategyId()).toBe('lanczos8');
+    expect(getActiveInterpolationStrategyId()).toBe('lanczos');
   });
   it('registers and resolves a custom plugin kernel', () => {
     let called = 0;

@@ -53,7 +53,7 @@ describe('SoundTouchNode', () => {
     const node = new SoundTouchNode({
       context,
       sampleBufferType: 'fifo',
-      interpolationStrategy: 'lanczos8',
+      interpolationStrategy: 'lanczos',
     });
 
     const pitchParam = { value: 1.0 };
@@ -83,7 +83,7 @@ describe('SoundTouchNode', () => {
     const context = {} as BaseAudioContext;
     const node = new SoundTouchNode({ context });
 
-    node.setInterpolationStrategy('lanczos8');
+    node.setInterpolationStrategy('lanczos');
     node.setInterpolationStrategyParams({ radius: 6 });
 
     const port = (
@@ -91,11 +91,11 @@ describe('SoundTouchNode', () => {
     ).port;
     expect(port.postMessage).toHaveBeenNthCalledWith(1, {
       type: 'set-interpolation-strategy',
-      strategy: 'lanczos8',
+      strategy: 'lanczos',
     });
     expect(port.postMessage).toHaveBeenNthCalledWith(2, {
       type: 'set-interpolation-strategy-params',
-      params: { radius: 6 },
+      params: { zeroCrossings: 6 },
     });
   });
 });

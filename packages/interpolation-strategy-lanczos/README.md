@@ -15,15 +15,16 @@ import { registerLanczosStrategy } from '@soundtouchjs/interpolation-strategy-la
 registerLanczosStrategy({ registerInterpolationStrategy });
 
 const st = new SoundTouch({
-  interpolationStrategy: 'lanczos8',
+  interpolationStrategy: 'lanczos',
 });
 
-st.setInterpolationStrategyParams({ radius: 6 });
+st.setInterpolationStrategyParams({ zeroCrossings: 6 });
 ```
 
 ## Params
 
-- `radius` (default `4`, normalized to `2..8`)
+- `zeroCrossings` (default `4`, normalized to `2..8`)
+- `normalize` (default `false`) — when true, kernel weights are normalized so they sum to 1
 
 ## Related docs
 
@@ -33,6 +34,6 @@ st.setInterpolationStrategyParams({ radius: 6 });
 ## Exports
 
 - `lanczosKernel`: Interpolation kernel implementation.
-- `lanczosStrategy`: Strategy descriptor with id `lanczos8`.
+- `lanczosStrategy`: Strategy descriptor with id `lanczos`.
 - `registerLanczosStrategy`: Helper that registers `lanczosStrategy` into a compatible registry.
 - `lanczosStrategy.defaultParams`: Runtime defaults for strategy params.

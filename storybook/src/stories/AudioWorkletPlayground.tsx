@@ -37,10 +37,19 @@ type StoryMode =
   | 'pitch'
   | 'pitch-semitones'
   | 'rate'
+  | 'tempo'
   | 'loop'
   | 'buffer'
   | 'interpolation-strategy'
   | 'element-kitchen-sink';
+const TEMPO_TICKS: readonly DatalistTick[] = [
+  { value: 0.5, label: '0.5' },
+  { value: 0.75, label: '0.75' },
+  { value: 1, label: '1' },
+  { value: 1.25, label: '1.25' },
+  { value: 1.5, label: '1.5' },
+  { value: 2, label: '2' },
+];
 
 type SourceMode = 'buffer' | 'element';
 
@@ -127,11 +136,11 @@ const INTERPOLATION_STRATEGY_OPTIONS: ReadonlyArray<{
   readonly value: RateTransposerInterpolationStrategy;
   readonly label: string;
 }> = [
-  { value: 'lanczos8', label: 'Lanczos8 (default)' },
+  { value: 'lanczos', label: 'Lanczos (default)' },
   { value: 'linear', label: 'Linear' },
-  { value: 'hann8', label: 'Hann' },
-  { value: 'blackman8', label: 'Blackman' },
-  { value: 'kaiser8', label: 'Kaiser' },
+  { value: 'hann', label: 'Hann' },
+  { value: 'blackman', label: 'Blackman' },
+  { value: 'kaiser', label: 'Kaiser' },
 ];
 
 function formatTime(seconds: number): string {
@@ -201,11 +210,12 @@ export function AudioWorkletPlayground({
   const [rate, setRate] = useState(1);
   const [pitch, setPitch] = useState(1);
   const [pitchSemitones, setPitchSemitones] = useState(0);
+  const [tempo, setTempo] = useState(1);
   const [loopEnabled, setLoopEnabled] = useState(false);
   const [sampleBufferType, setSampleBufferType] =
     useState<SampleBufferType>('circular');
   const [interpolationStrategy, setInterpolationStrategy] =
-    useState<RateTransposerInterpolationStrategy>('lanczos8');
+    useState<RateTransposerInterpolationStrategy>('lanczos');
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -234,6 +244,8 @@ export function AudioWorkletPlayground({
     mode === 'buffer' ||
     mode === 'interpolation-strategy' ||
     mode === 'element-kitchen-sink';
+
+  const showTempo = mode === 'tempo' || isKitchenSink;
 
   const showVolume = mode === 'volume' || isKitchenSink;
   const showPitch = mode === 'pitch' || isKitchenSink;
@@ -331,12 +343,15 @@ export function AudioWorkletPlayground({
       sourceMode === 'element' && elementRef.current
         ? elementRef.current.playbackRate
         : rate;
+    if ('tempo' in soundTouchNodeRef.current) {
+      soundTouchNodeRef.current.tempo.value = tempo;
+    }
 
     if (sourceMode === 'buffer' && elementRef.current) {
       elementRef.current.volume = Math.min(1, Math.max(0, volume));
       elementRef.current.playbackRate = rate;
     }
-  }, [pitch, pitchSemitones, rate, sourceMode, volume]);
+  }, [pitch, pitchSemitones, rate, sourceMode, volume, tempo]);
 
   const loadTrackBuffer = useCallback(async (): Promise<void> => {
     const response = await fetch(selectedTrack.url);
@@ -728,6 +743,19 @@ export function AudioWorkletPlayground({
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
         }}
       >
+                {showTempo ? (
+                  <RangeControl
+                    label="Tempo"
+                    min={0.5}
+                    max={2}
+                    step={0.01}
+                    value={tempo}
+                    onChange={setTempo}
+                    ticks={TEMPO_TICKS}
+                    listId="tempo-ticks"
+                    disabled={isLoading}
+                  />
+                ) : null}
         <label>
           Track
           <select
@@ -813,7 +841,12 @@ export function AudioWorkletPlayground({
         ) : null}
 
         {showBufferType ? (
-          <fieldset style={{ border: '1px solid #d1d5db', borderRadius: 6 }}>
+          <fieldset
+            style={{
+              border: '1px solid #d1d5db',
+              borderRadius: 6,
+            }}
+          >
             <legend>Buffer type</legend>
             <label style={{ marginRight: 12 }}>
               <input
@@ -841,7 +874,13 @@ export function AudioWorkletPlayground({
         ) : null}
 
         {showInterpolationStrategy ? (
-          <fieldset style={{ border: '1px solid #d1d5db', borderRadius: 6 }}>
+          <fieldset
+            style={{
+              border: '1px solid #d1d5db',
+              borderRadius: 6,
+              gridColumn: 'span 3',
+            }}
+          >
             <legend>Interpolation strategy</legend>
             {INTERPOLATION_STRATEGY_OPTIONS.map((option) => (
               <label key={option.value} style={{ marginRight: 12 }}>

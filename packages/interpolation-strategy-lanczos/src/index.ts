@@ -1,4 +1,4 @@
-export type BuiltInInterpolationStrategy = 'linear' | 'lanczos8';
+export type BuiltInInterpolationStrategy = 'linear' | 'lanczos';
 
 /** Kernel contract compatible with the core interpolation registry. */
 export interface InterpolationKernel {
@@ -46,40 +46,50 @@ interface LanczosKernelState {
   params: LanczosStrategyParams;
 }
 
-export interface LanczosStrategyParams {
-  radius: number;
+
+/**
+ * Parameters for the Lanczos interpolation strategy.
+ *
+ * @property zeroCrossings Kernel half-width in zero-crossings (2–8, default: 4)
+ * @property normalize If true, output is normalized so weights sum to 1 (default: false)
+ */
+export interface LanczosStrategyParams extends Record<string, number | boolean> {
+  zeroCrossings: number;
+  normalize?: boolean;
 }
 
 const LANCZOS_DEFAULT_PARAMS: LanczosStrategyParams = {
-  radius: 4,
+  zeroCrossings: 4,
+  normalize: false,
 };
 
 function normalizeLanczosParams(
-  params: Partial<Record<string, number>> | undefined,
-  defaults: Record<string, number>,
-): Record<string, number> {
+  params: Partial<Record<string, number | boolean>> | undefined,
+  defaults: Record<string, number | boolean>,
+): Record<string, number | boolean> {
   const merged = {
     ...defaults,
     ...(params ?? {}),
   };
-  const radius = Math.max(
+  const zeroCrossings = Math.max(
     2,
-    Math.min(8, Math.round(merged['radius'] ?? defaults['radius'] ?? 4)),
+    Math.min(8, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
   );
-
-  return { radius };
+  const normalize = Boolean(merged['normalize']);
+  return { zeroCrossings, normalize };
 }
 
 function applyLanczosParams(
   state: unknown,
-  params: Record<string, number>,
+  params: Record<string, number | boolean>,
 ): void {
   if (typeof state !== 'object' || state === null) {
     return;
   }
   const record = state as LanczosKernelState;
   record.params = {
-    radius: Math.max(2, Math.round(params['radius'] ?? 4)),
+    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    normalize: Boolean(params['normalize']),
   };
 }
 
@@ -119,6 +129,7 @@ function lanczosWeight(distance: number, radius: number): number {
   return normalizedSinc(distance) * normalizedSinc(distance / radius);
 }
 
+
 export const lanczosKernel: InterpolationKernel = (
   src,
   srcOffset,
@@ -128,7 +139,8 @@ export const lanczosKernel: InterpolationKernel = (
   state,
 ) => {
   const kernelState = state as LanczosKernelState;
-  const radius = kernelState.params.radius;
+  const radius = kernelState.params.zeroCrossings;
+  const normalize = Boolean(kernelState.params.normalize);
   const center = Math.floor(position);
   const start = center - (radius - 1);
   const end = center + radius;
@@ -162,7 +174,7 @@ export const lanczosKernel: InterpolationKernel = (
     );
   }
 
-  return numerator / denominator;
+  return normalize ? numerator / denominator : numerator / (denominator || 1);
 };
 
 lanczosKernel.createState = () => ({
@@ -173,7 +185,7 @@ lanczosKernel.createState = () => ({
 
 /** Default Lanczos strategy registration payload. */
 export const lanczosStrategy: InterpolationStrategyRegistration = {
-  id: 'lanczos8',
+  id: 'lanczos',
   baseStrategy: 'linear',
   kernel: lanczosKernel,
   defaultParams: LANCZOS_DEFAULT_PARAMS,

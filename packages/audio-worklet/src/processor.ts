@@ -133,7 +133,7 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
    * @param options Worklet constructor options provided by the main thread.
    *
    * @remarks
-   * Unknown interpolation strategy ids are logged and coerced to `lanczos8`
+   * Unknown interpolation strategy ids are logged and coerced to `lanczos`
    * so render-thread startup remains resilient.
    */
   constructor(options?: ProcessorConstructorOptions) {
@@ -145,14 +145,14 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         resolveInterpolationStrategy(interpolationStrategy);
       }
     } catch (err) {
-      // Fallback to lanczos8 and log info
+      // Fallback to lanczos and log info
       // eslint-disable-next-line no-console
       console.info(
         '[SoundTouchProcessor] Unknown interpolation strategy id:',
         interpolationStrategy,
-        '— falling back to lanczos8.',
+        '— falling back to lanczos.',
       );
-      interpolationStrategy = 'lanczos8';
+      interpolationStrategy = 'lanczos';
     }
     this._pipe = new SoundTouch({
       sampleRate,

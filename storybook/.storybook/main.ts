@@ -10,10 +10,6 @@ const config: StorybookConfig = {
     '../src/stories/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../src/app/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../src/docs/**/*.mdx',
-    '../../../packages/core/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../../../packages/audio-worklet/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../../../packages/interpolation-strategy-linear/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../../../packages/interpolation-strategy-lanczos/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
   ],
   framework: {
     name: getAbsolutePath('@storybook/react-vite'),
