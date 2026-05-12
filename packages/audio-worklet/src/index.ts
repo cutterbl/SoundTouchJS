@@ -27,6 +27,7 @@
  */
 export { SoundTouchNode } from './SoundTouchNode.js';
 export type {
+  ProcessorMetrics,
   SoundTouchNodeConstructorOptions,
   SoundTouchNodeOptions,
   StretchParameters,

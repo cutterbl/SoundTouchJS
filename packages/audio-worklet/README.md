@@ -283,6 +283,38 @@ const processed = await processOffline({
 
 The output `AudioBuffer` has the same channel count and sample rate as the input. Output length is estimated as `ceil(input.length / playbackRate)`.
 
+## Processor observability
+
+`SoundTouchNode` exposes a `metrics` getter and a `metrics` CustomEvent for monitoring processor health. The processor sends a snapshot to the main thread every 100 render blocks.
+
+```ts
+// Poll the latest snapshot
+const m = stNode.metrics;
+if (m) {
+  console.log(`underruns: ${m.underrunCount} / ${m.blockCount} blocks`);
+}
+
+// Or listen for every update
+stNode.addEventListener('metrics', (e) => {
+  const { framesBuffered, underrunCount, blockCount, timestamp } =
+    (e as CustomEvent<ProcessorMetrics>).detail;
+  console.log(`[${timestamp.toFixed(0)}ms] buffered=${framesBuffered} underruns=${underrunCount}/${blockCount}`);
+});
+```
+
+`ProcessorMetrics` is exported from `@soundtouchjs/audio-worklet`:
+
+```ts
+import type { ProcessorMetrics } from '@soundtouchjs/audio-worklet';
+```
+
+| Field | Description |
+|-------|-------------|
+| `framesBuffered` | Frames available in the output buffer at the last render block |
+| `underrunCount` | Cumulative render blocks where the output buffer was short |
+| `blockCount` | Total render blocks processed since the processor started |
+| `timestamp` | `performance.now()` on the main thread when metrics arrived |
+
 ## Mono input and output
 
 The processor supports both mono input and mono output without extra configuration.

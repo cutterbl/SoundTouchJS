@@ -90,6 +90,7 @@ beforeEach(() => {
     class AudioWorkletProcessor {
       port = {
         onmessage: null as ((event: { data: unknown }) => void) | null,
+        postMessage: vi.fn(),
       };
     },
   );
@@ -361,6 +362,82 @@ describe('processor', () => {
         expect.objectContaining({
           sampleBufferType: 'circular',
           interpolationStrategy: 'lanczos',
+        }),
+      );
+    });
+  });
+
+  describe('metrics', () => {
+    it('posts metrics to port every 100 render blocks', async () => {
+      await import('./processor.js');
+      outputFrameCount = 64;
+
+      const instance = new registeredCtor!({
+        processorOptions: { sampleBufferType: 'circular' },
+      }) as unknown as {
+        port: {
+          onmessage: ((event: { data: unknown }) => void) | null;
+          postMessage: ReturnType<typeof vi.fn>;
+        };
+        process: RegisteredProcessorCtor['prototype']['process'];
+      };
+
+      const params = {
+        pitch: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      };
+
+      for (let i = 0; i < 100; i++) {
+        instance.process(
+          [[new Float32Array(128)]],
+          [[new Float32Array(128), new Float32Array(128)]],
+          params,
+        );
+      }
+
+      expect(instance.port.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'metrics',
+          blockCount: 100,
+          framesBuffered: 64,
+        }),
+      );
+    });
+
+    it('increments underrunCount when output buffer has fewer frames than requested', async () => {
+      await import('./processor.js');
+
+      const instance = new registeredCtor!({
+        processorOptions: { sampleBufferType: 'circular' },
+      }) as unknown as {
+        port: {
+          onmessage: ((event: { data: unknown }) => void) | null;
+          postMessage: ReturnType<typeof vi.fn>;
+        };
+        process: RegisteredProcessorCtor['prototype']['process'];
+      };
+
+      const params = {
+        pitch: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      };
+
+      // Underrun every block (outputFrameCount < frameCount)
+      outputFrameCount = 64;
+      for (let i = 0; i < 100; i++) {
+        instance.process(
+          [[new Float32Array(128)]],
+          [[new Float32Array(128), new Float32Array(128)]],
+          params,
+        );
+      }
+
+      expect(instance.port.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'metrics',
+          underrunCount: 100,
         }),
       );
     });

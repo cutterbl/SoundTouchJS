@@ -140,6 +140,31 @@ stNode.setStretchParameters({ sequenceMs: 0 });            // back to auto
 | `overlapMs` | 8 | Crossfade overlap in ms |
 | `quickSeek` | `true` | Fast seek; `false` = exhaustive |
 
+## Processor observability
+
+The processor sends performance metrics to the main thread every 100 render blocks. Use `SoundTouchNode.metrics` to poll the latest snapshot, or listen for the `metrics` CustomEvent for every update.
+
+```ts
+import type { ProcessorMetrics } from '@soundtouchjs/audio-worklet';
+
+// Poll the latest snapshot
+const m = stNode.metrics; // ProcessorMetrics | null
+
+// Event-driven monitoring
+stNode.addEventListener('metrics', (e) => {
+  const { framesBuffered, underrunCount, blockCount, timestamp } =
+    (e as CustomEvent<ProcessorMetrics>).detail;
+  console.log(`buffered=${framesBuffered} underruns=${underrunCount}/${blockCount}`);
+});
+```
+
+| Field | Description |
+|-------|-------------|
+| `framesBuffered` | Frames available in the output buffer at the last render block |
+| `underrunCount` | Cumulative render blocks where the output buffer had fewer frames than requested |
+| `blockCount` | Total render blocks processed since the processor started |
+| `timestamp` | `performance.now()` recorded on the main thread when metrics arrived |
+
 ## Mono input and output
 
 The processor handles both mono sources and mono destinations automatically.

@@ -27,6 +27,24 @@ export type { StretchParameters } from '@soundtouchjs/core';
 import { DEFAULT_SAMPLE_BUFFER_TYPE, PROCESSOR_NAME } from './constants.js';
 
 /**
+ * Snapshot of processor performance metrics received from the render thread.
+ *
+ * @remarks
+ * Emitted every 100 render blocks via the `metrics` CustomEvent on `SoundTouchNode`.
+ * Access the latest snapshot via `SoundTouchNode.metrics`.
+ */
+export interface ProcessorMetrics {
+  /** Frames available in the output buffer at the last render block. */
+  framesBuffered: number;
+  /** Cumulative render blocks where the output buffer had fewer frames than requested. */
+  underrunCount: number;
+  /** Total render blocks processed since the processor was created. */
+  blockCount: number;
+  /** `performance.now()` timestamp recorded on the main thread when the metrics arrived. */
+  timestamp: DOMHighResTimeStamp;
+}
+
+/**
  * Construction options for `SoundTouchNode`.
  *
  * @remarks
@@ -128,6 +146,8 @@ export class SoundTouchNode extends AudioWorkletNode {
     await context.audioWorklet.addModule(strategyModuleUrl);
   }
 
+  private _lastMetrics: ProcessorMetrics | null = null;
+
   /**
    * Creates a SoundTouchNode instance.
    * @param options - Node and processor configuration.
@@ -147,6 +167,35 @@ export class SoundTouchNode extends AudioWorkletNode {
         interpolationStrategy,
       },
     });
+
+    this.port.onmessage = (event: MessageEvent) => {
+      const message = event.data;
+      if (message?.type === 'metrics') {
+        const metrics: ProcessorMetrics = {
+          framesBuffered: message.framesBuffered,
+          underrunCount: message.underrunCount,
+          blockCount: message.blockCount,
+          timestamp: performance.now(),
+        };
+        this._lastMetrics = metrics;
+        this.dispatchEvent(new CustomEvent('metrics', { detail: metrics }));
+      }
+    };
+  }
+
+  /**
+   * Returns the most recent processor metrics snapshot, or `null` if no metrics have been received yet.
+   *
+   * @remarks
+   * Updated every 100 render blocks by the processor. Also dispatched as a `metrics` CustomEvent.
+   *
+   * @example
+   * stNode.addEventListener('metrics', (e) => {
+   *   console.log((e as CustomEvent<ProcessorMetrics>).detail.underrunCount);
+   * });
+   */
+  get metrics(): ProcessorMetrics | null {
+    return this._lastMetrics;
   }
 
   /**

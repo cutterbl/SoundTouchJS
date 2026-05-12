@@ -82,6 +82,17 @@ type ProcessorMessage =
   | SetInterpolationStrategyParamsMessage
   | SetStretchParametersMessage;
 
+/** Metrics snapshot sent from the processor to the main thread every 100 render blocks. */
+interface MetricsMessage {
+  type: 'metrics';
+  /** Frames available in the output buffer at the time of the last render block. */
+  framesBuffered: number;
+  /** Cumulative count of render blocks where the output buffer had fewer frames than requested. */
+  underrunCount: number;
+  /** Total render blocks processed since the processor was created. */
+  blockCount: number;
+}
+
 /**
  * Audio render-thread processor that applies SoundTouch transformations to stereo blocks.
  *
@@ -122,6 +133,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
   private pendingInterpolationStrategy: RateTransposerInterpolationStrategy | null;
   private pendingInterpolationStrategyParams: Partial<InterpolationStrategyParams> | null;
   private pendingStretchParameters: StretchParameters | null;
+  private _underrunCount: number;
+  private _blockCount: number;
 
   /**
    * @param options Worklet constructor options provided by the main thread.
@@ -160,6 +173,8 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     this.pendingInterpolationStrategy = null;
     this.pendingInterpolationStrategyParams = null;
     this.pendingStretchParameters = null;
+    this._underrunCount = 0;
+    this._blockCount = 0;
 
     const port = this.port;
     if (port !== undefined) {
@@ -269,6 +284,21 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     const outputBuffer = this._pipe.outputBuffer;
     const available = outputBuffer.frameCount;
     const toExtract = Math.min(available, frameCount);
+
+    this._blockCount++;
+    if (available < frameCount) {
+      this._underrunCount++;
+    }
+
+    // Post metrics to the main thread every 100 blocks.
+    if (this._blockCount % 100 === 0) {
+      this.port.postMessage({
+        type: 'metrics',
+        framesBuffered: available,
+        underrunCount: this._underrunCount,
+        blockCount: this._blockCount,
+      });
+    }
 
     if (toExtract > 0) {
       const extracted = this._outputSamples;

@@ -10,9 +10,16 @@ const lastCtorOptions: { value: MockNodeOptions | undefined } = {
   value: undefined,
 };
 
+type MessageListener = (event: MessageEvent) => void;
+
 class MockAudioWorkletNode {
   parameters: Map<string, unknown>;
-  port: { postMessage: ReturnType<typeof vi.fn> };
+  port: {
+    postMessage: ReturnType<typeof vi.fn>;
+    onmessage: MessageListener | null;
+  };
+  private _listeners: Map<string, EventListenerOrEventListenerObject[]> =
+    new Map();
 
   constructor(
     _context: BaseAudioContext,
@@ -21,7 +28,27 @@ class MockAudioWorkletNode {
   ) {
     lastCtorOptions.value = options;
     this.parameters = new Map();
-    this.port = { postMessage: vi.fn() };
+    this.port = { postMessage: vi.fn(), onmessage: null };
+  }
+
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void {
+    if (!this._listeners.has(type)) this._listeners.set(type, []);
+    this._listeners.get(type)!.push(listener);
+  }
+
+  dispatchEvent(event: Event): boolean {
+    const listeners = this._listeners.get(event.type) ?? [];
+    for (const l of listeners) {
+      if (typeof l === 'function') {
+        l(event);
+      } else {
+        l.handleEvent(event);
+      }
+    }
+    return true;
   }
 }
 
@@ -148,6 +175,93 @@ describe('SoundTouchNode', () => {
         outputChannelCount: 2,
       });
       expect(lastCtorOptions.value?.outputChannelCount).toEqual([2]);
+    });
+  });
+
+  describe('metrics', () => {
+    it('returns null before any metrics message is received', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+      expect(node.metrics).toBeNull();
+    });
+
+    it('updates metrics getter when a metrics message arrives', async () => {
+      vi.stubGlobal('performance', { now: vi.fn().mockReturnValue(42) });
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
+
+      port.onmessage!({
+        data: {
+          type: 'metrics',
+          framesBuffered: 64,
+          underrunCount: 2,
+          blockCount: 100,
+        },
+      } as MessageEvent);
+
+      expect(node.metrics).toEqual({
+        framesBuffered: 64,
+        underrunCount: 2,
+        blockCount: 100,
+        timestamp: 42,
+      });
+    });
+
+    it('dispatches a metrics CustomEvent with the metrics detail', async () => {
+      vi.stubGlobal('performance', { now: vi.fn().mockReturnValue(99) });
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+      const received: unknown[] = [];
+      node.addEventListener('metrics', (e) => {
+        received.push((e as CustomEvent).detail);
+      });
+
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
+
+      port.onmessage!({
+        data: {
+          type: 'metrics',
+          framesBuffered: 128,
+          underrunCount: 0,
+          blockCount: 200,
+        },
+      } as MessageEvent);
+
+      expect(received).toHaveLength(1);
+      expect(received[0]).toMatchObject({
+        framesBuffered: 128,
+        underrunCount: 0,
+        blockCount: 200,
+        timestamp: 99,
+      });
+    });
+
+    it('ignores non-metrics messages on the port', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
+
+      port.onmessage!({
+        data: { type: 'unknown-type', value: 42 },
+      } as MessageEvent);
+
+      expect(node.metrics).toBeNull();
     });
   });
 });
