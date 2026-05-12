@@ -16,14 +16,14 @@ export interface InterpolationStrategyRegistration {
   readonly id: string;
   readonly baseStrategy?: BuiltInInterpolationStrategy;
   readonly kernel?: InterpolationKernel;
-  readonly defaultParams?: Record<string, number>;
+  readonly defaultParams?: Record<string, number | boolean>;
   readonly normalizeParams?: (
-    params: Partial<Record<string, number>> | undefined,
-    defaults: Record<string, number>,
-  ) => Record<string, number>;
+    params: Partial<Record<string, number | boolean>> | undefined,
+    defaults: Record<string, number | boolean>,
+  ) => Record<string, number | boolean>;
   readonly applyParams?: (
     state: unknown,
-    params: Record<string, number>,
+    params: Record<string, number | boolean>,
   ) => void;
 }
 
@@ -39,7 +39,6 @@ interface HannKernelState {
   params: HannStrategyParams;
 }
 
-
 /**
  * Parameters for the Hann interpolation strategy.
  *
@@ -49,8 +48,8 @@ interface HannKernelState {
  */
 export interface HannStrategyParams extends Record<string, number | boolean> {
   zeroCrossings: number;
-  normalize?: boolean;
-  windowPower?: number;
+  normalize: boolean;
+  windowPower: number;
 }
 
 const HANN_DEFAULT_PARAMS: HannStrategyParams = {
@@ -69,20 +68,31 @@ function normalizeHannParams(
   };
   const zeroCrossings = Math.max(
     2,
-    Math.min(8, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
+    Math.min(
+      8,
+      Math.round(
+        Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4),
+      ),
+    ),
   );
   const normalize = Boolean(merged['normalize']);
   const windowPower = Math.max(0.1, Number(merged['windowPower'] ?? 1));
   return { zeroCrossings, normalize, windowPower };
 }
 
-function applyHannParams(state: unknown, params: Record<string, number | boolean>): void {
+function applyHannParams(
+  state: unknown,
+  params: Record<string, number | boolean>,
+): void {
   if (typeof state !== 'object' || state === null) {
     return;
   }
   const record = state as HannKernelState;
   record.params = {
-    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    zeroCrossings: Math.max(
+      2,
+      Math.round(Number(params['zeroCrossings'] ?? 4)),
+    ),
     normalize: Boolean(params['normalize']),
     windowPower: Math.max(0.1, Number(params['windowPower'] ?? 1)),
   };
@@ -116,7 +126,11 @@ function normalizedSinc(x: number): number {
   return Math.sin(value) / value;
 }
 
-function hannWindow(distance: number, radius: number, windowPower: number): number {
+function hannWindow(
+  distance: number,
+  radius: number,
+  windowPower: number,
+): number {
   const absDistance = Math.abs(distance);
   if (absDistance >= radius) {
     return 0;
@@ -125,10 +139,13 @@ function hannWindow(distance: number, radius: number, windowPower: number): numb
   return Math.pow(base, windowPower);
 }
 
-function hannWeight(distance: number, radius: number, windowPower: number): number {
+function hannWeight(
+  distance: number,
+  radius: number,
+  windowPower: number,
+): number {
   return normalizedSinc(distance) * hannWindow(distance, radius, windowPower);
 }
-
 
 export const hannKernel: InterpolationKernel = (
   src,
@@ -141,7 +158,10 @@ export const hannKernel: InterpolationKernel = (
   const kernelState = state as HannKernelState;
   const radius = kernelState.params.zeroCrossings;
   const normalize = Boolean(kernelState.params.normalize);
-  const windowPower = typeof kernelState.params.windowPower === 'number' ? kernelState.params.windowPower : 1;
+  const windowPower =
+    typeof kernelState.params.windowPower === 'number'
+      ? kernelState.params.windowPower
+      : 1;
   const center = Math.floor(position);
   const start = center - (radius - 1);
   const end = center + radius;

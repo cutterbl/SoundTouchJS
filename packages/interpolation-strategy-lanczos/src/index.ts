@@ -21,16 +21,16 @@ export interface InterpolationStrategyRegistration {
   /** Kernel implementation for interpolation. */
   readonly kernel?: InterpolationKernel;
   /** Default params merged with runtime overrides. */
-  readonly defaultParams?: Record<string, number>;
+  readonly defaultParams?: Record<string, number | boolean>;
   /** Optional params normalizer/validator. */
   readonly normalizeParams?: (
-    params: Partial<Record<string, number>> | undefined,
-    defaults: Record<string, number>,
-  ) => Record<string, number>;
+    params: Partial<Record<string, number | boolean>> | undefined,
+    defaults: Record<string, number | boolean>,
+  ) => Record<string, number | boolean>;
   /** Optional hook used to apply params to kernel state. */
   readonly applyParams?: (
     state: unknown,
-    params: Record<string, number>,
+    params: Record<string, number | boolean>,
   ) => void;
 }
 
@@ -46,16 +46,18 @@ interface LanczosKernelState {
   params: LanczosStrategyParams;
 }
 
-
 /**
  * Parameters for the Lanczos interpolation strategy.
  *
  * @property zeroCrossings Kernel half-width in zero-crossings (2–8, default: 4)
  * @property normalize If true, output is normalized so weights sum to 1 (default: false)
  */
-export interface LanczosStrategyParams extends Record<string, number | boolean> {
+export interface LanczosStrategyParams extends Record<
+  string,
+  number | boolean
+> {
   zeroCrossings: number;
-  normalize?: boolean;
+  normalize: boolean;
 }
 
 const LANCZOS_DEFAULT_PARAMS: LanczosStrategyParams = {
@@ -73,7 +75,12 @@ function normalizeLanczosParams(
   };
   const zeroCrossings = Math.max(
     2,
-    Math.min(8, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
+    Math.min(
+      8,
+      Math.round(
+        Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4),
+      ),
+    ),
   );
   const normalize = Boolean(merged['normalize']);
   return { zeroCrossings, normalize };
@@ -88,7 +95,10 @@ function applyLanczosParams(
   }
   const record = state as LanczosKernelState;
   record.params = {
-    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    zeroCrossings: Math.max(
+      2,
+      Math.round(Number(params['zeroCrossings'] ?? 4)),
+    ),
     normalize: Boolean(params['normalize']),
   };
 }
@@ -128,7 +138,6 @@ function lanczosWeight(distance: number, radius: number): number {
   }
   return normalizedSinc(distance) * normalizedSinc(distance / radius);
 }
-
 
 export const lanczosKernel: InterpolationKernel = (
   src,

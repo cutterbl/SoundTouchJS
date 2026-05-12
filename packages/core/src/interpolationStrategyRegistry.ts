@@ -23,7 +23,7 @@ export interface InterpolationKernel {
   createState?: () => unknown;
 }
 
-export type InterpolationStrategyParams = Record<string, number>;
+export type InterpolationStrategyParams = Record<string, number | boolean>;
 
 export type RateTransposerInterpolationStrategyId = string;
 

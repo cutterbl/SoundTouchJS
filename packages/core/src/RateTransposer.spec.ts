@@ -492,11 +492,11 @@ describe('RateTransposer', () => {
         },
       });
 
-      expect(rt.strategyParams['radius']).toBe(4);
+      expect(rt.strategyParams['zeroCrossings']).toBe(4);
 
-      rt.setInterpolationStrategyParams({ radius: 7 });
+      rt.setInterpolationStrategyParams({ zeroCrossings: 7 });
 
-      expect(rt.strategyParams['radius']).toBe(7);
+      expect(rt.strategyParams['zeroCrossings']).toBe(7);
     });
 
     it('preserves strategy params when cloned', () => {
@@ -511,7 +511,7 @@ describe('RateTransposer', () => {
       const cloned = rt.clone();
 
       expect(cloned.strategy).toBe('lanczos');
-      expect(cloned.strategyParams['radius']).toBe(5);
+      expect(cloned.strategyParams['zeroCrossings']).toBe(5);
     });
   });
 

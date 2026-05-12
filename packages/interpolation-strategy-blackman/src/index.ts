@@ -16,14 +16,14 @@ export interface InterpolationStrategyRegistration {
   readonly id: string;
   readonly baseStrategy?: BuiltInInterpolationStrategy;
   readonly kernel?: InterpolationKernel;
-  readonly defaultParams?: Record<string, number>;
+  readonly defaultParams?: Record<string, number | boolean>;
   readonly normalizeParams?: (
-    params: Partial<Record<string, number>> | undefined,
-    defaults: Record<string, number>,
-  ) => Record<string, number>;
+    params: Partial<Record<string, number | boolean>> | undefined,
+    defaults: Record<string, number | boolean>,
+  ) => Record<string, number | boolean>;
   readonly applyParams?: (
     state: unknown,
-    params: Record<string, number>,
+    params: Record<string, number | boolean>,
   ) => void;
 }
 
@@ -39,7 +39,6 @@ interface BlackmanKernelState {
   params: BlackmanStrategyParams;
 }
 
-
 /**
  * Parameters for the Blackman interpolation strategy.
  *
@@ -49,12 +48,15 @@ interface BlackmanKernelState {
  * @property beta Blackman window beta coefficient (default: 0.5)
  * @property gamma Blackman window gamma coefficient (default: 0.08)
  */
-export interface BlackmanStrategyParams extends Record<string, number | boolean> {
+export interface BlackmanStrategyParams extends Record<
+  string,
+  number | boolean
+> {
   zeroCrossings: number;
-  normalize?: boolean;
-  alpha?: number;
-  beta?: number;
-  gamma?: number;
+  normalize: boolean;
+  alpha: number;
+  beta: number;
+  gamma: number;
 }
 
 const BLACKMAN_DEFAULT_PARAMS: BlackmanStrategyParams = {
@@ -75,7 +77,12 @@ function normalizeBlackmanParams(
   };
   const zeroCrossings = Math.max(
     2,
-    Math.min(8, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
+    Math.min(
+      8,
+      Math.round(
+        Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4),
+      ),
+    ),
   );
   const normalize = Boolean(merged['normalize']);
   const alpha = Number(merged['alpha'] ?? 0.42);
@@ -93,7 +100,10 @@ function applyBlackmanParams(
   }
   const record = state as BlackmanKernelState;
   record.params = {
-    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    zeroCrossings: Math.max(
+      2,
+      Math.round(Number(params['zeroCrossings'] ?? 4)),
+    ),
     normalize: Boolean(params['normalize']),
     alpha: Number(params['alpha'] ?? 0.42),
     beta: Number(params['beta'] ?? 0.5),
@@ -129,7 +139,13 @@ function normalizedSinc(x: number): number {
   return Math.sin(value) / value;
 }
 
-function blackmanWindow(distance: number, radius: number, alpha: number, beta: number, gamma: number): number {
+function blackmanWindow(
+  distance: number,
+  radius: number,
+  alpha: number,
+  beta: number,
+  gamma: number,
+): number {
   const absDistance = Math.abs(distance);
   if (absDistance >= radius) {
     return 0;
@@ -142,10 +158,18 @@ function blackmanWindow(distance: number, radius: number, alpha: number, beta: n
   );
 }
 
-function blackmanWeight(distance: number, radius: number, alpha: number, beta: number, gamma: number): number {
-  return normalizedSinc(distance) * blackmanWindow(distance, radius, alpha, beta, gamma);
+function blackmanWeight(
+  distance: number,
+  radius: number,
+  alpha: number,
+  beta: number,
+  gamma: number,
+): number {
+  return (
+    normalizedSinc(distance) *
+    blackmanWindow(distance, radius, alpha, beta, gamma)
+  );
 }
-
 
 export const blackmanKernel: InterpolationKernel = (
   src,
@@ -158,9 +182,16 @@ export const blackmanKernel: InterpolationKernel = (
   const kernelState = state as BlackmanKernelState;
   const radius = kernelState.params.zeroCrossings;
   const normalize = Boolean(kernelState.params.normalize);
-  const alpha = typeof kernelState.params.alpha === 'number' ? kernelState.params.alpha : 0.42;
-  const beta = typeof kernelState.params.beta === 'number' ? kernelState.params.beta : 0.5;
-  const gamma = typeof kernelState.params.gamma === 'number' ? kernelState.params.gamma : 0.08;
+  const alpha =
+    typeof kernelState.params.alpha === 'number'
+      ? kernelState.params.alpha
+      : 0.42;
+  const beta =
+    typeof kernelState.params.beta === 'number' ? kernelState.params.beta : 0.5;
+  const gamma =
+    typeof kernelState.params.gamma === 'number'
+      ? kernelState.params.gamma
+      : 0.08;
   const center = Math.floor(position);
   const start = center - (radius - 1);
   const end = center + radius;

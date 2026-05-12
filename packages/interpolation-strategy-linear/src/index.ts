@@ -21,16 +21,16 @@ export interface InterpolationStrategyRegistration {
   /** Kernel implementation for interpolation. */
   readonly kernel?: InterpolationKernel;
   /** Default params merged with runtime overrides. */
-  readonly defaultParams?: Record<string, number>;
+  readonly defaultParams?: Record<string, number | boolean>;
   /** Optional params normalizer/validator. */
   readonly normalizeParams?: (
-    params: Partial<Record<string, number>> | undefined,
-    defaults: Record<string, number>,
-  ) => Record<string, number>;
+    params: Partial<Record<string, number | boolean>> | undefined,
+    defaults: Record<string, number | boolean>,
+  ) => Record<string, number | boolean>;
   /** Optional hook used to apply params to kernel state. */
   readonly applyParams?: (
     state: unknown,
-    params: Record<string, number>,
+    params: Record<string, number | boolean>,
   ) => void;
 }
 
@@ -45,7 +45,6 @@ interface LinearKernelState {
   prevSampleR: number;
   params: LinearStrategyParams;
 }
-
 
 /**
  * Parameters for the Linear interpolation strategy.
@@ -62,41 +61,54 @@ export interface LinearStrategyParams {
   zeroCrossings?: number;
 }
 
-// Use Record<string, number> for defaultParams to match InterpolationStrategyRegistration
-const LINEAR_DEFAULT_PARAMS: Record<string, number> = {
+// Use Record<string, number | boolean> for defaultParams to match InterpolationStrategyRegistration
+const LINEAR_DEFAULT_PARAMS: Record<string, number | boolean> = {
   edgeHoldFrames: 1,
   blend: 1,
-  normalize: 0,
+  normalize: false,
 };
 
 function normalizeLinearParams(
-  params: Partial<Record<string, number>> | undefined,
-  defaults: Record<string, number>,
-): Record<string, number> {
+  params: Partial<Record<string, number | boolean>> | undefined,
+  defaults: Record<string, number | boolean>,
+): Record<string, number | boolean> {
   const merged = {
     ...defaults,
     ...(params ?? {}),
   };
   // zeroCrossings is an alias for edgeHoldFrames if set
-  const edgeHoldFrames = merged['zeroCrossings'] !== undefined
-    ? Math.max(0, Math.min(32, Math.round(merged['zeroCrossings'])))
-    : Math.max(0, Math.min(32, Math.round(merged['edgeHoldFrames'] ?? defaults['edgeHoldFrames'] ?? 1)));
+  const edgeHoldFrames =
+    merged['zeroCrossings'] !== undefined
+      ? Math.max(0, Math.min(32, Math.round(Number(merged['zeroCrossings']))))
+      : Math.max(
+          0,
+          Math.min(
+            32,
+            Math.round(
+              Number(
+                merged['edgeHoldFrames'] ?? defaults['edgeHoldFrames'] ?? 1,
+              ),
+            ),
+          ),
+        );
   const blend = Math.max(0, Math.min(1, Number(merged['blend'] ?? 1)));
-  // Cast boolean to number for compatibility
-  const normalize = merged['normalize'] ? 1 : 0;
+  const normalize = Boolean(merged['normalize']);
   return { edgeHoldFrames, blend, normalize };
 }
 
 function applyLinearParams(
   state: unknown,
-  params: Record<string, number>,
+  params: Record<string, number | boolean>,
 ): void {
   if (typeof state !== 'object' || state === null) {
     return;
   }
   const record = state as LinearKernelState;
   record.params = {
-    edgeHoldFrames: Math.max(0, Math.round(params['edgeHoldFrames'] ?? 1)),
+    edgeHoldFrames: Math.max(
+      0,
+      Math.round(Number(params['edgeHoldFrames'] ?? 1)),
+    ),
     blend: Math.max(0, Math.min(1, Number(params['blend'] ?? 1))),
     // Accept both boolean and number for normalize
     normalize: Boolean(params['normalize']),
@@ -130,7 +142,6 @@ function readFrameSample(
   return src[srcOffset + 2 * frameIndex + channel];
 }
 
-
 export const linearKernel: InterpolationKernel = (
   src,
   srcOffset,
@@ -143,11 +154,26 @@ export const linearKernel: InterpolationKernel = (
   const left = Math.floor(position);
   const right = left + 1;
   const frac = position - left;
-  const blend = typeof kernelState.params.blend === 'number' ? kernelState.params.blend : 1;
+  const blend =
+    typeof kernelState.params.blend === 'number' ? kernelState.params.blend : 1;
   const normalize = Boolean(kernelState.params.normalize);
   // Nearest and linear values
-  const leftVal = readFrameSample(src, srcOffset, numFrames, left, channel, kernelState);
-  const rightVal = readFrameSample(src, srcOffset, numFrames, right, channel, kernelState);
+  const leftVal = readFrameSample(
+    src,
+    srcOffset,
+    numFrames,
+    left,
+    channel,
+    kernelState,
+  );
+  const rightVal = readFrameSample(
+    src,
+    srcOffset,
+    numFrames,
+    right,
+    channel,
+    kernelState,
+  );
   const linearVal = (1 - frac) * leftVal + frac * rightVal;
   const nearestVal = frac < 0.5 ? leftVal : rightVal;
   let result = blend * linearVal + (1 - blend) * nearestVal;

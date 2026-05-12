@@ -16,14 +16,14 @@ export interface InterpolationStrategyRegistration {
   readonly id: string;
   readonly baseStrategy?: BuiltInInterpolationStrategy;
   readonly kernel?: InterpolationKernel;
-  readonly defaultParams?: Record<string, number>;
+  readonly defaultParams?: Record<string, number | boolean>;
   readonly normalizeParams?: (
-    params: Partial<Record<string, number>> | undefined,
-    defaults: Record<string, number>,
-  ) => Record<string, number>;
+    params: Partial<Record<string, number | boolean>> | undefined,
+    defaults: Record<string, number | boolean>,
+  ) => Record<string, number | boolean>;
   readonly applyParams?: (
     state: unknown,
-    params: Record<string, number>,
+    params: Record<string, number | boolean>,
   ) => void;
 }
 
@@ -39,7 +39,6 @@ interface KaiserKernelState {
   params: KaiserStrategyParams;
 }
 
-
 /**
  * Parameters for the Kaiser interpolation strategy.
  *
@@ -51,8 +50,8 @@ interface KaiserKernelState {
 export interface KaiserStrategyParams extends Record<string, number | boolean> {
   zeroCrossings: number;
   beta: number;
-  normalize?: boolean;
-  windowPower?: number;
+  normalize: boolean;
+  windowPower: number;
 }
 
 const KAISER_DEFAULT_PARAMS: KaiserStrategyParams = {
@@ -72,7 +71,12 @@ function normalizeKaiserParams(
   };
   const zeroCrossings = Math.max(
     2,
-    Math.min(16, Math.round(Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4))),
+    Math.min(
+      16,
+      Math.round(
+        Number(merged['zeroCrossings'] ?? defaults['zeroCrossings'] ?? 4),
+      ),
+    ),
   );
   const beta = Math.max(0, Math.min(20, Number(merged['beta'] ?? 8.6)));
   const normalize = Boolean(merged['normalize']);
@@ -89,7 +93,10 @@ function applyKaiserParams(
   }
   const record = state as KaiserKernelState;
   record.params = {
-    zeroCrossings: Math.max(2, Math.round(Number(params['zeroCrossings'] ?? 4))),
+    zeroCrossings: Math.max(
+      2,
+      Math.round(Number(params['zeroCrossings'] ?? 4)),
+    ),
     beta: Math.max(0, Math.min(20, Number(params['beta'] ?? 8.6))),
     normalize: Boolean(params['normalize']),
     windowPower: Math.max(0.1, Number(params['windowPower'] ?? 1)),
@@ -162,7 +169,6 @@ function kaiserWindow(
   const base = besselI0(beta * shape) / denominator;
   return Math.pow(base, windowPower);
 }
-
 
 export const kaiserKernel: InterpolationKernel = (
   src,

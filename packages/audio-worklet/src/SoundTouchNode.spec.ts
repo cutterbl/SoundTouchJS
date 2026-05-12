@@ -84,7 +84,7 @@ describe('SoundTouchNode', () => {
     const node = new SoundTouchNode({ context });
 
     node.setInterpolationStrategy('lanczos');
-    node.setInterpolationStrategyParams({ radius: 6 });
+    node.setInterpolationStrategyParams({ zeroCrossings: 6 });
 
     const port = (
       node as unknown as { port: { postMessage: ReturnType<typeof vi.fn> } }
