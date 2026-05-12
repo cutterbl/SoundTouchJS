@@ -743,19 +743,6 @@ export function AudioWorkletPlayground({
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
         }}
       >
-        {showTempo ? (
-          <RangeControl
-            label="Tempo"
-            min={0.5}
-            max={2}
-            step={0.01}
-            value={tempo}
-            onChange={setTempo}
-            ticks={TEMPO_TICKS}
-            listId="tempo-ticks"
-            disabled={isLoading}
-          />
-        ) : null}
         <label>
           Track
           <select
@@ -771,6 +758,20 @@ export function AudioWorkletPlayground({
             ))}
           </select>
         </label>
+
+        {showTempo ? (
+          <RangeControl
+            label="Tempo"
+            min={0.5}
+            max={2}
+            step={0.01}
+            value={tempo}
+            onChange={setTempo}
+            ticks={TEMPO_TICKS}
+            listId="tempo-ticks"
+            disabled={isLoading}
+          />
+        ) : null}
 
         {shouldShowVolumeControl ? (
           <RangeControl
