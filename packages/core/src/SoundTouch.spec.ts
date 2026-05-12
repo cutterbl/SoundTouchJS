@@ -205,6 +205,20 @@ describe('SoundTouch', () => {
     });
   });
 
+  describe('setStretchParameters', () => {
+    it('delegates to stretch and updates overlapMs', () => {
+      const st = new SoundTouch({});
+      st.setStretchParameters({ overlapMs: 14 });
+      expect(st.stretch.overlapMs).toBe(14);
+    });
+
+    it('delegates quickSeek flag to stretch', () => {
+      const st = new SoundTouch({});
+      st.setStretchParameters({ quickSeek: false });
+      expect(st.stretch.quickSeek).toBe(false);
+    });
+  });
+
   describe('runtime interpolation strategy controls', () => {
     it('switches interpolation strategy through SoundTouch API', () => {
       const st = new SoundTouch({ interpolationStrategy: 'lanczos' });

@@ -43,9 +43,22 @@ new SoundTouch({
 - interpolationStrategyParams (getter)
 - setInterpolationStrategy(strategy)
 - setInterpolationStrategyParams(params)
+- setStretchParameters(params: StretchParameters) — update WSOLA timing on the stretch stage
 - clear()
 - clone()
 - calculateEffectiveRateAndTempo()
 - process()
+
+## setStretchParameters
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+import type { StretchParameters } from '@soundtouchjs/core';
+
+const st = new SoundTouch({});
+st.setStretchParameters({ overlapMs: 12, quickSeek: false });
+```
+
+Delegates to `Stretch.setStretchParameters`. See [Stretch](./stretch) for the full parameter reference.
 
 > **Note:** `tempo` and `rate` are internal pipeline values derived from `virtualPitch` — they are not part of the public API. For browser playback, use [`SoundTouchNode`](../audio-worklet/sound-touch-node), which manages the pipeline internally.

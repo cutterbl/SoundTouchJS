@@ -106,6 +106,29 @@ st.outputBuffer.extract(outputBuffer, 0, 4096);
 | `registerInterpolationStrategy`       | Registers a custom interpolation strategy id (or kernel)                 |
 | `resolveInterpolationStrategyRuntime` | Resolves runtime kernel + normalized params for an option                |
 | `setActiveInterpolationStrategy`      | Changes process-wide default interpolation strategy id                   |
+| `StretchParameters`                   | Type for WSOLA timing parameters passed to `setStretchParameters`        |
+
+#### WSOLA timing parameters
+
+`SoundTouch` exposes `setStretchParameters()` to tune the time-stretch algorithm at runtime:
+
+```ts
+const st = new SoundTouch({});
+
+st.setStretchParameters({ overlapMs: 12 });             // crossfade overlap only
+st.setStretchParameters({ quickSeek: false });          // exhaustive correlation search
+st.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual windows
+st.setStretchParameters({ sequenceMs: 0 });             // back to auto
+```
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `sequenceMs` | auto (50–125 ms) | Processing window length; `0` = auto-calculate from tempo |
+| `seekWindowMs` | auto (15–25 ms) | Seek window length; `0` = auto-calculate |
+| `overlapMs` | 8 ms | Crossfade overlap length |
+| `quickSeek` | `true` | Fast multi-pass seek; `false` = exhaustive (better quality, slower) |
+
+`Stretch` also exposes individual `overlapMs` (getter/setter) and `quickSeek` (getter/setter) properties.
 
 ## Constructor API (breaking)
 

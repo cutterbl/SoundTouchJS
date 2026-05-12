@@ -102,6 +102,43 @@ interface StretchWriteBufferAdapter {
 /** Factory for stretch input adapters. */
 type StretchInputBufferAdapterFactory = () => StretchReadBufferAdapter;
 
+/**
+ * WSOLA timing parameters that control the time-stretching algorithm.
+ *
+ * @remarks
+ * All time-based fields are in milliseconds. Pass `0` for `sequenceMs` or
+ * `seekWindowMs` to let the algorithm auto-compute values based on tempo.
+ * Omit a field to leave it unchanged.
+ *
+ * @example
+ * stretch.setStretchParameters({ overlapMs: 12, quickSeek: false });
+ */
+export interface StretchParameters {
+  /**
+   * Length of the processing sequence window in milliseconds.
+   * `0` switches to automatic calculation (50–125 ms range based on tempo).
+   */
+  sequenceMs?: number;
+
+  /**
+   * Length of the seek window in milliseconds.
+   * `0` switches to automatic calculation (15–25 ms range based on tempo).
+   */
+  seekWindowMs?: number;
+
+  /**
+   * Overlap crossfade length in milliseconds.
+   * Must be greater than `0`. Values less than `1 ms` (after sample-rate conversion) are clamped to 16 samples.
+   */
+  overlapMs?: number;
+
+  /**
+   * Whether to use the fast multi-pass seek algorithm.
+   * `true` (default) uses a quick scan; `false` performs an exhaustive search for better quality at lower tempos.
+   */
+  quickSeek?: boolean;
+}
+
 export interface StretchConstructorOptions {
   /** Whether to allocate internal input/output buffers. */
   createBuffers?: boolean;
@@ -385,7 +422,7 @@ export default class Stretch extends AbstractSamplePipe<
   private autoSeekSetting: boolean;
   _tempo: number;
   private sampleRate!: number;
-  private overlapMs!: number;
+  private _overlapMs!: number;
   sequenceMs!: number;
   seekWindowMs!: number;
   private seekWindowLength!: number;
@@ -462,7 +499,7 @@ export default class Stretch extends AbstractSamplePipe<
     }
 
     if (overlapMs > 0) {
-      this.overlapMs = overlapMs;
+      this._overlapMs = overlapMs;
     }
 
     if (sequenceMs > 0) {
@@ -480,7 +517,7 @@ export default class Stretch extends AbstractSamplePipe<
     }
 
     this.calculateSequenceParameters();
-    this.calculateOverlapLength(this.overlapMs);
+    this.calculateOverlapLength(this._overlapMs);
     this.updateTempoDerivedState();
   }
 
@@ -566,8 +603,88 @@ export default class Stretch extends AbstractSamplePipe<
       this.seekLength;
   }
 
+  /**
+   * Whether the fast multi-pass seek algorithm is active.
+   * @returns `true` if quick seek is enabled (default); `false` for exhaustive search.
+   */
+  get quickSeek(): boolean {
+    return this._quickSeek;
+  }
+
   set quickSeek(enable: boolean) {
     this._quickSeek = enable;
+  }
+
+  /**
+   * Current overlap crossfade length in milliseconds.
+   * @returns The overlap period used at the current sample rate.
+   */
+  get overlapMs(): number {
+    return this._overlapMs;
+  }
+
+  /**
+   * Sets the overlap crossfade length and recalculates derived parameters.
+   * @param ms Overlap period in milliseconds (must be > 0).
+   */
+  set overlapMs(ms: number) {
+    if (ms > 0) {
+      this._overlapMs = ms;
+      this.calculateOverlapLength(this._overlapMs);
+      this.calculateSequenceParameters();
+      this.updateTempoDerivedState();
+    }
+  }
+
+  /**
+   * Applies a partial set of WSOLA timing parameters.
+   *
+   * @remarks
+   * Only the provided fields are updated; omitted fields remain unchanged.
+   * Pass `sequenceMs: 0` or `seekWindowMs: 0` to switch that dimension back to auto-calculation.
+   *
+   * @param params Partial set of WSOLA timing parameters to apply.
+   *
+   * @example
+   * stretch.setStretchParameters({ overlapMs: 12, quickSeek: false });
+   */
+  setStretchParameters(params: StretchParameters): void {
+    if (params.quickSeek !== undefined) {
+      this._quickSeek = params.quickSeek;
+    }
+
+    let needsRecalc = false;
+
+    if (params.sequenceMs !== undefined) {
+      if (params.sequenceMs > 0) {
+        this.sequenceMs = params.sequenceMs;
+        this.autoSeqSetting = false;
+      } else {
+        this.autoSeqSetting = true;
+      }
+      needsRecalc = true;
+    }
+
+    if (params.seekWindowMs !== undefined) {
+      if (params.seekWindowMs > 0) {
+        this.seekWindowMs = params.seekWindowMs;
+        this.autoSeekSetting = false;
+      } else {
+        this.autoSeekSetting = true;
+      }
+      needsRecalc = true;
+    }
+
+    if (params.overlapMs !== undefined && params.overlapMs > 0) {
+      this._overlapMs = params.overlapMs;
+      this.calculateOverlapLength(this._overlapMs);
+      needsRecalc = true;
+    }
+
+    if (needsRecalc) {
+      this.calculateSequenceParameters();
+      this.updateTempoDerivedState();
+    }
   }
 
   clone(): Stretch {
@@ -581,7 +698,7 @@ export default class Stretch extends AbstractSamplePipe<
       this.sampleRate,
       this.sequenceMs,
       this.seekWindowMs,
-      this.overlapMs,
+      this._overlapMs,
     );
     return result;
   }

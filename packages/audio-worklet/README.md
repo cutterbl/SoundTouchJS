@@ -141,6 +141,24 @@ stNode.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
 
 These updates are applied by the processor at render-block boundaries for stable transitions.
 
+### WSOLA timing parameters
+
+Use `setStretchParameters()` to tune the time-stretch algorithm. Updates are queued and applied at the next render-block boundary.
+
+```ts
+stNode.setStretchParameters({ overlapMs: 12 });            // overlap only
+stNode.setStretchParameters({ quickSeek: false });         // exhaustive search
+stNode.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual windows
+stNode.setStretchParameters({ sequenceMs: 0 });            // back to auto
+```
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `sequenceMs` | auto (50–125 ms) | Processing window in ms; `0` = auto |
+| `seekWindowMs` | auto (15–25 ms) | Seek window in ms; `0` = auto |
+| `overlapMs` | 8 ms | Crossfade overlap in ms |
+| `quickSeek` | `true` | Fast seek; `false` = exhaustive |
+
 ### Full example — AudioBuffer
 
 ```ts

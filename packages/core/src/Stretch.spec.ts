@@ -641,4 +641,92 @@ describe('quick seek behavior across seek windows', () => {
       expect(Number.isFinite(quickOffset)).toBe(true);
     }
   });
+
+  describe('overlapMs getter/setter', () => {
+    it('getter returns the current overlap period', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setParameters(44100, 0, 0, 12);
+      expect(s.overlapMs).toBe(12);
+    });
+
+    it('setter updates overlap length and recalculates derived params', () => {
+      const s = new Stretch({ createBuffers: true });
+      const prevOverlapLength = s.overlapLength;
+      s.overlapMs = 16;
+      expect(s.overlapMs).toBe(16);
+      expect(s.overlapLength).toBeGreaterThan(0);
+      expect(s.overlapLength).not.toBe(prevOverlapLength);
+      expect(s.sampleReq).toBeGreaterThan(0);
+    });
+
+    it('setter ignores zero or negative values', () => {
+      const s = new Stretch({ createBuffers: true });
+      const before = s.overlapMs;
+      s.overlapMs = 0;
+      expect(s.overlapMs).toBe(before);
+    });
+  });
+
+  describe('quickSeek getter', () => {
+    it('returns true by default', () => {
+      const s = new Stretch({ createBuffers: true });
+      expect(s.quickSeek).toBe(true);
+    });
+
+    it('reflects setter changes', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.quickSeek = false;
+      expect(s.quickSeek).toBe(false);
+    });
+  });
+
+  describe('setStretchParameters', () => {
+    it('sets sequenceMs to a manual value', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setStretchParameters({ sequenceMs: 80 });
+      expect(s.sequenceMs).toBe(80);
+    });
+
+    it('switching sequenceMs to 0 re-enables auto', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setStretchParameters({ sequenceMs: 80 });
+      expect(s.sequenceMs).toBe(80);
+      s.setStretchParameters({ sequenceMs: 0 });
+      expect(s.sequenceMs).toBeGreaterThan(0);
+      expect(s.sequenceMs).not.toBe(80);
+    });
+
+    it('sets seekWindowMs to a manual value', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setStretchParameters({ seekWindowMs: 20 });
+      expect(s.seekWindowMs).toBe(20);
+    });
+
+    it('sets overlapMs and recalculates overlap length', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setStretchParameters({ overlapMs: 14 });
+      expect(s.overlapMs).toBe(14);
+      expect(s.overlapLength).toBeGreaterThan(0);
+    });
+
+    it('sets quickSeek flag', () => {
+      const s = new Stretch({ createBuffers: true });
+      s.setStretchParameters({ quickSeek: false });
+      expect(s.quickSeek).toBe(false);
+    });
+
+    it('does not recalculate when only quickSeek changes', () => {
+      const s = new Stretch({ createBuffers: true });
+      const prevReq = s.sampleReq;
+      s.setStretchParameters({ quickSeek: false });
+      expect(s.sampleReq).toBe(prevReq);
+    });
+
+    it('leaves unchanged params untouched', () => {
+      const s = new Stretch({ createBuffers: true });
+      const prevSeek = s.seekWindowMs;
+      s.setStretchParameters({ sequenceMs: 70 });
+      expect(s.seekWindowMs).toBe(prevSeek);
+    });
+  });
 });

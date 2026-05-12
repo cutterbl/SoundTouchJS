@@ -31,6 +31,7 @@ import {
   createFifoStretchInputBufferAdapter,
   default as Stretch,
 } from './Stretch.js';
+import type { StretchParameters } from './Stretch.js';
 import CircularSampleBuffer from './CircularSampleBuffer.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 import {
@@ -216,6 +217,23 @@ export default class SoundTouch {
     params: Partial<InterpolationStrategyParams>,
   ): void {
     this.transposer.setInterpolationStrategyParams(params);
+  }
+
+  /**
+   * Applies a partial set of WSOLA timing parameters to the stretch stage.
+   *
+   * @remarks
+   * Delegates directly to {@link Stretch.setStretchParameters}. Only the provided
+   * fields are updated; omitted fields remain unchanged. Pass `sequenceMs: 0` or
+   * `seekWindowMs: 0` to switch that dimension back to auto-calculation.
+   *
+   * @param params Partial set of WSOLA timing parameters to apply.
+   *
+   * @example
+   * st.setStretchParameters({ overlapMs: 12, quickSeek: false });
+   */
+  setStretchParameters(params: StretchParameters): void {
+    this.stretch.setStretchParameters(params);
   }
 
   /**

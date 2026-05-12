@@ -21,7 +21,9 @@ import type {
   InterpolationStrategyParams,
   RateTransposerInterpolationStrategy,
   SampleBufferType,
+  StretchParameters,
 } from '@soundtouchjs/core';
+export type { StretchParameters } from '@soundtouchjs/core';
 import { DEFAULT_SAMPLE_BUFFER_TYPE, PROCESSOR_NAME } from './constants.js';
 
 /**
@@ -194,6 +196,26 @@ export class SoundTouchNode extends AudioWorkletNode {
   ): void {
     this.port.postMessage({
       type: 'set-interpolation-strategy-params',
+      params,
+    });
+  }
+
+  /**
+   * Applies a partial set of WSOLA timing parameters to the render-thread processor.
+   *
+   * @remarks
+   * The update is queued and applied at the next render-block boundary. Only the
+   * provided fields are updated; omitted fields remain unchanged. Pass `sequenceMs: 0`
+   * or `seekWindowMs: 0` to switch that dimension back to auto-calculation.
+   *
+   * @param params Partial WSOLA timing parameters to apply.
+   *
+   * @example
+   * stNode.setStretchParameters({ overlapMs: 12, quickSeek: false });
+   */
+  setStretchParameters(params: StretchParameters): void {
+    this.port.postMessage({
+      type: 'set-stretch-parameters',
       params,
     });
   }

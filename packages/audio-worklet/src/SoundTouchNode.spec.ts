@@ -109,6 +109,22 @@ describe('SoundTouchNode', () => {
     });
   });
 
+  it('sends set-stretch-parameters message via MessagePort', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const context = {} as BaseAudioContext;
+    const node = new SoundTouchNode({ context });
+
+    node.setStretchParameters({ overlapMs: 12, quickSeek: false });
+
+    const port = (
+      node as unknown as { port: { postMessage: ReturnType<typeof vi.fn> } }
+    ).port;
+    expect(port.postMessage).toHaveBeenCalledWith({
+      type: 'set-stretch-parameters',
+      params: { overlapMs: 12, quickSeek: false },
+    });
+  });
+
   describe('outputChannelCount option', () => {
     it('defaults to stereo (outputChannelCount [2]) when not specified', async () => {
       const { SoundTouchNode } = await import('./index.js');

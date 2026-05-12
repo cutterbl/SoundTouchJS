@@ -23,6 +23,7 @@ import type {
   InterpolationStrategyParams,
   RateTransposerInterpolationStrategy,
   SampleBufferType,
+  StretchParameters,
 } from '@soundtouchjs/core';
 
 const PROCESSOR_NAME = 'soundtouch-processor';
@@ -71,9 +72,15 @@ interface SetInterpolationStrategyParamsMessage {
   params: Partial<InterpolationStrategyParams>;
 }
 
+interface SetStretchParametersMessage {
+  type: 'set-stretch-parameters';
+  params: StretchParameters;
+}
+
 type ProcessorMessage =
   | SetInterpolationStrategyMessage
-  | SetInterpolationStrategyParamsMessage;
+  | SetInterpolationStrategyParamsMessage
+  | SetStretchParametersMessage;
 
 /**
  * Audio render-thread processor that applies SoundTouch transformations to stereo blocks.
@@ -114,6 +121,7 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
   private _outputSamples: Float32Array;
   private pendingInterpolationStrategy: RateTransposerInterpolationStrategy | null;
   private pendingInterpolationStrategyParams: Partial<InterpolationStrategyParams> | null;
+  private pendingStretchParameters: StretchParameters | null;
 
   /**
    * @param options Worklet constructor options provided by the main thread.
@@ -151,6 +159,7 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     this._outputSamples = new Float32Array(128 * 2);
     this.pendingInterpolationStrategy = null;
     this.pendingInterpolationStrategyParams = null;
+    this.pendingStretchParameters = null;
 
     const port = this.port;
     if (port !== undefined) {
@@ -162,6 +171,10 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         }
         if (message.type === 'set-interpolation-strategy-params') {
           this.pendingInterpolationStrategyParams = message.params;
+          return;
+        }
+        if (message.type === 'set-stretch-parameters') {
+          this.pendingStretchParameters = message.params;
         }
       };
     }
@@ -193,6 +206,18 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         );
       }
       this.pendingInterpolationStrategyParams = null;
+    }
+
+    if (this.pendingStretchParameters !== null) {
+      try {
+        this._pipe.setStretchParameters(this.pendingStretchParameters);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.info(
+          '[SoundTouchProcessor] Failed to update stretch parameters.',
+        );
+      }
+      this.pendingStretchParameters = null;
     }
   }
 

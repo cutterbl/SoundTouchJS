@@ -35,17 +35,43 @@ new Stretch({
 - tempo (getter/setter)
 - inputChunkSize (getter)
 - outputChunkSize (getter)
-- quickSeek (setter)
+- overlapMs (getter/setter) — overlap crossfade period in ms; recalculates overlap length on set
+- quickSeek (getter/setter) — `true` (default) = fast scan; `false` = exhaustive search
 - clear()
 - clearMidBuffer()
 - setParameters(sampleRate, sequenceMs, seekWindowMs, overlapMs)
+- setStretchParameters(params: StretchParameters) — partial update convenience method
 - calculateOverlapLength(overlapInMsec?)
 - clone()
 - seekBestOverlapPosition(inputBuffer?)
 - process()
+
+## setStretchParameters
+
+Apply a partial set of WSOLA timing parameters without replacing all values at once:
+
+```ts
+import { Stretch } from '@soundtouchjs/core';
+import type { StretchParameters } from '@soundtouchjs/core';
+
+const stretch = new Stretch({ createBuffers: true });
+
+stretch.setStretchParameters({ overlapMs: 12 });          // overlap only
+stretch.setStretchParameters({ quickSeek: false });        // exhaustive search
+stretch.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual timing
+stretch.setStretchParameters({ sequenceMs: 0 });           // back to auto
+```
+
+| Parameter | Default | Meaning |
+|-----------|---------|---------|
+| `sequenceMs` | auto (~82–110 ms) | Processing window length; `0` = auto-calculate |
+| `seekWindowMs` | auto (~15–25 ms) | Seek window length; `0` = auto-calculate |
+| `overlapMs` | 8 ms | Crossfade overlap length |
+| `quickSeek` | `true` | Fast multi-pass seek; `false` = exhaustive |
 
 ## Notes
 
 - Uses overlap-add with best-overlap search across a seek window.
 - Quick-seek mode uses staged scan offsets and can fall back to full seek when candidate coverage is sparse.
 - `tempo` here is an internal DSP control on this pipeline stage. It is **not** exposed as an AudioParam on `SoundTouchNode`. See [SoundTouchNode](../audio-worklet/sound-touch-node) for the AudioWorklet public API.
+- For browser use, prefer calling `SoundTouchNode.setStretchParameters()` which queues updates on the render thread.

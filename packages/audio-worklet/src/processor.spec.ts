@@ -21,6 +21,7 @@ const extract = vi.fn();
 const receive = vi.fn();
 const setInterpolationStrategy = vi.fn();
 const setInterpolationStrategyParams = vi.fn();
+const setStretchParameters = vi.fn();
 const soundTouchCtorArgs: unknown[] = [];
 
 vi.mock('@soundtouchjs/core', () => {
@@ -49,6 +50,10 @@ vi.mock('@soundtouchjs/core', () => {
       setInterpolationStrategyParams(params);
     }
 
+    setStretchParameters(params: unknown): void {
+      setStretchParameters(params);
+    }
+
     constructor(options?: unknown) {
       soundTouchCtorArgs.push(options);
     }
@@ -75,6 +80,7 @@ beforeEach(() => {
   receive.mockReset();
   setInterpolationStrategy.mockReset();
   setInterpolationStrategyParams.mockReset();
+  setStretchParameters.mockReset();
   soundTouchCtorArgs.length = 0;
   outputFrameCount = 0;
 
@@ -233,6 +239,40 @@ describe('processor', () => {
     expect(instance.process([], [], params)).toBe(true);
     expect(instance.process([[]], [[]], params)).toBe(true);
     expect(instance.process([[new Float32Array(2)]], [[]], params)).toBe(true);
+  });
+
+  it('applies pending stretch parameter updates from message port', async () => {
+    await import('./processor.js');
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    }) as unknown as {
+      port: { onmessage: ((event: { data: unknown }) => void) | null };
+      process: RegisteredProcessorCtor['prototype']['process'];
+    };
+
+    instance.port.onmessage?.({
+      data: {
+        type: 'set-stretch-parameters',
+        params: { overlapMs: 12, quickSeek: false },
+      },
+    });
+
+    const inputLeft = new Float32Array([1, 2]);
+    const outputLeft = new Float32Array(2);
+    const outputRight = new Float32Array(2);
+    outputFrameCount = 0;
+
+    const ok = instance.process([[inputLeft]], [[outputLeft, outputRight]], {
+      pitch: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    });
+
+    expect(ok).toBe(true);
+    expect(setStretchParameters).toHaveBeenCalledWith({
+      overlapMs: 12,
+      quickSeek: false,
+    });
   });
 
   it('handles mono input/output channel fallback and buffer resize path', async () => {

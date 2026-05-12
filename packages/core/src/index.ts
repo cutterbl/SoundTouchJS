@@ -26,6 +26,7 @@ export { default as FifoSampleBuffer } from './FifoSampleBuffer.js';
 export { default as RateTransposer } from './RateTransposer.js';
 export { default as Stretch } from './Stretch.js';
 export { default as SoundTouch } from './SoundTouch.js';
+export type { StretchParameters } from './Stretch.js';
 
 import {
   getActiveInterpolationStrategyId,

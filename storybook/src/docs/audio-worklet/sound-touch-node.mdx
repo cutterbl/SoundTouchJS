@@ -122,6 +122,24 @@ Updates parameters on the currently active interpolation strategy without switch
 stNode.setInterpolationStrategyParams({ zeroCrossings: 6 });
 ```
 
+### `setStretchParameters(params)`
+
+Queues a partial WSOLA timing update to be applied in the render thread at the next render-block boundary.
+
+```ts
+stNode.setStretchParameters({ overlapMs: 12 });            // overlap only
+stNode.setStretchParameters({ quickSeek: false });         // exhaustive search
+stNode.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual timing
+stNode.setStretchParameters({ sequenceMs: 0 });            // back to auto
+```
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `sequenceMs` | auto | Processing window in ms; `0` = auto |
+| `seekWindowMs` | auto | Seek window in ms; `0` = auto |
+| `overlapMs` | 8 | Crossfade overlap in ms |
+| `quickSeek` | `true` | Fast seek; `false` = exhaustive |
+
 ## Mono input and output
 
 The processor handles both mono sources and mono destinations automatically.
