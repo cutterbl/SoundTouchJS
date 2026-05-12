@@ -212,8 +212,10 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
     }
 
     const leftInput = input[0];
+    // Mono input: duplicate the single channel to both sides of the stereo pipeline.
     const rightInput = input.length > 1 ? input[1] : input[0];
     const leftOutput = output[0];
+    // Mono output (outputChannelCount: 1): both channels write to the same array.
     const rightOutput = output.length > 1 ? output[1] : output[0];
     const frameCount = leftInput.length;
 

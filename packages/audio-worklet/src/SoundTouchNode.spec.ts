@@ -1,10 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+interface MockNodeOptions {
+  outputChannelCount?: number[];
+  processorOptions?: unknown;
+  [key: string]: unknown;
+}
+
+const lastCtorOptions: { value: MockNodeOptions | undefined } = {
+  value: undefined,
+};
+
 class MockAudioWorkletNode {
   parameters: Map<string, unknown>;
   port: { postMessage: ReturnType<typeof vi.fn> };
 
-  constructor(_context: BaseAudioContext, _name: string, _options: unknown) {
+  constructor(
+    _context: BaseAudioContext,
+    _name: string,
+    options: MockNodeOptions,
+  ) {
+    lastCtorOptions.value = options;
     this.parameters = new Map();
     this.port = { postMessage: vi.fn() };
   }
@@ -13,6 +28,7 @@ class MockAudioWorkletNode {
 describe('SoundTouchNode', () => {
   beforeEach(() => {
     vi.resetModules();
+    lastCtorOptions.value = undefined;
     vi.stubGlobal('AudioWorkletNode', MockAudioWorkletNode);
   });
 
@@ -90,6 +106,32 @@ describe('SoundTouchNode', () => {
     expect(port.postMessage).toHaveBeenNthCalledWith(2, {
       type: 'set-interpolation-strategy-params',
       params: { zeroCrossings: 6 },
+    });
+  });
+
+  describe('outputChannelCount option', () => {
+    it('defaults to stereo (outputChannelCount [2]) when not specified', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({ context: {} as BaseAudioContext });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([2]);
+    });
+
+    it('passes [1] when outputChannelCount is 1', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({
+        context: {} as BaseAudioContext,
+        outputChannelCount: 1,
+      });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([1]);
+    });
+
+    it('passes [2] when outputChannelCount is 2', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({
+        context: {} as BaseAudioContext,
+        outputChannelCount: 2,
+      });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([2]);
     });
   });
 });

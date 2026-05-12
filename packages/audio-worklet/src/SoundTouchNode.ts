@@ -61,6 +61,21 @@ export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions 
    * Required for node construction; determines the audio graph context.
    */
   context: BaseAudioContext;
+
+  /**
+   * Number of output channels. Defaults to `2` (stereo).
+   *
+   * @remarks
+   * Set to `1` when connecting to a mono destination or a downstream
+   * node that only accepts a single channel. The processor always
+   * processes interleaved stereo internally; setting this to `1` tells
+   * the Web Audio graph to mix down to mono on the output side.
+   *
+   * Note: mono input is always supported regardless of this setting —
+   * the processor duplicates a single input channel to both sides of
+   * the stereo pipeline automatically.
+   */
+  outputChannelCount?: 1 | 2;
 }
 
 /**
@@ -119,11 +134,12 @@ export class SoundTouchNode extends AudioWorkletNode {
     context,
     sampleBufferType,
     interpolationStrategy,
+    outputChannelCount,
   }: SoundTouchNodeConstructorOptions) {
     super(context, PROCESSOR_NAME, {
       numberOfInputs: 1,
       numberOfOutputs: 1,
-      outputChannelCount: [2],
+      outputChannelCount: [outputChannelCount ?? 2],
       processorOptions: {
         sampleBufferType: sampleBufferType ?? DEFAULT_SAMPLE_BUFFER_TYPE,
         interpolationStrategy,

@@ -51,6 +51,7 @@ new SoundTouchNode({
 - `interpolationStrategy`: strategy id understood by `@soundtouchjs/core`
   - built-in ids: `lanczos`, `linear`
   - plugin ids (after strategy-module registration): `hann`, `blackman`, `kaiser`
+- `outputChannelCount`: `1 | 2` — number of output channels (default: `2`). Set to `1` when connecting to a mono destination.
 
 ## Static methods
 
@@ -119,6 +120,21 @@ Updates parameters on the currently active interpolation strategy without switch
 
 ```ts
 stNode.setInterpolationStrategyParams({ zeroCrossings: 6 });
+```
+
+## Mono input and output
+
+The processor handles both mono sources and mono destinations automatically.
+
+**Mono input**: If the upstream source provides only one audio channel, the processor duplicates it to both sides of its internal stereo pipeline. No configuration needed.
+
+**Mono output**: Pass `outputChannelCount: 1` when the downstream node only accepts a single channel. The Web Audio graph mixes down the stereo output to mono on the output side.
+
+```ts
+const stNode = new SoundTouchNode({
+  context: audioCtx,
+  outputChannelCount: 1, // connect to a mono destination
+});
 ```
 
 ## Usage example

@@ -271,6 +271,38 @@ describe('processor', () => {
     expect(monoOutput[0]).toBeCloseTo(0.5, 6);
   });
 
+  it('handles mono output channel (single output array)', async () => {
+    await import('./processor.js');
+
+    extract.mockImplementation(
+      (target: Float32Array, _start: number, frames: number) => {
+        for (let i = 0; i < frames; i++) {
+          target[i * 2] = 0.1;
+          target[i * 2 + 1] = 0.9;
+        }
+      },
+    );
+    outputFrameCount = 2;
+
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    });
+
+    const inputLeft = new Float32Array([1, 2]);
+    const monoOutput = new Float32Array(2);
+
+    const ok = instance.process([[inputLeft]], [[monoOutput]], {
+      pitch: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    });
+
+    expect(ok).toBe(true);
+    // With a single output channel, the right channel (0.9) overwrites the left (0.1) in the shared array.
+    expect(monoOutput[0]).toBeCloseTo(0.9, 6);
+    expect(monoOutput[1]).toBeCloseTo(0.9, 6);
+  });
+
   describe('constructor options', () => {
     it('forwards interpolationStrategy into SoundTouch options', async () => {
       await import('./processor.js');

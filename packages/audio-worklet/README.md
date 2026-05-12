@@ -60,6 +60,12 @@ const stNodeLinear = new SoundTouchNode({
   interpolationStrategy: 'linear',
 });
 
+// Mono output (e.g. connecting to a mono destination)
+const stNodeMono = new SoundTouchNode({
+  context: audioCtx,
+  outputChannelCount: 1,
+});
+
 const source = audioCtx.createBufferSource();
 source.buffer = audioBuffer;
 source.playbackRate.value = tempo; // tempo via playback rate
@@ -241,6 +247,22 @@ new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
 - **Processor thread**: `SoundTouchProcessor` extends `AudioWorkletProcessor`, runs on the audio rendering thread. It interleaves stereo input, feeds it through the `SoundTouch` processing pipe, and deinterleaves the output. The `@soundtouchjs/core` library is bundled directly into the processor file so there are no import dependencies at runtime.
 - **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for `pitch`, `pitchSemitones`, and `playbackRate`. A static `register()` method handles `audioWorklet.addModule()`. When `playbackRate` is set to the same value as the source node's `playbackRate`, the processor automatically divides the desired pitch by that value, so developers never need to manually compensate for rate-induced pitch shift.
 
+## Mono input and output
+
+The processor supports both mono input and mono output without extra configuration.
+
+**Mono input**: When a source provides only one channel, the processor duplicates it to both sides of the stereo processing pipeline. No configuration is needed.
+
+**Mono output**: If the downstream destination only accepts a single channel, pass `outputChannelCount: 1` to the constructor. The Web Audio graph will mix the stereo output to mono on the output side.
+
+```ts
+// Mono output
+const stNode = new SoundTouchNode({
+  context: audioCtx,
+  outputChannelCount: 1,
+});
+```
+
 ## What's new in v0.4
 
 - Complete rewrite in TypeScript (strict mode, full type exports)
@@ -248,7 +270,7 @@ new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
 - `AudioParam`-based parameter control (supports Web Audio automation)
 - Pre-bundled processor file with `@soundtouchjs/core` inlined (~23 KB)
 - NaN protection on audio output
-- Stereo processing (mono input is duplicated to both channels)
+- Stereo processing (mono input is duplicated to both channels; mono output supported via `outputChannelCount: 1`)
 
 ## License
 
