@@ -32,3 +32,5 @@ export type {
   StretchParameters,
 } from './SoundTouchNode.js';
 export { PROCESSOR_NAME } from './constants.js';
+export { processOffline } from './processOffline.js';
+export type { ProcessOfflineOptions } from './processOffline.js';

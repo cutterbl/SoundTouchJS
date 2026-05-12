@@ -5,6 +5,6 @@ describe('audio-worklet public exports', () => {
   it('exposes the expected runtime symbols', () => {
     const runtimeKeys = Object.keys(AudioWorkletPackage).sort();
 
-    expect(runtimeKeys).toEqual(['PROCESSOR_NAME', 'SoundTouchNode']);
+    expect(runtimeKeys).toEqual(['PROCESSOR_NAME', 'SoundTouchNode', 'processOffline']);
   });
 });

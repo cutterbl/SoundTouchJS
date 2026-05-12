@@ -265,6 +265,24 @@ new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
 - **Processor thread**: `SoundTouchProcessor` extends `AudioWorkletProcessor`, runs on the audio rendering thread. It interleaves stereo input, feeds it through the `SoundTouch` processing pipe, and deinterleaves the output. The `@soundtouchjs/core` library is bundled directly into the processor file so there are no import dependencies at runtime.
 - **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for `pitch`, `pitchSemitones`, and `playbackRate`. A static `register()` method handles `audioWorklet.addModule()`. When `playbackRate` is set to the same value as the source node's `playbackRate`, the processor automatically divides the desired pitch by that value, so developers never need to manually compensate for rate-induced pitch shift.
 
+## Offline processing
+
+Use `processOffline()` to render an entire `AudioBuffer` through SoundTouch without a live audio device:
+
+```ts
+import { processOffline } from '@soundtouchjs/audio-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl: '/soundtouch-processor.js',
+  pitchSemitones: -3,
+  playbackRate: 1.2,
+  stretchParameters: { overlapMs: 12 },
+});
+```
+
+The output `AudioBuffer` has the same channel count and sample rate as the input. Output length is estimated as `ceil(input.length / playbackRate)`.
+
 ## Mono input and output
 
 The processor supports both mono input and mono output without extra configuration.
