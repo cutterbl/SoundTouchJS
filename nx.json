@@ -98,8 +98,11 @@
     "projects": [
       "@soundtouchjs/core",
       "@soundtouchjs/audio-worklet",
-      "@cxing/interpolation-strategy-lanczos",
-      "@cxing/interpolation-strategy-linear"
+      "@soundtouchjs/interpolation-strategy-lanczos",
+      "@soundtouchjs/interpolation-strategy-linear",
+      "@soundtouchjs/interpolation-strategy-hann",
+      "@soundtouchjs/interpolation-strategy-blackman",
+      "@soundtouchjs/interpolation-strategy-kaiser"
     ],
     "changelog": {
       "automaticFromRef": false,

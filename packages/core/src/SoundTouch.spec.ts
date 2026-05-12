@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import CircularSampleBuffer from './CircularSampleBuffer.js';
 import SoundTouch from './SoundTouch.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 import RateTransposer from './RateTransposer.js';
 import Stretch from './Stretch.js';
 import type { SampleBuffer } from './SampleBuffer.js';
+import type { StretchFactory, StretchPipe } from './StretchPipe.js';
 
 class TestSampleBuffer implements SampleBuffer {
   private samples: Float32Array;
@@ -209,13 +210,13 @@ describe('SoundTouch', () => {
     it('delegates to stretch and updates overlapMs', () => {
       const st = new SoundTouch({});
       st.setStretchParameters({ overlapMs: 14 });
-      expect(st.stretch.overlapMs).toBe(14);
+      expect((st.stretch as Stretch).overlapMs).toBe(14);
     });
 
     it('delegates quickSeek flag to stretch', () => {
       const st = new SoundTouch({});
       st.setStretchParameters({ quickSeek: false });
-      expect(st.stretch.quickSeek).toBe(false);
+      expect((st.stretch as Stretch).quickSeek).toBe(false);
     });
   });
 
@@ -337,6 +338,56 @@ describe('SoundTouch', () => {
 
       st.process();
       expect(st.outputBuffer.frameCount).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('stretchFactory option', () => {
+    it('uses the provided factory instead of constructing the default Stretch', () => {
+      const mockStretch: StretchPipe = {
+        inputBuffer: null,
+        outputBuffer: null,
+        tempo: 1,
+        sampleReq: 128,
+        clear: vi.fn(),
+        clearMidBuffer: vi.fn(),
+        process: vi.fn(),
+        setParameters: vi.fn(),
+        setStretchParameters: vi.fn(),
+        clone: vi.fn().mockReturnThis(),
+      };
+
+      const factory: StretchFactory = vi.fn().mockReturnValue(mockStretch);
+
+      const st = new SoundTouch({
+        sampleRate: 44100,
+        stretchFactory: factory,
+      });
+
+      expect(factory).toHaveBeenCalledWith(
+        44100,
+        expect.objectContaining({ sampleBufferType: 'circular' }),
+      );
+      expect(st.stretch).toBe(mockStretch);
+    });
+
+    it('calls setParameters on the factory-produced stretch after creation', () => {
+      const mockStretch: StretchPipe = {
+        inputBuffer: null,
+        outputBuffer: null,
+        tempo: 1,
+        sampleReq: 128,
+        clear: vi.fn(),
+        clearMidBuffer: vi.fn(),
+        process: vi.fn(),
+        setParameters: vi.fn(),
+        setStretchParameters: vi.fn(),
+        clone: vi.fn().mockReturnThis(),
+      };
+
+      const factory: StretchFactory = vi.fn().mockReturnValue(mockStretch);
+      new SoundTouch({ sampleRate: 48000, stretchFactory: factory });
+
+      expect(mockStretch.setParameters).toHaveBeenCalledWith(48000, 0, 0, 0);
     });
   });
 });

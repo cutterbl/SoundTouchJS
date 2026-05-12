@@ -32,6 +32,7 @@ import {
   default as Stretch,
 } from './Stretch.js';
 import type { StretchParameters } from './Stretch.js';
+import type { StretchFactory, StretchPipe } from './StretchPipe.js';
 import CircularSampleBuffer from './CircularSampleBuffer.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 import {
@@ -80,6 +81,20 @@ export interface SoundTouchOptions {
    * @defaultValue 'linear'
    */
   interpolationStrategy?: RateTransposerInterpolationStrategy;
+
+  /**
+   * Optional factory for creating a custom time-stretch stage.
+   *
+   * @remarks
+   * When provided, `SoundTouch` calls this function instead of constructing
+   * the default WSOLA `Stretch` instance. Use this to substitute a phase
+   * vocoder or any other `StretchPipe`-compatible implementation.
+   *
+   * @example
+   * import { createPhaseVocoderFactory } from '@soundtouchjs/stretch-phase-vocoder';
+   * const st = new SoundTouch({ stretchFactory: createPhaseVocoderFactory() });
+   */
+  stretchFactory?: StretchFactory;
 }
 
 /**
@@ -93,7 +108,7 @@ export interface SoundTouchOptions {
  */
 export default class SoundTouch {
   transposer: RateTransposer;
-  stretch: Stretch;
+  stretch: StretchPipe;
 
   private _sampleRate: number;
 
@@ -132,16 +147,22 @@ export default class SoundTouch {
       interpolationStrategy: options.interpolationStrategy,
     });
     this._interpolationStrategy = this.transposer.strategy;
-    this.stretch = new Stretch({
-      createBuffers: false,
-      inputBufferAdapterFactory:
-        this._sampleBufferType === 'circular'
-          ? createCircularStretchInputBufferAdapter
-          : createFifoStretchInputBufferAdapter,
-      sampleBufferFactory: this._sampleBufferFactory,
-    });
-
     this._sampleRate = options.sampleRate ?? 44100;
+    if (options.stretchFactory) {
+      this.stretch = options.stretchFactory(this._sampleRate, {
+        sampleBufferFactory: this._sampleBufferFactory,
+        sampleBufferType: this._sampleBufferType,
+      });
+    } else {
+      this.stretch = new Stretch({
+        createBuffers: false,
+        inputBufferAdapterFactory:
+          this._sampleBufferType === 'circular'
+            ? createCircularStretchInputBufferAdapter
+            : createFifoStretchInputBufferAdapter,
+        sampleBufferFactory: this._sampleBufferFactory,
+      });
+    }
     this.stretch.setParameters(this._sampleRate, 0, 0, 0);
 
     this._inputBuffer = this._sampleBufferFactory();

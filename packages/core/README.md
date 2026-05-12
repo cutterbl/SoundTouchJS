@@ -107,6 +107,9 @@ st.outputBuffer.extract(outputBuffer, 0, 4096);
 | `resolveInterpolationStrategyRuntime` | Resolves runtime kernel + normalized params for an option                |
 | `setActiveInterpolationStrategy`      | Changes process-wide default interpolation strategy id                   |
 | `StretchParameters`                   | Type for WSOLA timing parameters passed to `setStretchParameters`        |
+| `StretchPipe`                         | Interface for a WSOLA-compatible stretch stage (implement to replace it) |
+| `StretchFactory`                      | Factory function type for creating a custom `StretchPipe`                |
+| `StretchFactoryOptions`               | Options passed from `SoundTouch` to a `StretchFactory`                   |
 
 #### WSOLA timing parameters
 
@@ -129,6 +132,22 @@ st.setStretchParameters({ sequenceMs: 0 });             // back to auto
 | `quickSeek` | `true` | Fast multi-pass seek; `false` = exhaustive (better quality, slower) |
 
 `Stretch` also exposes individual `overlapMs` (getter/setter) and `quickSeek` (getter/setter) properties.
+
+#### Custom stretch stage via `stretchFactory`
+
+`SoundTouchOptions.stretchFactory` lets you replace the built-in WSOLA `Stretch` stage with any `StretchPipe`-compatible implementation:
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+import type { StretchFactory } from '@soundtouchjs/core';
+
+const myFactory: StretchFactory = (sampleRate, opts) =>
+  new MyCustomStretch(sampleRate, opts);
+
+const st = new SoundTouch({ stretchFactory: myFactory });
+```
+
+The factory receives the sample rate and a `StretchFactoryOptions` object containing `sampleBufferFactory` and `sampleBufferType`. `SoundTouch` calls `setParameters` on the returned instance after construction.
 
 ## Constructor API (breaking)
 

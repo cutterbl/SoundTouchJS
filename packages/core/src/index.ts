@@ -69,3 +69,8 @@ export type {
   RateTransposerInterpolationStrategyOption,
 } from './interpolationStrategyRegistry.js';
 export type { SoundTouchOptions } from './SoundTouch.js';
+export type {
+  StretchFactory,
+  StretchFactoryOptions,
+  StretchPipe,
+} from './StretchPipe.js';

@@ -24,6 +24,7 @@ import AbstractSamplePipe from './AbstractSamplePipe.js';
 import CircularSampleBuffer from './CircularSampleBuffer.js';
 import FifoSampleBuffer from './FifoSampleBuffer.js';
 import type { SampleBuffer } from './SampleBuffer.js';
+import type { StretchPipe } from './StretchPipe.js';
 
 /**
  * Read adapter used by `Stretch` so input access is decoupled from concrete
@@ -402,10 +403,10 @@ const QUICK_SEEK_MIN_VALID_CANDIDATES = 8;
  * Time-stretch processor for tempo adjustment without affecting pitch.
  * Used internally by SoundTouch for time-stretching audio.
  */
-export default class Stretch extends AbstractSamplePipe<
-  SampleBuffer,
-  SampleBuffer
-> {
+export default class Stretch
+  extends AbstractSamplePipe<SampleBuffer, SampleBuffer>
+  implements StretchPipe
+{
   private readonly inputBufferAdapterFactory: StretchInputBufferAdapterFactory;
   private readonly sampleBufferFactory: () => SampleBuffer;
   private readonly inputBufferAdapter: StretchReadBufferAdapter;

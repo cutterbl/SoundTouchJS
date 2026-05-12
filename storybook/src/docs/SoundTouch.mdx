@@ -28,8 +28,17 @@ new SoundTouch({
   sampleBufferType?: 'fifo' | 'circular',
   sampleBufferFactory?: SampleBufferFactory,
   interpolationStrategy?: RateTransposerInterpolationStrategy,
+  stretchFactory?: StretchFactory,
 })
 ```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `sampleRate` | `44100` | Processing sample rate in Hz |
+| `sampleBufferType` | `'circular'` | Buffer strategy for all chain buffers |
+| `sampleBufferFactory` | — | Custom factory; overrides `sampleBufferType` |
+| `interpolationStrategy` | `'lanczos'` | Rate transposer interpolation kernel |
+| `stretchFactory` | — | Factory for a custom time-stretch stage; when provided, the default WSOLA `Stretch` is not created |
 
 ## Public API
 
@@ -60,5 +69,21 @@ st.setStretchParameters({ overlapMs: 12, quickSeek: false });
 ```
 
 Delegates to `Stretch.setStretchParameters`. See [Stretch](./stretch) for the full parameter reference.
+
+## stretchFactory option
+
+Replace the built-in WSOLA `Stretch` stage with any `StretchPipe`-compatible implementation:
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+import type { StretchFactory } from '@soundtouchjs/core';
+
+const myFactory: StretchFactory = (sampleRate, opts) =>
+  new MyCustomStretch(sampleRate, opts);
+
+const st = new SoundTouch({ stretchFactory: myFactory });
+```
+
+The factory receives the sample rate and a `StretchFactoryOptions` object containing `sampleBufferFactory` and `sampleBufferType`. `SoundTouch` calls `setParameters(sampleRate, 0, 0, 0)` on the returned instance after construction.
 
 > **Note:** `tempo` and `rate` are internal pipeline values derived from `virtualPitch` — they are not part of the public API. For browser playback, use [`SoundTouchNode`](../audio-worklet/sound-touch-node), which manages the pipeline internally.
