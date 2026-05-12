@@ -44,3 +44,4 @@ new RateTransposer({
 
 - Strategy resolution is registry-driven via interpolationStrategyRegistry.
 - Instance-level kernel state is supported when strategy kernels provide createState().
+- `rate` here is an internal DSP control on this pipeline stage. It is **not** exposed as an AudioParam on `SoundTouchNode`. See [SoundTouchNode](../audio-worklet/sound-touch-node) for the AudioWorklet public API.

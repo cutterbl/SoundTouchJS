@@ -152,8 +152,6 @@ describe('processor', () => {
 
     const ok = instance.process([[inputLeft]], [[outputLeft, outputRight]], {
       pitch: new Float32Array([1]),
-      tempo: new Float32Array([1]),
-      rate: new Float32Array([1]),
       pitchSemitones: new Float32Array([0]),
       playbackRate: new Float32Array([1]),
     });
@@ -206,8 +204,6 @@ describe('processor', () => {
 
     instance.process([[inputLeft]], [[outputLeft, outputRight]], {
       pitch: new Float32Array([1]),
-      tempo: new Float32Array([1]),
-      rate: new Float32Array([1]),
       pitchSemitones: new Float32Array([0]),
       playbackRate: new Float32Array([1]),
     });
@@ -230,8 +226,6 @@ describe('processor', () => {
 
     const params = {
       pitch: new Float32Array([1]),
-      tempo: new Float32Array([1]),
-      rate: new Float32Array([1]),
       pitchSemitones: new Float32Array([0]),
       playbackRate: new Float32Array([1]),
     };
@@ -266,8 +260,6 @@ describe('processor', () => {
 
     const ok = instance.process([[monoInput]], [[monoOutput]], {
       pitch: new Float32Array([1]),
-      tempo: new Float32Array([1]),
-      rate: new Float32Array([1]),
       pitchSemitones: new Float32Array([0]),
       playbackRate: new Float32Array([1]),
     });
@@ -330,8 +322,6 @@ describe('processor', () => {
         [[outputLeft, outputRight]],
         {
           pitch: new Float32Array([1]),
-          tempo: new Float32Array([1]),
-          rate: new Float32Array([1]),
           pitchSemitones: new Float32Array([0]),
           playbackRate: new Float32Array([1]),
         },
@@ -393,8 +383,6 @@ describe('processor', () => {
           [[outputLeft, outputRight]],
           {
             pitch: new Float32Array([1]),
-            tempo: new Float32Array([1]),
-            rate: new Float32Array([1.1]),
             pitchSemitones: new Float32Array([0]),
             playbackRate: new Float32Array([1]),
           },

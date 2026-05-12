@@ -23,14 +23,9 @@
 export { default as AbstractSamplePipe } from './AbstractSamplePipe.js';
 export { default as CircularSampleBuffer } from './CircularSampleBuffer.js';
 export { default as FifoSampleBuffer } from './FifoSampleBuffer.js';
-export { default as FilterSupport } from './FilterSupport.js';
 export { default as RateTransposer } from './RateTransposer.js';
-export { default as SimpleFilter } from './SimpleFilter.js';
 export { default as Stretch } from './Stretch.js';
 export { default as SoundTouch } from './SoundTouch.js';
-export { default as WebAudioBufferSource } from './WebAudioBufferSource.js';
-export { default as PitchShifter } from './PitchShifter.js';
-export { default as getWebAudioNode } from './getWebAudioNode.js';
 
 import {
   getActiveInterpolationStrategyId,
@@ -57,14 +52,11 @@ export {
 };
 
 // Exported types for consumers
-export type { SamplePipe } from './FilterSupport.js';
 export type {
   SampleBuffer,
   SampleBufferFactory,
   SampleBufferType,
 } from './SampleBuffer.js';
-export type { PlayEventDetail } from './PitchShifter.js';
-export type { PitchShifterOptions } from './PitchShifter.js';
 export type { RateTransposerInterpolationStrategy } from './RateTransposer.js';
 export type {
   BuiltInInterpolationStrategy,
@@ -76,4 +68,3 @@ export type {
   RateTransposerInterpolationStrategyOption,
 } from './interpolationStrategyRegistry.js';
 export type { SoundTouchOptions } from './SoundTouch.js';
-export type { SourcePositionCallback } from './getWebAudioNode.js';

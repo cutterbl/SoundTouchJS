@@ -99,6 +99,12 @@ importers:
         specifier: workspace:*
         version: link:../interpolation-strategy-lanczos
 
+  packages/interpolation-strategy-blackman: {}
+
+  packages/interpolation-strategy-hann: {}
+
+  packages/interpolation-strategy-kaiser: {}
+
   packages/interpolation-strategy-lanczos: {}
 
   packages/interpolation-strategy-linear: {}

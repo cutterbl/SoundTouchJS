@@ -93,20 +93,6 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         automationRate: 'k-rate',
       },
       {
-        name: 'tempo',
-        defaultValue: 1.0,
-        minValue: 0.1,
-        maxValue: 8.0,
-        automationRate: 'k-rate',
-      },
-      {
-        name: 'rate',
-        defaultValue: 1.0,
-        minValue: 0.1,
-        maxValue: 8.0,
-        automationRate: 'k-rate',
-      },
-      {
         name: 'pitchSemitones',
         defaultValue: 0,
         minValue: -24,
@@ -236,14 +222,10 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       this._outputSamples = new Float32Array(frameCount * 2);
     }
 
-    const rate = parameters['rate'][0];
-    const tempo = parameters['tempo'][0];
     const pitch = parameters['pitch'][0];
     const pitchSemitones = parameters['pitchSemitones'][0];
     const playbackRate = parameters['playbackRate'][0];
 
-    this._pipe.rate = rate;
-    this._pipe.tempo = tempo;
     this._pipe.pitch =
       (pitch * Math.pow(2, pitchSemitones / 12)) / playbackRate;
 

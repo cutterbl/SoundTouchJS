@@ -1,6 +1,6 @@
 # SoundTouchJS
 
-A real-time audio processing library for pitch shifting, tempo adjustment, and rate transposition using the Web Audio API. Converted, expanded, and maintained by [Cutter](https://cutterscrossing.com/), based on the original [SoundTouch](https://www.surina.net/soundtouch/) C++ library by Olli Parviainen.
+A real-time audio processing library for pitch shifting and playback speed control using the Web Audio API. Converted, expanded, and maintained by [Cutter](https://cutterscrossing.com/), based on the original [SoundTouch](https://www.surina.net/soundtouch/) C++ library by Olli Parviainen.
 
 ## Monorepo
 
@@ -8,7 +8,7 @@ This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnp
 
 | Package                                                                                               | npm                                                         | Description                                                              |
 | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`@soundtouchjs/core`](packages/core/README.md)                                                       | `npm install @soundtouchjs/core`                            | Core processing library — `SoundTouch`, `PitchShifter`, buffers, filters |
+| [`@soundtouchjs/core`](packages/core/README.md)                                                       | `npm install @soundtouchjs/core`                            | Core processing library — `SoundTouch`, buffers, and the interpolation registry |
 | [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                     | `npm install @soundtouchjs/audio-worklet`                   | AudioWorklet implementation with `AudioParam`-based controls             |
 | [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md)   | `npm install @soundtouchjs/interpolation-strategy-lanczos`  | Lanczos interpolation strategy plugin (default strategy id: `lanczos`)  |
 | [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)     | `npm install @soundtouchjs/interpolation-strategy-linear`   | Linear interpolation strategy plugin (strategy id: `linear`)             |
@@ -50,51 +50,19 @@ const source = audioCtx.createBufferSource();
 source.buffer = audioBuffer;
 source.connect(stNode);
 
-stNode.tempo.value = 1.2;
+// To change playback speed, set both source and stNode to the same value
+source.playbackRate.value = 1.2;
+stNode.playbackRate.value = 1.2;
+
 stNode.pitch.value = 0.9;
 source.start();
 ```
 
-The audio-worklet package exposes wider real-time control ranges for `pitch`, `tempo`, `rate`, and `playbackRate` than earlier releases. Those controls are intentionally capped to balance flexibility with predictable real-time behavior: more extreme values can increase artifacts, reduce output quality, and make buffer behavior less stable on small AudioWorklet render blocks.
+`SoundTouchNode` exposes three AudioParams: `pitch`, `pitchSemitones`, and `playbackRate`. Playback speed is controlled via `playbackRate` — see the [audio-worklet README](packages/audio-worklet/README.md) for how the mirror pattern works.
 
 Interpolation defaults to `lanczos` (Lanczos kernel plugin) in both core and audio-worklet flows. You can opt into `linear` for A/B testing and latency/quality comparisons.
 
-### PitchShifter (ScriptProcessorNode)
-
-The `@soundtouchjs/core` package provides a higher-level `PitchShifter` class with built-in playback tracking. This uses `ScriptProcessorNode`, which is deprecated but widely supported.
-
-```ts
-import { PitchShifter } from '@soundtouchjs/core';
-
-const audioCtx = new AudioContext();
-const shifter = new PitchShifter({
-  context: audioCtx,
-  buffer: audioBuffer,
-  bufferSize: 16384,
-});
-shifter.tempo = 1.2;
-shifter.pitch = 0.9;
-
-shifter.on('play', (detail) => {
-  console.log(detail.formattedTimePlayed, detail.percentagePlayed);
-});
-
-shifter.connect(audioCtx.destination);
-```
-
 See each package's README for full API documentation.
-
-### Constructor API change
-
-As of the latest release line, constructor calls use named options objects instead of positional arguments. Example:
-
-```ts
-// before
-// new SoundTouchNode(audioCtx)
-
-// now
-new SoundTouchNode({ context: audioCtx });
-```
 
 ## Development
 
@@ -140,7 +108,7 @@ pnpm nx dev demo             # Dev server with HMR
 pnpm dev
 ```
 
-Opens a browser at `http://localhost:8080` with sliders for tempo, pitch, key, and volume. The demo uses `@soundtouchjs/audio-worklet` under the hood.
+Opens a browser at `http://localhost:8080` with sliders for pitch, key, playback speed, and volume. The demo uses `@soundtouchjs/audio-worklet` under the hood.
 
 For a beginner-oriented walkthrough of the signal graph, playback modes, loop behavior, and parameter cause/effect, see [apps/demo/README.md](apps/demo/README.md).
 

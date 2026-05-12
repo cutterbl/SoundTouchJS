@@ -10,7 +10,7 @@ Welcome! SoundTouchJS helps you change the speed, pitch, or key of audio in the 
 
 SoundTouchJS is a toolkit for working with audio in web apps. It lets you:
 
-- Slow down or speed up music (tempo/rate)
+- Slow down or speed up music (playback speed control)
 - Change the pitch (make voices higher/lower)
 - Shift the key of a song
 - Do all this in real time, with good sound quality
@@ -23,11 +23,11 @@ The Web Audio API is how browsers let you play, process, and analyze sound. Thin
 
 SoundTouchJS builds on top of this, so you can do advanced things without learning all the low-level details.
 
-## What are pitch, tempo, and rate?
+## What are pitch and playback speed?
 
-- **Pitch**: How high or low a sound is (like a singer’s voice or a musical note)
-- **Tempo**: How fast the music is (beats per minute)
-- **Rate**: How quickly the audio plays (speeding up or slowing down everything)
+- **Pitch**: How high or low a sound is (like a singer’s voice or a musical note). Changing pitch without changing speed is called pitch shifting.
+- **Playback speed**: How fast the audio plays back. In the Web Audio API, this is controlled via `playbackRate`. Slowing down or speeding up without changing pitch is called time stretching.
+- **Key**: The musical key of a piece. Shifting the key by semitones (half-steps) lets you transpose a song to a new key.
 
 ## What’s a buffer?
 
@@ -47,7 +47,7 @@ If you’re new to audio, start with the **Getting Started** guide. If you’re 
 ## When to Use Each Package
 
 - Use **@soundtouchjs/audio-worklet** for modern, real-time browser audio. This is the default for most apps.
-- Use **@soundtouchjs/core** for custom DSP, offline processing, or legacy `ScriptProcessorNode` flows.
+- Use **@soundtouchjs/core** for custom DSP, offline processing, or non-browser environments.
 - Use interpolation plugins for quality/latency tradeoffs or to implement your own strategy.
 
 ## Quick Start (AudioWorklet)
@@ -72,7 +72,7 @@ Try the [Playground](../playground) in Storybook for live, interactive parameter
 ## Practical Integration Notes
 
 - Always register the processor before creating a `SoundTouchNode`.
-- Use the source node's `playbackRate` for transport speed, and keep `stNode.playbackRate` in sync for pitch/rate compensation.
+- To control playback speed, set both the source node's `playbackRate` **and** `stNode.playbackRate` to the same value — this keeps pitch compensation accurate.
 - Call `audioCtx.resume()` in a user gesture to comply with browser autoplay policies.
 - For advanced use, see the [core package docs](../../packages/core/README.md) and [audio-worklet package docs](../../packages/audio-worklet/README.md).
 
@@ -88,9 +88,7 @@ Try the [Playground](../playground) in Storybook for live, interactive parameter
 - [Abstract Sample Pipe](./core/abstract-sample-pipe)
 - [Circular Sample Buffer](./core/circular-sample-buffer)
 - [Fifo Sample Buffer](./core/fifo-sample-buffer)
-- [Filter Support](./core/filter-support)
 - [Get Active Interpolation Strategy ID](./core/get-active-interpolation-strategy-id)
-- [Get Web Audio Node](./core/get-web-audio-node)
 - [Has Interpolation Strategy](./core/has-interpolation-strategy)
 - [Interpolation Strategies](./core/interpolation-strategies)
   - [Basics](./core/interpolation-strategies)
@@ -101,12 +99,10 @@ Try the [Playground](../playground) in Storybook for live, interactive parameter
   - [Blackman Strategy](./core/blackman-strategy)
   - [Kaiser Strategy](./core/kaiser-strategy)
 - [Normalize Interpolation Strategy ID](./core/normalize-interpolation-strategy-id)
-- [Pitch Shifter](./core/pitch-shifter)
 - [Rate Transposer](./core/rate-transposer)
 - [Register Interpolation Strategy](./core/register-interpolation-strategy)
 - [Resolve Interpolation Strategy](./core/resolve-interpolation-strategy)
 - [Set Active Interpolation Strategy](./core/set-active-interpolation-strategy)
-- [Simple Filter](./core/simple-filter)
 - [SoundTouch](./core/sound-touch)
 - [Stretch](./core/stretch)
 - [Unregister Interpolation Strategy](./core/unregister-interpolation-strategy)

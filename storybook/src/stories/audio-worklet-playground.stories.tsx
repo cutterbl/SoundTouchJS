@@ -1,22 +1,3 @@
-export const Tempo: Story = {
-  render: () => (
-    <AudioWorkletPlayground
-      title="Tempo"
-      mode="tempo"
-      description="Adjust tempo (time-stretch) without changing pitch. Selecting a different track rebuilds the audio context and node graph."
-      codeSample={`const context = new AudioContext();
-await SoundTouchNode.register(context, processorModuleUrl);
-const soundTouchNode = new SoundTouchNode({ context });
-
-const tempoSlider = document.querySelector<HTMLInputElement>('#tempo');
-tempoSlider?.addEventListener('input', (event) => {
-  const input = event.currentTarget as HTMLInputElement;
-  soundTouchNode.tempo.value = Number(input.value);
-});`}
-      explanation="Tempo changes playback speed without affecting pitch. Use values below 1 to slow down, above 1 to speed up. Useful for practice, transcription, or creative effects."
-    />
-  ),
-};
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AudioWorkletPlayground } from './AudioWorkletPlayground';

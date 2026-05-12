@@ -62,11 +62,9 @@ describe('SoundTouch', () => {
   describe('constructor', () => {
     it('initializes with default values', () => {
       const st = new SoundTouch({});
-      expect(st.rate).toBeDefined();
-      expect(st.tempo).toBeDefined();
       expect(st.virtualPitch).toBe(1.0);
-      expect(st.virtualRate).toBe(1.0);
-      expect(st.virtualTempo).toBe(1.0);
+      expect(st.transposer).toBeInstanceOf(RateTransposer);
+      expect(st.stretch).toBeInstanceOf(Stretch);
     });
 
     it('creates internal components', () => {
@@ -104,7 +102,7 @@ describe('SoundTouch', () => {
         sampleRate: 44100,
         sampleBufferType: 'circular',
       });
-      st.rate = 1.0;
+      st.pitch = 1.0;
 
       const samples = new Float32Array(20);
       for (let i = 0; i < 20; i++) {
@@ -123,8 +121,7 @@ describe('SoundTouch', () => {
         sampleRate: 44100,
         sampleBufferType: 'circular',
       });
-      st.rate = 2.0;
-      st.tempo = 1.0;
+      st.pitch = 2.0;
 
       const sampleCount = st.stretch.sampleReq * 4;
       const samples = new Float32Array(sampleCount * 2);
@@ -146,8 +143,7 @@ describe('SoundTouch', () => {
       expect(st.inputBuffer).toBeInstanceOf(TestSampleBuffer);
       expect(st.outputBuffer).toBeInstanceOf(TestSampleBuffer);
 
-      st.rate = 0.5;
-      st.tempo = 1.0;
+      st.pitch = 0.5;
 
       const sampleCount = st.stretch.sampleReq * 4;
       const samples = new Float32Array(sampleCount * 2);
@@ -161,29 +157,15 @@ describe('SoundTouch', () => {
     });
   });
 
-  describe('rate', () => {
-    it('getter returns the effective rate', () => {
-      const st = new SoundTouch({});
-      st.rate = 1.5;
-      expect(st.rate).toBeCloseTo(1.5, 5);
-    });
-  });
-
-  describe('tempo', () => {
-    it('getter returns the effective tempo', () => {
-      const st = new SoundTouch({});
-      st.tempo = 2.0;
-      expect(st.tempo).toBeCloseTo(2.0, 5);
-    });
-  });
-
   describe('pitch', () => {
-    it('adjusts virtual pitch and recalculates rate/tempo', () => {
+    it('sets virtualPitch and derives internal pipeline tempo', () => {
       const st = new SoundTouch({});
       st.pitch = 2.0;
       expect(st.virtualPitch).toBe(2.0);
-      expect(st.rate).toBeCloseTo(2.0, 5);
-      expect(st.tempo).toBeCloseTo(0.5, 5);
+      // _rate = virtualPitch → Transposer output routes to final output (rate > 1)
+      expect(st.transposer.outputBuffer).toBe(st.outputBuffer);
+      // _tempo = 1 / virtualPitch
+      expect(st.stretch.tempo).toBeCloseTo(0.5, 5);
     });
   });
 
@@ -209,32 +191,16 @@ describe('SoundTouch', () => {
     });
   });
 
-  describe('rateChange', () => {
-    it('sets rate via percentage change', () => {
-      const st = new SoundTouch({});
-      st.rateChange = 50;
-      expect(st.rate).toBeCloseTo(1.5, 5);
-    });
-  });
-
-  describe('tempoChange', () => {
-    it('sets tempo via percentage change', () => {
-      const st = new SoundTouch({});
-      st.tempoChange = 100;
-      expect(st.tempo).toBeCloseTo(2.0, 5);
-    });
-  });
-
   describe('calculateEffectiveRateAndTempo', () => {
-    it('chains pipe order based on rate > 1', () => {
+    it('routes through Transposer→output when pitch > 1', () => {
       const st = new SoundTouch({});
-      st.rate = 2.0;
+      st.pitch = 2.0;
       expect(st.transposer.outputBuffer).toBe(st.outputBuffer);
     });
 
-    it('chains pipe order based on rate <= 1', () => {
+    it('routes through Stretch→output when pitch <= 1', () => {
       const st = new SoundTouch({});
-      st.rate = 0.5;
+      st.pitch = 0.5;
       expect(st.stretch.outputBuffer).toBe(st.outputBuffer);
     });
   });
@@ -263,14 +229,12 @@ describe('SoundTouch', () => {
   });
 
   describe('clone', () => {
-    it('creates an independent copy', () => {
+    it('creates an independent copy with the same pitch', () => {
       const st = new SoundTouch({});
-      st.rate = 1.5;
-      st.tempo = 2.0;
+      st.pitch = 1.5;
       const cloned = st.clone();
       expect(cloned).not.toBe(st);
-      expect(cloned.rate).toBeCloseTo(st.rate, 5);
-      expect(cloned.tempo).toBeCloseTo(st.tempo, 5);
+      expect(cloned.virtualPitch).toBeCloseTo(st.virtualPitch, 5);
     });
 
     it('preserves circular sample buffer type', () => {
@@ -297,8 +261,7 @@ describe('SoundTouch', () => {
         sampleRate: 44100,
         sampleBufferType: 'circular',
       });
-      st.rate = 2.0;
-      st.tempo = 1.0;
+      st.pitch = 2.0;
       const cloned = st.clone();
 
       const sampleCount = cloned.stretch.sampleReq * 4;
@@ -325,17 +288,16 @@ describe('SoundTouch', () => {
   });
 
   describe('clear', () => {
-    it('clears stretch and transposer', () => {
+    it('clears stretch and transposer without throwing', () => {
       const st = new SoundTouch({});
       expect(() => st.clear()).not.toThrow();
     });
   });
 
   describe('process', () => {
-    it('processes with rate > 1 (stretch then transpose)', () => {
+    it('processes with pitch > 1 (Stretch then Transpose order)', () => {
       const st = new SoundTouch({});
-      st.rate = 2.0;
-      st.tempo = 1.0;
+      st.pitch = 2.0;
 
       const sampleCount = st.stretch.sampleReq * 4;
       const samples = new Float32Array(sampleCount * 2);
@@ -348,10 +310,9 @@ describe('SoundTouch', () => {
       expect(st.outputBuffer.frameCount).toBeGreaterThanOrEqual(0);
     });
 
-    it('processes with rate <= 1 (transpose then stretch)', () => {
+    it('processes with pitch <= 1 (Transpose then Stretch order)', () => {
       const st = new SoundTouch({});
-      st.rate = 0.5;
-      st.tempo = 1.0;
+      st.pitch = 0.5;
 
       const sampleCount = st.stretch.sampleReq * 4;
       const samples = new Float32Array(sampleCount * 2);

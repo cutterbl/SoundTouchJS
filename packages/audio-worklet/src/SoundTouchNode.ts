@@ -62,18 +62,6 @@ export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions 
    */
   context: BaseAudioContext;
 }
-/**
- * Construction options for SoundTouchNode constructor.
- * Extends SoundTouchNodeOptions with required context.
- */
-export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions {
-  /**
-   * The AudioContext or OfflineAudioContext.
-   * @remarks
-   * Required for node construction; determines the audio graph context.
-   */
-  context: BaseAudioContext;
-}
 
 /**
  * Main-thread AudioWorkletNode wrapper for SoundTouch audio processing.
@@ -152,22 +140,6 @@ export class SoundTouchNode extends AudioWorkletNode {
   }
 
   /**
-   * Tempo multiplier AudioParam (1.0 = original tempo).
-   * @returns The AudioParam controlling tempo.
-   */
-  get tempo(): AudioParam {
-    return this.parameters.get('tempo')!;
-  }
-
-  /**
-   * Rate multiplier AudioParam (affects both pitch and tempo).
-   * @returns The AudioParam controlling rate.
-   */
-  get rate(): AudioParam {
-    return this.parameters.get('rate')!;
-  }
-
-  /**
    * Pitch shift in semitones AudioParam (integer steps for musical key changes).
    * @returns The AudioParam controlling pitch in semitones.
    */
@@ -176,7 +148,8 @@ export class SoundTouchNode extends AudioWorkletNode {
   }
 
   /**
-   * Playback rate AudioParam (affects all processing stages).
+   * Playback rate AudioParam. Set this to the same value as the source node's
+   * playbackRate so the processor can compensate pitch for tempo changes.
    * @returns The AudioParam controlling playback rate.
    */
   get playbackRate(): AudioParam {

@@ -97,21 +97,18 @@ All parameters are exposed as [`AudioParam`](https://developer.mozilla.org/en-US
 ```ts
 // Direct value
 stNode.pitch.value = 1.2;
-stNode.tempo.value = 0.8;
-stNode.rate.value = 1.0;
 stNode.pitchSemitones.value = -3;
+stNode.playbackRate.value = 1.2; // mirrors source.playbackRate for tempo
 
 // Automation
 stNode.pitch.linearRampToValueAtTime(2.0, audioCtx.currentTime + 5);
 ```
 
-| Parameter        | Default | Range     | Description                                        |
-| ---------------- | ------- | --------- | -------------------------------------------------- |
-| `pitch`          | 1.0     | 0.1 – 8.0 | Pitch multiplier (1.0 = original)                  |
-| `tempo`          | 1.0     | 0.1 – 8.0 | Tempo multiplier (1.0 = original)                  |
-| `rate`           | 1.0     | 0.1 – 8.0 | Playback rate (affects both pitch and tempo)       |
-| `pitchSemitones` | 0       | -24 – 24  | Pitch shift in semitones (combined with `pitch`)   |
-| `playbackRate`   | 1.0     | 0.1 – 8.0 | Source playback rate (for auto pitch compensation) |
+| Parameter        | Default | Range     | Description                                                          |
+| ---------------- | ------- | --------- | -------------------------------------------------------------------- |
+| `pitch`          | 1.0     | 0.1 – 8.0 | Pitch multiplier (1.0 = original)                                    |
+| `pitchSemitones` | 0       | -24 – 24  | Pitch shift in semitones (combined with `pitch`)                     |
+| `playbackRate`   | 1.0     | 0.1 – 8.0 | Source playback rate mirror — processor divides pitch by this value  |
 
 These ranges are intentionally broader than the typical musical sweet spot, but still bounded for real-time stability. Values outside this window tend to produce more audible artifacts, less predictable output, and higher risk of buffer starvation or unnatural sounding results, especially in the AudioWorklet's small render blocks. For most material, settings closer to `1.0` will sound cleaner.
 
@@ -131,10 +128,7 @@ If an unknown strategy id is provided, the processor logs an info message and fa
 You can also switch strategy and update params at runtime:
 
 ```ts
-stNode.setInterpolationStrategy({
-  id: 'linear',
-  params: { edgeHoldFrames: 2 },
-});
+stNode.setInterpolationStrategy('linear');
 
 stNode.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
 ```
@@ -245,7 +239,7 @@ new SoundTouchNode({ context: audioCtx, sampleBufferType: 'fifo' });
 ## Architecture
 
 - **Processor thread**: `SoundTouchProcessor` extends `AudioWorkletProcessor`, runs on the audio rendering thread. It interleaves stereo input, feeds it through the `SoundTouch` processing pipe, and deinterleaves the output. The `@soundtouchjs/core` library is bundled directly into the processor file so there are no import dependencies at runtime.
-- **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for pitch, tempo, rate, semitone shift, and playback rate. A static `register()` method handles `audioWorklet.addModule()`. When `playbackRate` is set, the processor automatically divides the desired pitch by the playback rate, so developers never need to manually compensate for rate-induced pitch shift.
+- **Main thread**: `SoundTouchNode` extends `AudioWorkletNode`, providing typed `AudioParam` accessors for `pitch`, `pitchSemitones`, and `playbackRate`. A static `register()` method handles `audioWorklet.addModule()`. When `playbackRate` is set to the same value as the source node's `playbackRate`, the processor automatically divides the desired pitch by that value, so developers never need to manually compensate for rate-induced pitch shift.
 
 ## What's new in v0.4
 

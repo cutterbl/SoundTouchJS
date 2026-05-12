@@ -37,19 +37,10 @@ type StoryMode =
   | 'pitch'
   | 'pitch-semitones'
   | 'rate'
-  | 'tempo'
   | 'loop'
   | 'buffer'
   | 'interpolation-strategy'
   | 'element-kitchen-sink';
-const TEMPO_TICKS: readonly DatalistTick[] = [
-  { value: 0.5, label: '0.5' },
-  { value: 0.75, label: '0.75' },
-  { value: 1, label: '1' },
-  { value: 1.25, label: '1.25' },
-  { value: 1.5, label: '1.5' },
-  { value: 2, label: '2' },
-];
 
 type SourceMode = 'buffer' | 'element';
 
@@ -210,7 +201,6 @@ export function AudioWorkletPlayground({
   const [rate, setRate] = useState(1);
   const [pitch, setPitch] = useState(1);
   const [pitchSemitones, setPitchSemitones] = useState(0);
-  const [tempo, setTempo] = useState(1);
   const [loopEnabled, setLoopEnabled] = useState(false);
   const [sampleBufferType, setSampleBufferType] =
     useState<SampleBufferType>('circular');
@@ -244,8 +234,6 @@ export function AudioWorkletPlayground({
     mode === 'buffer' ||
     mode === 'interpolation-strategy' ||
     mode === 'element-kitchen-sink';
-
-  const showTempo = mode === 'tempo' || isKitchenSink;
 
   const showVolume = mode === 'volume' || isKitchenSink;
   const showPitch = mode === 'pitch' || isKitchenSink;
@@ -343,15 +331,12 @@ export function AudioWorkletPlayground({
       sourceMode === 'element' && elementRef.current
         ? elementRef.current.playbackRate
         : rate;
-    if ('tempo' in soundTouchNodeRef.current) {
-      soundTouchNodeRef.current.tempo.value = tempo;
-    }
 
     if (sourceMode === 'buffer' && elementRef.current) {
       elementRef.current.volume = Math.min(1, Math.max(0, volume));
       elementRef.current.playbackRate = rate;
     }
-  }, [pitch, pitchSemitones, rate, sourceMode, volume, tempo]);
+  }, [pitch, pitchSemitones, rate, sourceMode, volume]);
 
   const loadTrackBuffer = useCallback(async (): Promise<void> => {
     const response = await fetch(selectedTrack.url);
@@ -758,20 +743,6 @@ export function AudioWorkletPlayground({
             ))}
           </select>
         </label>
-
-        {showTempo ? (
-          <RangeControl
-            label="Tempo"
-            min={0.5}
-            max={2}
-            step={0.01}
-            value={tempo}
-            onChange={setTempo}
-            ticks={TEMPO_TICKS}
-            listId="tempo-ticks"
-            disabled={isLoading}
-          />
-        ) : null}
 
         {shouldShowVolumeControl ? (
           <RangeControl

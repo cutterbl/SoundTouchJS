@@ -48,3 +48,4 @@ new Stretch({
 
 - Uses overlap-add with best-overlap search across a seek window.
 - Quick-seek mode uses staged scan offsets and can fall back to full seek when candidate coverage is sparse.
+- `tempo` here is an internal DSP control on this pipeline stage. It is **not** exposed as an AudioParam on `SoundTouchNode`. See [SoundTouchNode](../audio-worklet/sound-touch-node) for the AudioWorklet public API.

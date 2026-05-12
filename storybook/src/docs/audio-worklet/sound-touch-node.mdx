@@ -48,10 +48,103 @@ new SoundTouchNode({
 - `context`: `BaseAudioContext` (required)
 - `processorUrl`: optional convenience field retained in options type (registration still done via `register`)
 - `sampleBufferType`: `'circular' | 'fifo'` (defaults internally to package constant)
-- `interpolationStrategy`: strategy id/descriptor understood by `@soundtouchjs/core`
+- `interpolationStrategy`: strategy id understood by `@soundtouchjs/core`
   - built-in ids: `lanczos`, `linear`
   - plugin ids (after strategy-module registration): `hann`, `blackman`, `kaiser`
 
 ## Static methods
 
 ### `register(context, processorUrl)`
+
+Registers the SoundTouch processor module with the given `AudioContext`. Must be called before creating any `SoundTouchNode` instances.
+
+```ts
+await SoundTouchNode.register(context, '/soundtouch-processor.js');
+```
+
+### `registerStrategyModule(context, strategyModuleUrl)`
+
+Loads an interpolation strategy installer module into the `AudioWorkletGlobalScope`. Call this after `register` if you want to use plugin strategies (`hann`, `blackman`, `kaiser`).
+
+```ts
+await SoundTouchNode.registerStrategyModule(context, strategyModuleUrl);
+```
+
+## AudioParams
+
+`SoundTouchNode` exposes three `AudioParam` getters for runtime control. These are the **only** parameters available — the underlying engine's `tempo` and `rate` properties are managed internally by the processor and are not exposed.
+
+| Param            | Default | Range     | Description |
+| ---------------- | ------- | --------- | ----------- |
+| `pitch`          | 1.0     | 0.1 – 8.0 | Pitch multiplier. 1.0 = original pitch. Values above 1 raise pitch; below 1 lower it. |
+| `pitchSemitones` | 0       | -24 – 24  | Pitch shift in integer semitone steps, combined with `pitch`. Use for musical key changes (e.g. `+2` = up a whole step, `-12` = down an octave). |
+| `playbackRate`   | 1.0     | 0.1 – 8.0 | Must mirror the source node's `playbackRate`. The processor divides the effective pitch by this value to compensate for tempo-driven pitch shift. |
+
+### How tempo control works
+
+`SoundTouchNode` does **not** have a `tempo` AudioParam. Tempo is controlled by setting `playbackRate` on **both** the audio source and `SoundTouchNode`:
+
+```ts
+const tempo = 1.2; // 1.2× speed
+
+// Buffer source
+source.playbackRate.value = tempo;
+stNode.playbackRate.value = tempo; // processor compensates pitch automatically
+
+// HTML audio element
+audioEl.preservesPitch = false;
+audioEl.playbackRate = tempo;
+stNode.playbackRate.value = tempo;
+```
+
+Setting only `stNode.playbackRate` without also changing the source rate does not change playback speed — it only updates the pitch compensation factor.
+
+### Why not a `tempo` param?
+
+AudioWorklet render blocks are fixed at 128 samples. A `tempo` multiplier applied inside the processor would need to produce more (or fewer) output samples than the block size, which the AudioWorklet API does not support. Driving tempo through the source's `playbackRate` feeds samples faster into the pipe, keeping output balanced while letting the processor focus solely on pitch correction.
+
+## Instance methods
+
+### `setInterpolationStrategy(strategy)`
+
+Switches the interpolation strategy in the render-thread processor at runtime. Applied at the next render block boundary.
+
+```ts
+stNode.setInterpolationStrategy('linear');
+```
+
+### `setInterpolationStrategyParams(params)`
+
+Updates parameters on the currently active interpolation strategy without switching strategies.
+
+```ts
+stNode.setInterpolationStrategyParams({ zeroCrossings: 6 });
+```
+
+## Usage example
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioCtx = new AudioContext();
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+
+const gainNode = audioCtx.createGain();
+const stNode = new SoundTouchNode({ context: audioCtx });
+
+stNode.connect(gainNode);
+gainNode.connect(audioCtx.destination);
+
+const source = audioCtx.createBufferSource();
+source.buffer = audioBuffer;
+source.connect(stNode);
+
+const tempo = 1.2;
+source.playbackRate.value = tempo;  // speed up source
+stNode.playbackRate.value = tempo;  // compensate pitch
+stNode.pitch.value = 1.0;           // no additional pitch change
+stNode.pitchSemitones.value = -2;   // shift down 2 semitones
+
+await audioCtx.resume();
+source.start();
+```

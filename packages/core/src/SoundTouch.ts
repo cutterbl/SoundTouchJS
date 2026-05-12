@@ -82,13 +82,13 @@ export interface SoundTouchOptions {
 }
 
 /**
- * Main processing engine for pitch shifting, tempo adjustment, and rate transposition.
+ * Main processing engine for pitch shifting and time-stretching.
  *
  * @remarks
- * Provides real-time audio manipulation by chaining together rate transposition and time-stretching stages.
- * Exposes properties and methods for controlling pitch, tempo, and rate, as well as buffer access for streaming audio.
- *
- * Set `pitch`, `tempo`, `rate`, or `pitchSemitones` for real-time audio manipulation.
+ * Chains a `RateTransposer` and `Stretch` stage to deliver real-time pitch manipulation
+ * without affecting playback tempo. Set `pitch`, `pitchOctaves`, or `pitchSemitones` to
+ * control the output. The internal `_rate` and `_tempo` pipeline values are derived
+ * automatically from `virtualPitch`.
  */
 export default class SoundTouch {
   transposer: RateTransposer;
@@ -107,9 +107,8 @@ export default class SoundTouch {
   private _rate: number;
   private _tempo: number;
 
+  /** Current pitch multiplier. Updated by the `pitch`, `pitchOctaves`, and `pitchSemitones` setters. */
   virtualPitch: number;
-  virtualRate: number;
-  virtualTempo: number;
 
   /**
    * Creates a new SoundTouch processor instance.
@@ -150,10 +149,7 @@ export default class SoundTouch {
 
     this._rate = 0;
     this._tempo = 0;
-
     this.virtualPitch = 1.0;
-    this.virtualRate = 1.0;
-    this.virtualTempo = 1.0;
 
     this.calculateEffectiveRateAndTempo();
   }
@@ -181,8 +177,7 @@ export default class SoundTouch {
         params: this.transposer.strategyParams,
       },
     });
-    result.rate = this.rate;
-    result.tempo = this.tempo;
+    result.pitch = this.virtualPitch;
     return result;
   }
 
@@ -224,53 +219,11 @@ export default class SoundTouch {
   }
 
   /**
-   * Effective output rate after virtual controls are resolved.
-   * @returns The current output rate factor.
-   */
-  get rate(): number {
-    return this._rate;
-  }
-
-  /**
-   * Sets virtual playback rate and recomputes effective pipeline parameters.
-   */
-  set rate(rate: number) {
-    this.virtualRate = rate;
-    this.calculateEffectiveRateAndTempo();
-  }
-
-  /**
-   * Sets rate using a percent delta where `0` means no change.
-   */
-  set rateChange(rateChange: number) {
-    this._rate = 1.0 + 0.01 * rateChange;
-  }
-
-  /**
-   * Effective output tempo after virtual controls are resolved.
-   * @returns The current output tempo factor.
-   */
-  get tempo(): number {
-    return this._tempo;
-  }
-
-  /**
-   * Sets virtual tempo and recomputes effective pipeline parameters.
-   */
-  set tempo(tempo: number) {
-    this.virtualTempo = tempo;
-    this.calculateEffectiveRateAndTempo();
-  }
-
-  /**
-   * Sets tempo using a percent delta where `0` means no change.
-   */
-  set tempoChange(tempoChange: number) {
-    this.tempo = 1.0 + 0.01 * tempoChange;
-  }
-
-  /**
-   * Sets virtual pitch multiplier and updates derived tempo/rate values.
+   * Sets the pitch multiplier and recomputes the derived pipeline rate and tempo.
+   *
+   * @remarks
+   * Internally sets `_rate = pitch` and `_tempo = 1 / pitch`, rewiring the
+   * Transposer→Stretch stage order when pitch > 1.
    */
   set pitch(pitch: number) {
     this.virtualPitch = pitch;
@@ -309,16 +262,18 @@ export default class SoundTouch {
   }
 
   /**
-   * Recomputes effective tempo/rate and rewires the stage ordering when needed.
+   * Recomputes the effective pipeline rate/tempo from `virtualPitch` and rewires stage order when needed.
+   *
    * @remarks
-   * Updates the internal pipeline to reflect changes in pitch, tempo, or rate.
+   * `_rate` is set to `virtualPitch`; `_tempo` to `1 / virtualPitch`. When `_rate > 1` the
+   * Stretch stage feeds the Transposer; otherwise the order is reversed.
    */
   calculateEffectiveRateAndTempo(): void {
     const previousTempo = this._tempo;
     const previousRate = this._rate;
 
-    this._tempo = this.virtualTempo / this.virtualPitch;
-    this._rate = this.virtualRate * this.virtualPitch;
+    this._tempo = 1.0 / this.virtualPitch;
+    this._rate = this.virtualPitch;
 
     if (testFloatEqual(this._tempo, previousTempo)) {
       this.stretch.tempo = this._tempo;

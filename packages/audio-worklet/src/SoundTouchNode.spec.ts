@@ -57,23 +57,17 @@ describe('SoundTouchNode', () => {
     });
 
     const pitchParam = { value: 1.0 };
-    const tempoParam = { value: 1.0 };
-    const rateParam = { value: 1.0 };
     const semitonesParam = { value: 0 };
     const playbackRateParam = { value: 1.0 };
 
     (node as unknown as { parameters: Map<string, unknown> }).parameters =
       new Map([
         ['pitch', pitchParam],
-        ['tempo', tempoParam],
-        ['rate', rateParam],
         ['pitchSemitones', semitonesParam],
         ['playbackRate', playbackRateParam],
       ]);
 
     expect(node.pitch).toBe(pitchParam);
-    expect(node.tempo).toBe(tempoParam);
-    expect(node.rate).toBe(rateParam);
     expect(node.pitchSemitones).toBe(semitonesParam);
     expect(node.playbackRate).toBe(playbackRateParam);
   });

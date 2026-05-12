@@ -6,13 +6,13 @@ import { Meta } from '@storybook/blocks';
 
 **What is this?**
 
-This is the main “engine” that lets you change pitch, tempo, and speed of audio in one place. It combines all the building blocks (like stretching and transposing) so you don’t have to wire them up yourself.
+This is the core engine that lets you shift the pitch or key of audio in one place. It combines the `RateTransposer` and `Stretch` stages so you don’t have to wire them up yourself.
 
 **When would I use it?**
 
-If you want to change how fast something plays, shift the pitch, or adjust the key—all in one step—this is the class to use.
+Use this directly only when building a custom audio pipeline. For browser playback, use [`SoundTouchNode`](../audio-worklet/sound-touch-node) from `@soundtouchjs/audio-worklet` instead.
 
-`SoundTouch` is the main high-level engine that combines `Stretch` and `RateTransposer` for pitch, tempo, and rate manipulation.
+`SoundTouch` is the main processing engine that chains `RateTransposer` and `Stretch` for real-time pitch manipulation.
 
 ## Import
 
@@ -33,16 +33,19 @@ new SoundTouch({
 
 ## Public API
 
-- rate (getter/setter)
-- rateChange (setter)
-- tempo (getter/setter)
-- tempoChange (setter)
+- virtualPitch (field) — current pitch multiplier; updated by the pitch setters
 - pitch (setter)
 - pitchOctaves (setter)
 - pitchSemitones (setter)
 - inputBuffer (getter)
 - outputBuffer (getter)
+- interpolationStrategy (getter)
+- interpolationStrategyParams (getter)
+- setInterpolationStrategy(strategy)
+- setInterpolationStrategyParams(params)
 - clear()
 - clone()
 - calculateEffectiveRateAndTempo()
 - process()
+
+> **Note:** `tempo` and `rate` are internal pipeline values derived from `virtualPitch` — they are not part of the public API. For browser playback, use [`SoundTouchNode`](../audio-worklet/sound-touch-node), which manages the pipeline internally.
