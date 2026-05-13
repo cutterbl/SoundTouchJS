@@ -39,6 +39,9 @@
       ],
       "@soundtouchjs/phase-vocoder-worklet": [
         "packages/phase-vocoder-worklet/src/index.ts"
+      ],
+      "@soundtouchjs/formant-correction-worklet": [
+        "packages/formant-correction-worklet/src/index.ts"
       ]
     }
   },

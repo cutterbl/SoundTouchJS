@@ -1,0 +1,148 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/Formant Correction Node" />
+
+# FormantCorrectionNode
+
+**What is this?**
+
+`@soundtouchjs/formant-correction-worklet` provides an `AudioWorkletNode` that combines SoundTouch pitch-shifting with LPC-based formant preservation. Use it instead of `SoundTouchNode` when you need to shift the pitch of vocals or speech without the characteristic "chipmunk" or "giant" effect.
+
+**When would I use it?**
+
+- Pitch-shifting vocals or speech while keeping the speaker's natural timbre.
+- Building a key-changer for karaoke that sounds natural.
+- Real-time voice processing where formant preservation matters.
+- A/B comparison between corrected and uncorrected pitch shifting.
+
+## The problem
+
+When pitch is shifted upward, the spectral resonances (formants) of the voice move with the pitch — making higher-pitched voices sound like a chipmunk and lower-pitched voices sound like a giant. Formant correction extracts the spectral envelope of the original voice and re-applies it to the pitch-shifted output.
+
+## Algorithm
+
+For each render block (128 frames at 48 kHz):
+
+1. SoundTouch processes the original input → pitch-shifted output.
+2. LPC coefficients are computed from a 512-sample sliding input window (order 16, Hamming-windowed autocorrelation + Levinson-Durbin recursion).
+3. The analysis filter removes the shifted formants from the pitch-shifted output (spectrally whitens it).
+4. The synthesis filter re-applies the original input formant envelope.
+5. `formantStrength` linearly blends the corrected and raw pitch-shifted signals.
+
+## Setup
+
+```ts
+import { FormantCorrectionNode } from '@soundtouchjs/formant-correction-worklet';
+// Vite:
+import processorUrl from '@soundtouchjs/formant-correction-worklet/processor?url';
+
+const audioCtx = new AudioContext();
+await FormantCorrectionNode.register(audioCtx, processorUrl);
+```
+
+See [Getting Started](./getting-started) for Vite, webpack, and static setups.
+
+## Basic usage
+
+```ts
+const node = new FormantCorrectionNode({ context: audioCtx });
+
+node.pitchSemitones.value = 7;   // shift up a perfect fifth
+node.formantStrength.value = 1;  // keep original timbre
+
+node.connect(audioCtx.destination);
+sourceNode.connect(node);
+```
+
+## A/B comparison
+
+```ts
+// Raw pitch shift (chipmunk/giant effect)
+node.formantStrength.value = 0;
+
+// Formant-corrected
+node.formantStrength.value = 1;
+
+// Or blend
+node.formantStrength.value = 0.5;
+```
+
+## Constructor options
+
+```ts
+new FormantCorrectionNode({
+  context: audioCtx,
+  outputChannelCount?: 1 | 2,          // default: 2
+  sampleBufferType?: 'circular' | 'fifo',
+  interpolationStrategy?: RateTransposerInterpolationStrategy,
+})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `context` | required | AudioContext or OfflineAudioContext |
+| `outputChannelCount` | 2 | `1` for mono destinations; input is always processed as stereo |
+| `sampleBufferType` | `'circular'` | Internal buffer strategy |
+| `interpolationStrategy` | `'lanczos'` | Rate-transposer interpolation kernel |
+
+## AudioParams
+
+| Param | Default | Range | Description |
+|-------|---------|-------|-------------|
+| `pitch` | `1.0` | `0.1–8.0` | Pitch multiplier (k-rate) |
+| `pitchSemitones` | `0` | `-24–24` | Semitone pitch shift (k-rate) |
+| `playbackRate` | `1.0` | `0.1–8.0` | Match the source node's `playbackRate` for accurate pitch compensation (k-rate) |
+| `formantStrength` | `1.0` | `0.0–1.0` | `0` = raw pitch shift; `1` = full formant correction (k-rate) |
+
+## Public API
+
+| Member | Description |
+|--------|-------------|
+| `FormantCorrectionNode.register(ctx, url)` | Registers the processor module. |
+| `FormantCorrectionNode.registerStrategyModule(ctx, url)` | Loads an interpolation strategy plugin. |
+| `FormantCorrectionNode.processorName` | Registered processor name string. |
+| `pitch` | Pitch multiplier AudioParam. |
+| `pitchSemitones` | Semitone pitch shift AudioParam. |
+| `playbackRate` | Playback rate AudioParam. |
+| `formantStrength` | Formant correction strength AudioParam. |
+| `setInterpolationStrategy(strategy)` | Switches interpolation strategy at runtime. |
+| `setInterpolationStrategyParams(params)` | Updates active strategy parameters. |
+| `setStretchParameters(params)` | Applies WSOLA timing parameters. |
+| `metrics` | Latest `ProcessorMetrics` snapshot, or `null`. |
+
+## Processor observability
+
+```ts
+node.addEventListener('metrics', (e) => {
+  const { framesBuffered, underrunCount, blockCount } =
+    (e as CustomEvent<ProcessorMetrics>).detail;
+});
+```
+
+## LPC primitives
+
+The LPC functions used internally are exported for custom use:
+
+```ts
+import {
+  autocorrelate,
+  levinsonDurbin,
+  applyAnalysisFilter,
+  applySynthesisFilter,
+} from '@soundtouchjs/formant-correction-worklet';
+
+const r = autocorrelate(frame, 16);          // autocorrelation
+const a = levinsonDurbin(r, 16);             // LPC coefficients
+const zi = new Float32Array(16);
+const residual = applyAnalysisFilter(frame, a, zi);   // whiten
+const colored = applySynthesisFilter(residual, a, zi); // re-color
+```
+
+## Trade-offs vs `SoundTouchNode`
+
+| | `SoundTouchNode` | `FormantCorrectionNode` |
+|--|--|--|
+| Formant shift | Yes (chipmunk/giant) | Corrected |
+| Computation | Lower | Higher (LPC per block) |
+| Best use case | Instruments, music | Vocals, speech |
+| At `formantStrength = 0` | — | Identical to `SoundTouchNode` |

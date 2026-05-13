@@ -32,6 +32,9 @@
     },
     {
       "path": "./packages/phase-vocoder-worklet"
+    },
+    {
+      "path": "./packages/formant-correction-worklet"
     }
   ]
 }

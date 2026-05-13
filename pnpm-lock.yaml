@@ -99,6 +99,12 @@ importers:
         specifier: workspace:*
         version: link:../interpolation-strategy-lanczos
 
+  packages/formant-correction-worklet:
+    dependencies:
+      '@soundtouchjs/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/interpolation-strategy-blackman: {}
 
   packages/interpolation-strategy-hann: {}

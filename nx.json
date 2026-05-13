@@ -104,7 +104,8 @@
       "@soundtouchjs/interpolation-strategy-blackman",
       "@soundtouchjs/interpolation-strategy-kaiser",
       "@soundtouchjs/stretch-phase-vocoder",
-      "@soundtouchjs/phase-vocoder-worklet"
+      "@soundtouchjs/phase-vocoder-worklet",
+      "@soundtouchjs/formant-correction-worklet"
     ],
     "changelog": {
       "automaticFromRef": false,
