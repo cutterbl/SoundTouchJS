@@ -1,6 +1,6 @@
-import { Meta } from ‘@storybook/blocks’;
+import { Meta } from '@storybook/blocks';
 
-<Meta title=”Audio Worklet/Getting Started” />
+<Meta title="Audio Worklet/Getting Started" />
 
 # Getting Started
 
@@ -11,7 +11,7 @@ This guide explains how to register the SoundTouch processor in different build 
 Before creating a `SoundTouchNode`, register the bundled processor script with the `AudioContext`:
 
 ```ts
-import { SoundTouchNode } from ‘@soundtouchjs/audio-worklet’;
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 
 const audioCtx = new AudioContext();
 await SoundTouchNode.register(audioCtx, processorModuleUrl);
@@ -26,7 +26,7 @@ The processor script is the file at `@soundtouchjs/audio-worklet/processor` insi
 Vite has native support for `?url` imports, which returns the resolved public URL for any asset:
 
 ```ts
-import processorUrl from ‘@soundtouchjs/audio-worklet/processor?url’;
+import processorUrl from '@soundtouchjs/audio-worklet/processor?url';
 
 await SoundTouchNode.register(audioCtx, processorUrl);
 ```
@@ -41,20 +41,20 @@ Use the `URL` constructor with `import.meta.url` so webpack emits the file as a 
 
 ```ts
 const processorUrl = new URL(
-  ‘@soundtouchjs/audio-worklet/processor’,
+  '@soundtouchjs/audio-worklet/processor',
   import.meta.url,
 ).href;
 
 await SoundTouchNode.register(audioCtx, processorUrl);
 ```
 
-Make sure `output.publicPath` is set to `’auto’` (or your app’s public path) in `webpack.config.js`:
+Make sure `output.publicPath` is set to `'auto'` (or your app's public path) in `webpack.config.js`:
 
 ```js
-// webpack.config.js
-module.exports = {
+// webpack.config.mjs  (or webpack.config.js with "type":"module" in package.json)
+export default {
   output: {
-    publicPath: ‘auto’,
+    publicPath: 'auto',
   },
 };
 ```
@@ -72,7 +72,7 @@ cp node_modules/@soundtouchjs/audio-worklet/.dist/soundtouch-processor.js public
 Then pass the path directly:
 
 ```ts
-await SoundTouchNode.register(audioCtx, ‘/soundtouch-processor.js’);
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
 ```
 
 When using a CDN, deploy the file to your CDN origin and use the full URL. The processor script must be served from the **same origin** as your app, or with `Access-Control-Allow-Origin` headers, because `audioWorklet.addModule()` follows browser CORS policy.
@@ -92,7 +92,7 @@ const stNode = new SoundTouchNode({ context: offlineCtx });
 When using `processOffline()`, registration is handled internally — you only need to pass `processorUrl`:
 
 ```ts
-import { processOffline } from ‘@soundtouchjs/audio-worklet’;
+import { processOffline } from '@soundtouchjs/audio-worklet';
 
 const processed = await processOffline({
   input: audioBuffer,
@@ -122,11 +122,11 @@ const stNode = new SoundTouchNode({ context: audioCtx });
 
 **Cross-origin processor URL without CORS headers**
 
-`audioWorklet.addModule()` fetches the script as a module worker. If hosted on a different origin, the server must return `Access-Control-Allow-Origin: *` (or your app’s origin). Self-signed certificates in local development also cause fetch failures — use a properly configured dev server.
+`audioWorklet.addModule()` fetches the script as a module worker. If hosted on a different origin, the server must return `Access-Control-Allow-Origin: *` (or your app's origin). Self-signed certificates in local development also cause fetch failures — use a properly configured dev server.
 
 **Using a relative path that resolves incorrectly**
 
-Relative paths like `’./soundtouch-processor.js’` resolve relative to the **page URL**, not the JavaScript module. Use an absolute path (`’/soundtouch-processor.js’`) or a build-tool-resolved URL.
+Relative paths like `'./soundtouch-processor.js'` resolve relative to the **page URL**, not the JavaScript module. Use an absolute path (`'/soundtouch-processor.js'`) or a build-tool-resolved URL.
 
 **`AudioContext` suspended on page load**
 
