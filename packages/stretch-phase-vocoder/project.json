@@ -1,0 +1,41 @@
+{
+  "name": "@soundtouchjs/stretch-phase-vocoder",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/stretch-phase-vocoder/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/.dist"],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc --build tsconfig.lib.json"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^typecheck"],
+      "outputs": [
+        "{projectRoot}/.dist/**/*.d.ts",
+        "{projectRoot}/.dist/**/*.d.ts.map",
+        "{projectRoot}/.dist/.tsbuildinfo"
+      ],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc --build tsconfig.lib.json --emitDeclarationOnly"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "vitest run --passWithNoTests"
+      }
+    }
+  },
+  "tags": []
+}

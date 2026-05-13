@@ -1,0 +1,50 @@
+{
+  "name": "@soundtouchjs/stretch-phase-vocoder",
+  "version": "0.1.0",
+  "description": "Phase vocoder time-stretch stage for SoundTouchJS — a StretchPipe implementation using FFT-based phase accumulation.",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./.dist/index.d.ts",
+      "default": "./.dist/index.js"
+    }
+  },
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "files": [
+    ".dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "audio",
+    "WebAudio",
+    "phase-vocoder",
+    "FFT",
+    "time-stretch",
+    "pitch",
+    "soundtouch",
+    "TypeScript",
+    "DSP"
+  ],
+  "author": "Steve 'Cutter' Blades",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git",
+    "directory": "packages/stretch-phase-vocoder"
+  },
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "peerDependencies": {
+    "@soundtouchjs/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "@soundtouchjs/phase-vocoder-worklet",
+  "version": "1.0.0",
+  "description": "AudioWorklet integration for the SoundTouchJS phase vocoder time-stretch algorithm",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./.dist/index.d.ts",
+      "default": "./.dist/index.js"
+    },
+    "./processor": "./.dist/phase-vocoder-processor.js"
+  },
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "files": [
+    ".dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "audio",
+    "WebAudio",
+    "AudioWorklet",
+    "TypeScript",
+    "pitch",
+    "tempo",
+    "soundtouch",
+    "phase-vocoder",
+    "fft"
+  ],
+  "author": "Steve 'Cutter' Blades",
+  "contributors": [
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git",
+    "directory": "packages/phase-vocoder-worklet"
+  },
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "dependencies": {
+    "@soundtouchjs/core": "workspace:*",
+    "@soundtouchjs/stretch-phase-vocoder": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

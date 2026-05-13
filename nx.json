@@ -102,7 +102,9 @@
       "@soundtouchjs/interpolation-strategy-linear",
       "@soundtouchjs/interpolation-strategy-hann",
       "@soundtouchjs/interpolation-strategy-blackman",
-      "@soundtouchjs/interpolation-strategy-kaiser"
+      "@soundtouchjs/interpolation-strategy-kaiser",
+      "@soundtouchjs/stretch-phase-vocoder",
+      "@soundtouchjs/phase-vocoder-worklet"
     ],
     "changelog": {
       "automaticFromRef": false,

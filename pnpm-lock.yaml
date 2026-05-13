@@ -109,6 +109,21 @@ importers:
 
   packages/interpolation-strategy-linear: {}
 
+  packages/phase-vocoder-worklet:
+    dependencies:
+      '@soundtouchjs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@soundtouchjs/stretch-phase-vocoder':
+        specifier: workspace:*
+        version: link:../stretch-phase-vocoder
+
+  packages/stretch-phase-vocoder:
+    dependencies:
+      '@soundtouchjs/core':
+        specifier: workspace:*
+        version: link:../core
+
 packages:
 
   '@adobe/css-tools@4.4.4':

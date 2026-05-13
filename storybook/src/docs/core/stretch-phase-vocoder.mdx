@@ -1,0 +1,124 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Phase Vocoder" />
+
+# Phase Vocoder
+
+**What is this?**
+
+`@soundtouchjs/stretch-phase-vocoder` provides an FFT-based time-stretch stage that can replace the default WSOLA `Stretch` inside `SoundTouch`. It implements the `StretchPipe` interface, making it a structural drop-in.
+
+**When would I use it?**
+
+- You need smooth time-stretching at extreme ratios (> 2×) where WSOLA starts to sound choppy.
+- You want the characteristic "phasiness" of a frequency-domain vocoder rather than WSOLA's click artifacts.
+- You are building a custom `AudioWorkletProcessor` and want full control over the stretch algorithm.
+
+## Import
+
+```ts
+import {
+  PhaseVocoder,
+  createPhaseVocoderFactory,
+} from '@soundtouchjs/stretch-phase-vocoder';
+```
+
+## Using as a SoundTouch stretch stage
+
+Pass a factory to `SoundTouchOptions.stretchFactory`:
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+import { createPhaseVocoderFactory } from '@soundtouchjs/stretch-phase-vocoder';
+
+const st = new SoundTouch({
+  stretchFactory: createPhaseVocoderFactory(),       // default: 2048-sample FFT, 4× overlap
+});
+st.pitch = 1.5; // RateTransposer + PhaseVocoder work together
+```
+
+With custom parameters:
+
+```ts
+const st = new SoundTouch({
+  stretchFactory: createPhaseVocoderFactory(1024, 4),
+});
+```
+
+## Constructor options
+
+```ts
+new PhaseVocoder({
+  fftSize?: 512 | 1024 | 2048 | 4096,  // default: 2048
+  overlapFactor?: 2 | 4 | 8,           // default: 4
+})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `fftSize` | 2048 | FFT frame size; larger = better frequency resolution, higher startup latency |
+| `overlapFactor` | 4 | Overlap factor (75 % overlap); higher = smoother at the cost of more FFT calls |
+
+## Public API
+
+| Member | Description |
+|--------|-------------|
+| `inputBuffer` | Source `SampleBuffer` (interleaved stereo L/R/L/R) |
+| `outputBuffer` | Destination `SampleBuffer` |
+| `tempo` | Time-stretch multiplier — same convention as WSOLA `Stretch` |
+| `sampleReq` | `fftSize / overlapFactor` — frames consumed per `process()` call |
+| `process()` | Consumes `sampleReq` frames; produces `round(sampleReq / tempo)` frames |
+| `clear()` | Resets all internal state including the sliding analysis window |
+| `clearMidBuffer()` | Resets only phase accumulators — use this after a seek |
+| `setParameters()` | No-op (accepts WSOLA signature for interface compatibility) |
+| `setStretchParameters()` | No-op (accepts WSOLA params for interface compatibility) |
+| `clone()` | Returns a new instance with the same `fftSize`/`overlapFactor` and empty state |
+
+## `createPhaseVocoderFactory`
+
+```ts
+function createPhaseVocoderFactory(
+  fftSize?: 512 | 1024 | 2048 | 4096,
+  overlapFactor?: 2 | 4 | 8,
+): StretchFactory
+```
+
+Returns a `StretchFactory` to pass to `SoundTouchOptions.stretchFactory`.
+
+## FFT primitives
+
+The package also exports its internal FFT for custom use:
+
+```ts
+import { fft, ifft, makeHannWindow } from '@soundtouchjs/stretch-phase-vocoder';
+
+const N = 1024;
+const re = new Float32Array(N);
+const im = new Float32Array(N);
+// Fill re with samples...
+fft(re, im);       // in-place forward FFT
+ifft(re, im);      // in-place inverse FFT
+const win = makeHannWindow(N); // symmetric Hann window
+```
+
+## Algorithm
+
+1. Maintain a sliding `fftSize`-sample analysis window (ring buffer, per channel).
+2. Each `process()` call appends `Ha = fftSize / overlapFactor` new frames.
+3. Apply a Hann window and compute the FFT.
+4. For each positive-frequency bin, compute the instantaneous frequency from the phase difference between consecutive frames, scaled by the time-stretch ratio.
+5. Accumulate the synthesis phase and reconstruct the spectrum.
+6. IFFT + Hann window + overlap-add at synthesis hop `Hs = round(Ha / tempo)`.
+7. Normalize the OLA output by `overlapFactor / 2` (the sum of Hann windows at 75 % overlap).
+
+## Trade-offs vs WSOLA
+
+| | WSOLA (default) | Phase vocoder |
+|--|--|--|
+| Quality at extreme ratios | Artifacts above 2× | Smooth at all ratios |
+| Transient preservation | Better (time-domain) | Worse (frequency smearing) |
+| Computation | Lower | Higher (FFT per hop) |
+| Startup latency | Lower | `fftSize` samples |
+| Artifacts | Clicks / repeats | "Phasiness" / smearing |
+
+For most musical applications at moderate tempos (0.5–2×), WSOLA is a better default. The phase vocoder is a good choice for very slow-motion or very fast playback, or when WSOLA artifacts are unacceptable.

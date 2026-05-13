@@ -26,6 +26,12 @@
     },
     {
       "path": "./packages/interpolation-strategy-kaiser"
+    },
+    {
+      "path": "./packages/stretch-phase-vocoder"
+    },
+    {
+      "path": "./packages/phase-vocoder-worklet"
     }
   ]
 }

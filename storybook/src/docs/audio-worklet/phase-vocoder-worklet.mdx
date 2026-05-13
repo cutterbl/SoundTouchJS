@@ -1,0 +1,127 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/Phase Vocoder Node" />
+
+# PhaseVocoderNode
+
+**What is this?**
+
+`@soundtouchjs/phase-vocoder-worklet` provides an `AudioWorkletNode` backed by an FFT-based phase vocoder instead of the default WSOLA stretch algorithm. Use it as a drop-in replacement for `SoundTouchNode` when you need smoother time-stretching at extreme playback ratios.
+
+**When would I use it?**
+
+- Playback at extreme ratios (< 0.5× or > 2×) where WSOLA produces audible clicks or repeats.
+- Smooth slow-motion or very fast playback where "phasiness" is acceptable.
+- You need the full `SoundTouchNode` API (pitch, semitones, rate, interpolation strategy) with a different stretch core.
+
+For moderate ratios (0.5–2×) `SoundTouchNode` typically sounds better.
+
+## Setup
+
+### Registering the processor
+
+```ts
+import { PhaseVocoderNode } from '@soundtouchjs/phase-vocoder-worklet';
+
+const audioCtx = new AudioContext();
+// Vite:
+import processorUrl from '@soundtouchjs/phase-vocoder-worklet/processor?url';
+await PhaseVocoderNode.register(audioCtx, processorUrl);
+```
+
+See [Getting Started](./getting-started) for Vite, webpack, and static setups.
+
+## Basic usage
+
+```ts
+const node = new PhaseVocoderNode({
+  context: audioCtx,
+  fftSize: 2048,     // default
+  overlapFactor: 4,  // default
+});
+
+node.pitch.value = 1.5;        // 50 % pitch up
+node.pitchSemitones.value = 3; // shift by semitones
+node.playbackRate.value = 0.25; // extreme slow-down — smooth with phase vocoder
+
+node.connect(audioCtx.destination);
+sourceNode.connect(node);
+```
+
+## Constructor options
+
+```ts
+new PhaseVocoderNode({
+  context: audioCtx,
+  fftSize?: 512 | 1024 | 2048 | 4096,  // default: 2048
+  overlapFactor?: 2 | 4 | 8,           // default: 4
+  outputChannelCount?: 1 | 2,          // default: 2
+  sampleBufferType?: 'circular' | 'fifo',
+  interpolationStrategy?: RateTransposerInterpolationStrategy,
+})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `context` | required | AudioContext or OfflineAudioContext |
+| `fftSize` | 2048 | FFT frame size — larger = better frequency resolution, higher latency |
+| `overlapFactor` | 4 | Overlap factor — 4 = 75 % overlap; 8 = 87.5 % overlap (smoother, 2× cost) |
+| `outputChannelCount` | 2 | `1` for mono destinations; input is always processed as stereo |
+| `sampleBufferType` | `'circular'` | Internal buffer strategy |
+| `interpolationStrategy` | `'lanczos'` | Rate-transposer interpolation kernel |
+
+## AudioParams
+
+| Param | Default | Range | Description |
+|-------|---------|-------|-------------|
+| `pitch` | `1.0` | `0.1–8.0` | Pitch multiplier (k-rate) |
+| `pitchSemitones` | `0` | `-24–24` | Pitch shift in semitones (k-rate) |
+| `playbackRate` | `1.0` | `0.1–8.0` | Playback rate; set this to match your source node's `playbackRate` (k-rate) |
+
+## Public API
+
+| Member | Description |
+|--------|-------------|
+| `PhaseVocoderNode.register(ctx, url)` | Registers the processor module. Must be called before constructing nodes. |
+| `PhaseVocoderNode.registerStrategyModule(ctx, url)` | Loads an interpolation strategy plugin into worklet scope. |
+| `PhaseVocoderNode.processorName` | The registered processor name string (`'phase-vocoder-processor'`). |
+| `pitch` | Pitch multiplier AudioParam. |
+| `pitchSemitones` | Semitone pitch shift AudioParam. |
+| `playbackRate` | Playback rate AudioParam. |
+| `setInterpolationStrategy(strategy)` | Switches rate-transposer interpolation strategy at runtime. |
+| `setInterpolationStrategyParams(params)` | Updates parameters for the active strategy. |
+| `setStretchParameters(params)` | No-op for the phase vocoder (API parity with `SoundTouchNode`). |
+| `metrics` | Latest `ProcessorMetrics` snapshot, or `null`. |
+
+## Processor observability
+
+The render-thread processor posts metrics every 100 render blocks:
+
+```ts
+node.addEventListener('metrics', (e) => {
+  const { framesBuffered, underrunCount, blockCount } =
+    (e as CustomEvent<ProcessorMetrics>).detail;
+});
+
+// Or poll the getter:
+const m = node.metrics; // ProcessorMetrics | null
+```
+
+`ProcessorMetrics`:
+
+| Field | Description |
+|-------|-------------|
+| `framesBuffered` | Output frames available at the last render block |
+| `underrunCount` | Cumulative blocks with fewer output frames than requested |
+| `blockCount` | Total render blocks processed since creation |
+| `timestamp` | `performance.now()` on the main thread when metrics arrived |
+
+## Trade-offs vs `SoundTouchNode`
+
+| | `SoundTouchNode` (WSOLA) | `PhaseVocoderNode` |
+|--|--|--|
+| Quality at extreme ratios | Artifacts above 2× | Smooth at all ratios |
+| Transient preservation | Better (time-domain) | Worse (frequency smearing) |
+| Computation | Lower | Higher (FFT per hop) |
+| Startup latency | Lower | `fftSize` samples |
+| Artifacts | Clicks / repeats | "Phasiness" / smearing |

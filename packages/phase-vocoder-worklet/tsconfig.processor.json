@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "ESNext"],
+    "types": [],
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false
+  },
+  "include": ["src/phase-vocoder-processor.ts"],
+  "references": [
+    { "path": "../core/tsconfig.lib.json" },
+    { "path": "../stretch-phase-vocoder/tsconfig.lib.json" }
+  ]
+}
