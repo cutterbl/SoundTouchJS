@@ -77,12 +77,12 @@ Only `packages/core` is published. The `"files"` field in its `package.json` con
 - `README.md`
 - `LICENSE`
 
-### Stage and Commit Instructions
+### Stage and Commit
 
-When working in local development, the repository is configured with a Husky pre-commit hook. This hook ensures that tasks such as linting and typechecking are executed before the commit is finalized. As a result, when staging and committing changes, Copilot must wait for these tasks to complete and summarize their output.
+In local development, this repository uses a Husky pre-commit hook to enforce linting, typechecking, and other tasks before commits are finalized. When staging and committing changes, Copilot must:
 
-#### Steps:
-1. Stage the changes using `git add <file>`.
-2. Commit the changes using `git commit -m "<commit message>"`.
-3. Wait for the pre-commit hook tasks to complete.
-4. Summarize the output of the pre-commit hook tasks, including any errors or warnings encountered.
+1. Wait for the pre-commit hook tasks to complete.
+2. Summarize the output of the pre-commit hook tasks, including any errors or warnings encountered.
+3. Ensure that the commit is finalized only if all pre-commit tasks pass successfully.
+
+If any pre-commit tasks fail, Copilot must report the failure and provide guidance on resolving the issues before retrying the commit.
