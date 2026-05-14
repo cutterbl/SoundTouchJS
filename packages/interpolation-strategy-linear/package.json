@@ -28,5 +28,8 @@
   "author": "@soundtouchjs",
   "license": "MPL-2.0",
   "licenseFile": "LICENSE",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {}
 }
