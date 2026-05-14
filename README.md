@@ -124,20 +124,18 @@ Music: "Actionable" from [Bensound.com](http://bensound.com). This is a limited 
 
 ## What's changed
 
-The `v0.4` release is a ground-up modernization:
+The latest release builds on the modernization of `v0.4` with significant new features, tooling updates, and expanded package offerings:
 
-- **Monorepo**: Migrated from a single-package repo (`soundtouchjs`) to an Nx monorepo with scoped packages (`@soundtouchjs/core`, `@soundtouchjs/audio-worklet`)
-- **TypeScript**: Full rewrite — strict mode, no `any`, complete type exports
-- **ESM only**: Pure ES modules targeting ES2024 (no CommonJS)
-- **AudioWorklet**: New `@soundtouchjs/audio-worklet` package replaces the [separate AudioWorklet repo](https://github.com/cutterbl/soundtouchjs-audio-worklet)
-- **Interpolation plugin model**: Strategy registry with plugin packages; `lanczos` as default, `linear` as optional override
-- **ES2024 optimizations**: Resizable `ArrayBuffer` in `FifoSampleBuffer`, scratch buffer reuse, dirty-flag overlap buffers
-- **pnpm workspaces**: Workspace protocol (`workspace:*`) for inter-package dependencies
-- **Tooling**: Vite dev server, Vitest test runner, Prettier formatting, commitlint + husky, GitHub Actions CI, `nx release` for versioning and publishing
-- **Zero runtime dependencies** on `@soundtouchjs/core`
-- **New packages**: `@soundtouchjs/stretch-phase-vocoder`, `@soundtouchjs/phase-vocoder-worklet`, `@soundtouchjs/formant-correction-worklet`
-- **Offline rendering**: `processOffline()` in `@soundtouchjs/audio-worklet` renders an `AudioBuffer` without a live audio device
-- **Processor observability**: `SoundTouchNode.metrics` getter and `metrics` CustomEvent for monitoring render-thread health
+- **Storybook Enhancements**: Added live processor metrics display and new playgrounds for interpolation strategies, phase vocoder, and formant correction.
+- **New Packages**:
+  - `@soundtouchjs/formant-correction-worklet`: AudioWorklet with LPC-based formant preservation.
+  - `@soundtouchjs/stretch-phase-vocoder`: Phase vocoder time-stretch algorithm.
+  - Interpolation strategy plugins: `lanczos`, `linear`, `hann`, `blackman`, `kaiser`.
+- **Offline Rendering**: Enhanced `processOffline()` in `@soundtouchjs/audio-worklet` for rendering `AudioBuffer` without a live audio device.
+- **Processor Observability**: Expanded `SoundTouchNode.metrics` and `metrics` CustomEvent for detailed monitoring.
+- **Tooling Updates**: Pre-commit hooks now include linting; added `pnpm coverage:summary` for consolidated coverage reports.
+- **Licensing Update**: With significant rewrites, we have now moved off of the LGPL to the MPL-2.0 — see [LICENSE](LICENSE) for details.
+- **Breaking Changes**: Removed deprecated APIs and types in `@soundtouchjs/core` and `@soundtouchjs/audio-worklet`. See the respective package READMEs for migration details.
 
 ### Breaking changes
 

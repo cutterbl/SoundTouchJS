@@ -28,6 +28,7 @@
     "test": "nx run-many -t test",
     "coverage:summary": "node ./scripts/generate-coverage-summary.mjs",
     "typecheck": "nx run-many -t typecheck",
+    "lint": "nx run-many -t lint",
     "release": "nx release",
     "prettier": "prettier --write '**/*.{ts,js,json,html}'",
     "prepare": "husky"
