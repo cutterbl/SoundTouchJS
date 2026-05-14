@@ -2,10 +2,8 @@
  * SoundTouch JS audio processing library
  * Copyright (c) Steve 'Cutter' Blades
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License.
+ * Licensed under the Mozilla Public License, v. 2.0.
+ * You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 /**
@@ -23,6 +21,8 @@ export type {
   StretchParameters,
 } from './FormantCorrectionNode.js';
 export { PROCESSOR_NAME, LPC_ORDER, LPC_WINDOW } from './constants.js';
+export { processOffline } from './processOffline.js';
+export type { ProcessOfflineOptions } from './processOffline.js';
 export {
   autocorrelate,
   levinsonDurbin,

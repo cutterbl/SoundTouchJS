@@ -2,19 +2,8 @@
  * SoundTouch JS audio processing library
  * Copyright (c) Steve 'Cutter' Blades
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Licensed under the Mozilla Public License, v. 2.0.
+ * You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 import type {
@@ -40,6 +29,10 @@ export interface ProcessorMetrics {
   underrunCount: number;
   /** Total render blocks processed since the processor was created. */
   blockCount: number;
+  /** RMS of output block (last 128 frames, both channels averaged) */
+  outputRms: number;
+  /** Peak of output block (last 128 frames, both channels) */
+  outputPeak: number;
   /** `performance.now()` timestamp recorded on the main thread when the metrics arrived. */
   timestamp: DOMHighResTimeStamp;
 }
@@ -102,12 +95,18 @@ export interface SoundTouchNodeConstructorOptions extends SoundTouchNodeOptions 
  * Main-thread AudioWorkletNode wrapper for SoundTouch audio processing.
  *
  * @remarks
- * Provides AudioParam accessors for pitch, tempo, rate, pitchSemitones, and playbackRate. Communicates with the render-thread processor for real-time audio transformation.
+ * Provides AudioParam accessors for `pitch`, `pitchSemitones`, and
+ * `playbackRate`. Communicates with the render-thread processor for real-time
+ * audio transformation.
  *
  * @example
+ * const source = audioCtx.createBufferSource();
+ * source.connect(stNode);
+ *
  * const stNode = new SoundTouchNode({ context: audioCtx });
  * stNode.pitch.value = 1.2;
- * stNode.tempo.value = 0.8;
+ * source.playbackRate.value = 0.8;
+ * stNode.playbackRate.value = 0.8;
  * stNode.pitchSemitones.value = -3;
  */
 export class SoundTouchNode extends AudioWorkletNode {
@@ -175,6 +174,8 @@ export class SoundTouchNode extends AudioWorkletNode {
           framesBuffered: message.framesBuffered,
           underrunCount: message.underrunCount,
           blockCount: message.blockCount,
+          outputRms: message.outputRms,
+          outputPeak: message.outputPeak,
           timestamp: performance.now(),
         };
         this._lastMetrics = metrics;

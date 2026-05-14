@@ -66,6 +66,8 @@ const strategySelect = document.getElementById('strategySelect') as HTMLSelectEl
 const metricsFrames = document.getElementById('metricsFrames') as HTMLSpanElement;
 const metricsUnderruns = document.getElementById('metricsUnderruns') as HTMLSpanElement;
 const metricsBlocks = document.getElementById('metricsBlocks') as HTMLSpanElement;
+const metricsRms = document.getElementById('metricsRms') as HTMLSpanElement;
+const metricsPeak = document.getElementById('metricsPeak') as HTMLSpanElement;
 
 // Sync initial display values with slider defaults
 tempoOutput.textContent = Number(tempoSlider.value).toFixed(2);
@@ -136,12 +138,14 @@ function applyCurrentParamsToNode(): void {
 
 function attachMetricsListener(): void {
   stNode.addEventListener('metrics', (e: Event) => {
-    const { framesBuffered, underrunCount, blockCount } = (
+    const { framesBuffered, underrunCount, blockCount, outputRms, outputPeak } = (
       e as CustomEvent<ProcessorMetrics>
     ).detail;
     metricsFrames.textContent = String(framesBuffered);
     metricsUnderruns.textContent = String(underrunCount);
     metricsBlocks.textContent = String(blockCount);
+    metricsRms.textContent = outputRms !== undefined ? outputRms.toFixed(4) : '--';
+    metricsPeak.textContent = outputPeak !== undefined ? outputPeak.toFixed(4) : '--';
   });
 }
 

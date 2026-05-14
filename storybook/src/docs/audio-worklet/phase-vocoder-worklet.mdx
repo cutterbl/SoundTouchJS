@@ -104,9 +104,25 @@ new PhaseVocoderNode({
     <tr><td><code>setInterpolationStrategy(strategy)</code></td><td>Switches rate-transposer interpolation strategy at runtime.</td></tr>
     <tr><td><code>setInterpolationStrategyParams(params)</code></td><td>Updates parameters for the active strategy.</td></tr>
     <tr><td><code>setStretchParameters(params)</code></td><td>No-op for the phase vocoder (API parity with <code>SoundTouchNode</code>).</td></tr>
+    <tr><td><code>processOffline(options)</code></td><td>Renders an <code>AudioBuffer</code> through the phase-vocoder worklet in an <code>OfflineAudioContext</code>.</td></tr>
     <tr><td><code>metrics</code></td><td>Latest <code>ProcessorMetrics</code> snapshot, or <code>null</code>.</td></tr>
   </tbody>
 </table>
+
+## Offline processing
+
+```ts
+import { processOffline } from '@soundtouchjs/phase-vocoder-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,
+  playbackRate: 0.5,
+  pitchSemitones: 3,
+  fftSize: 1024,
+  overlapFactor: 8,
+});
+```
 
 ## Processor observability
 
@@ -114,8 +130,9 @@ The render-thread processor posts metrics every 100 render blocks:
 
 ```ts
 node.addEventListener('metrics', (e) => {
-  const { framesBuffered, underrunCount, blockCount } =
+  const { framesBuffered, underrunCount, blockCount, outputRms, outputPeak } =
     (e as CustomEvent<ProcessorMetrics>).detail;
+  // e.g. display outputRms/outputPeak in your UI
 });
 
 // Or poll the getter:
@@ -132,6 +149,8 @@ const m = node.metrics; // ProcessorMetrics | null
     <tr><td><code>framesBuffered</code></td><td>Output frames available at the last render block</td></tr>
     <tr><td><code>underrunCount</code></td><td>Cumulative blocks with fewer output frames than requested</td></tr>
     <tr><td><code>blockCount</code></td><td>Total render blocks processed since creation</td></tr>
+    <tr><td><code>outputRms</code></td><td>Root mean square (RMS) of the last output block (both channels)</td></tr>
+    <tr><td><code>outputPeak</code></td><td>Peak absolute value of the last output block (both channels)</td></tr>
     <tr><td><code>timestamp</code></td><td><code>performance.now()</code> on the main thread when metrics arrived</td></tr>
   </tbody>
 </table>

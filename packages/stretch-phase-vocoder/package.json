@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/stretch-phase-vocoder",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Phase vocoder time-stretch stage for SoundTouchJS — a StretchPipe implementation using FFT-based phase accumulation.",
   "license": "MPL-2.0",
   "licenseFile": "LICENSE",

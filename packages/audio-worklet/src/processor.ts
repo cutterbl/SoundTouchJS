@@ -2,19 +2,8 @@
  * SoundTouch JS audio processing library
  * Copyright (c) Steve 'Cutter' Blades
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Licensed under the Mozilla Public License, v. 2.0.
+ * You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 import { SoundTouch, resolveInterpolationStrategy } from '@soundtouchjs/core';
@@ -91,6 +80,10 @@ interface MetricsMessage {
   underrunCount: number;
   /** Total render blocks processed since the processor was created. */
   blockCount: number;
+  /** RMS of output block (last 128 frames, both channels averaged) */
+  outputRms: number;
+  /** Peak of output block (last 128 frames, both channels) */
+  outputPeak: number;
 }
 
 /**
@@ -290,6 +283,31 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       this._underrunCount++;
     }
 
+    let outputRms = 0;
+    let outputPeak = 0;
+    if (toExtract > 0) {
+      const extracted = this._outputSamples;
+      outputBuffer.extract(extracted, 0, toExtract);
+      outputBuffer.receive(toExtract);
+      let sumSq = 0;
+      let peak = 0;
+      for (let i = 0; i < toExtract; i++) {
+        const l = extracted[i * 2];
+        const r = extracted[i * 2 + 1];
+        leftOutput[i] = Number.isFinite(l) ? l : 0;
+        rightOutput[i] = Number.isFinite(r) ? r : 0;
+        sumSq += l * l + r * r;
+        peak = Math.max(peak, Math.abs(l), Math.abs(r));
+      }
+      outputRms = Math.sqrt(sumSq / (toExtract * 2));
+      outputPeak = peak;
+    }
+
+    for (let i = toExtract; i < frameCount; i++) {
+      leftOutput[i] = 0;
+      rightOutput[i] = 0;
+    }
+
     // Post metrics to the main thread every 100 blocks.
     if (this._blockCount % 100 === 0) {
       this.port.postMessage({
@@ -297,24 +315,9 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         framesBuffered: available,
         underrunCount: this._underrunCount,
         blockCount: this._blockCount,
+        outputRms,
+        outputPeak,
       } satisfies MetricsMessage);
-    }
-
-    if (toExtract > 0) {
-      const extracted = this._outputSamples;
-      outputBuffer.extract(extracted, 0, toExtract);
-      outputBuffer.receive(toExtract);
-      for (let i = 0; i < toExtract; i++) {
-        const l = extracted[i * 2];
-        const r = extracted[i * 2 + 1];
-        leftOutput[i] = Number.isFinite(l) ? l : 0;
-        rightOutput[i] = Number.isFinite(r) ? r : 0;
-      }
-    }
-
-    for (let i = toExtract; i < frameCount; i++) {
-      leftOutput[i] = 0;
-      rightOutput[i] = 0;
     }
 
     return true;

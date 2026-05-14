@@ -54,40 +54,74 @@
     "conventionalCommits": {
       "types": {
         "feat": {
-          "semverBump": "minor"
+          "semverBump": "minor",
+          "changelog": {
+            "title": "Features",
+            "hidden": false
+          }
         },
         "fix": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Bug Fixes",
+            "hidden": false
+          }
         },
         "perf": {
-          "semverBump": "patch"
-        },
-        "ci": {
-          "semverBump": "patch"
-        },
-        "chore": {
-          "semverBump": "patch"
-        },
-        "build": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Performance Improvements",
+            "hidden": false
+          }
         },
         "refactor": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Refactoring",
+            "hidden": false
+          }
+        },
+        "ci": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
+        },
+        "chore": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
+        },
+        "build": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "docs": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "style": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "test": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         }
       }
     },
     "git": {
       "commit": true,
-      "commitMessage": "chore(release): publish {version}",
+      "commitMessage": "chore(release): Publish {version}",
       "tag": true,
       "tagMessage": "Release {version}"
     },

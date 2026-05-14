@@ -49,8 +49,8 @@ new SoundTouchNode({
 - `processorUrl`: optional convenience field retained in options type (registration still done via `register`)
 - `sampleBufferType`: `'circular' | 'fifo'` (defaults internally to package constant)
 - `interpolationStrategy`: strategy id understood by `@soundtouchjs/core`
-  - built-in ids: `lanczos`, `linear`
-  - plugin ids (after strategy-module registration): `hann`, `blackman`, `kaiser`
+  - built-in default id: `lanczos`
+  - additional ids after registration: `linear`, `hann`, `blackman`, `kaiser`
 - `outputChannelCount`: `1 | 2` — number of output channels (default: `2`). Set to `1` when connecting to a mono destination.
 
 ## Static methods
@@ -116,7 +116,7 @@ AudioWorklet render blocks are fixed at 128 samples. A `tempo` multiplier applie
 Switches the interpolation strategy in the render-thread processor at runtime. Applied at the next render block boundary.
 
 ```ts
-stNode.setInterpolationStrategy('linear');
+stNode.setInterpolationStrategy('lanczos');
 ```
 
 ### `setInterpolationStrategyParams(params)`
@@ -162,9 +162,9 @@ const m = stNode.metrics; // ProcessorMetrics | null
 
 // Event-driven monitoring
 stNode.addEventListener('metrics', (e) => {
-  const { framesBuffered, underrunCount, blockCount, timestamp } =
+  const { framesBuffered, underrunCount, blockCount, outputRms, outputPeak, timestamp } =
     (e as CustomEvent<ProcessorMetrics>).detail;
-  console.log(`buffered=${framesBuffered} underruns=${underrunCount}/${blockCount}`);
+  console.log(`buffered=${framesBuffered} underruns=${underrunCount}/${blockCount} rms=${outputRms.toFixed(4)} peak=${outputPeak.toFixed(4)}`);
 });
 ```
 
@@ -176,6 +176,8 @@ stNode.addEventListener('metrics', (e) => {
     <tr><td><code>framesBuffered</code></td><td>Frames available in the output buffer at the last render block</td></tr>
     <tr><td><code>underrunCount</code></td><td>Cumulative render blocks where the output buffer had fewer frames than requested</td></tr>
     <tr><td><code>blockCount</code></td><td>Total render blocks processed since the processor started</td></tr>
+    <tr><td><code>outputRms</code></td><td>Root mean square (RMS) of the last output block (both channels averaged)</td></tr>
+    <tr><td><code>outputPeak</code></td><td>Peak absolute value of the last output block (both channels)</td></tr>
     <tr><td><code>timestamp</code></td><td><code>performance.now()</code> recorded on the main thread when metrics arrived</td></tr>
   </tbody>
 </table>

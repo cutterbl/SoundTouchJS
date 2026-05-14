@@ -68,6 +68,22 @@ node.connect(audioCtx.destination);
 sourceNode.connect(node);
 ```
 
+## Offline processing
+
+Use `processOffline()` to render the formant-correction pipeline in an `OfflineAudioContext`:
+
+```ts
+import { processOffline } from '@soundtouchjs/formant-correction-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,
+  pitchSemitones: 7,
+  formantStrength: 1,
+  playbackRate: 1.2,
+});
+```
+
 ### A/B comparison
 
 ```ts
@@ -82,6 +98,15 @@ node.formantStrength.value = 0.5;
 ```
 
 ## API
+
+Top-level exports:
+
+| Export | Description |
+|--------|-------------|
+| `FormantCorrectionNode` | Main-thread AudioWorkletNode wrapper |
+| `PROCESSOR_NAME` | Processor registration id |
+| `processOffline(options)` | Offline rendering helper using `FormantCorrectionNode` |
+| `autocorrelate`, `levinsonDurbin`, `applyAnalysisFilter`, `applySynthesisFilter` | LPC primitives for custom processing |
 
 ### `FormantCorrectionNode`
 

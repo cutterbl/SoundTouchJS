@@ -13,6 +13,7 @@ describe('formant-correction-worklet public exports', () => {
       'applySynthesisFilter',
       'autocorrelate',
       'levinsonDurbin',
+      'processOffline',
     ]);
   });
 });

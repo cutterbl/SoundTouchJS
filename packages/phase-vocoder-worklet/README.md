@@ -67,7 +67,32 @@ node.connect(audioCtx.destination);
 sourceNode.connect(node);
 ```
 
+## Offline processing
+
+Use `processOffline()` when you want the same phase-vocoder pipeline in an `OfflineAudioContext` (no live audio device needed):
+
+```ts
+import { processOffline } from '@soundtouchjs/phase-vocoder-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,
+  playbackRate: 0.5,
+  pitchSemitones: 3,
+  fftSize: 1024,
+  overlapFactor: 8,
+});
+```
+
 ## API
+
+Top-level exports:
+
+| Export | Description |
+|--------|-------------|
+| `PhaseVocoderNode` | Main-thread AudioWorkletNode wrapper |
+| `PROCESSOR_NAME` | Processor registration id |
+| `processOffline(options)` | Offline rendering helper using `PhaseVocoderNode` |
 
 ### `PhaseVocoderNode`
 

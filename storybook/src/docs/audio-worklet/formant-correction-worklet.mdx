@@ -121,9 +121,24 @@ new FormantCorrectionNode({
     <tr><td><code>setInterpolationStrategy(strategy)</code></td><td>Switches interpolation strategy at runtime.</td></tr>
     <tr><td><code>setInterpolationStrategyParams(params)</code></td><td>Updates active strategy parameters.</td></tr>
     <tr><td><code>setStretchParameters(params)</code></td><td>Applies WSOLA timing parameters.</td></tr>
+    <tr><td><code>processOffline(options)</code></td><td>Renders an <code>AudioBuffer</code> through the formant-correction worklet in an <code>OfflineAudioContext</code>.</td></tr>
     <tr><td><code>metrics</code></td><td>Latest <code>ProcessorMetrics</code> snapshot, or <code>null</code>.</td></tr>
   </tbody>
 </table>
+
+## Offline processing
+
+```ts
+import { processOffline } from '@soundtouchjs/formant-correction-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,
+  pitchSemitones: 7,
+  formantStrength: 1,
+  playbackRate: 1.2,
+});
+```
 
 ## Processor observability
 

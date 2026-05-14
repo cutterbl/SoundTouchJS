@@ -474,6 +474,8 @@ export function PhaseVocoderPlayground({
         <span><strong>Buffered frames:</strong> {metrics?.framesBuffered ?? 0}</span>
         <span><strong>Underruns:</strong> {metrics?.underrunCount ?? 0}</span>
         <span><strong>Blocks processed:</strong> {metrics?.blockCount ?? 0}</span>
+        <span><strong>Output RMS:</strong> {metrics?.outputRms !== undefined ? metrics.outputRms.toFixed(4) : '--'}</span>
+        <span><strong>Peak:</strong> {metrics?.outputPeak !== undefined ? metrics.outputPeak.toFixed(4) : '--'}</span>
       </div>
 
       <div style={{ marginTop: '1rem' }}>

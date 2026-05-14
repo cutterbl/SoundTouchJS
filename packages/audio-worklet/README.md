@@ -67,7 +67,7 @@ const stNodeFifo = new SoundTouchNode({
   sampleBufferType: 'fifo',
 });
 
-// Optional interpolation override
+// Optional interpolation override (requires registering the linear strategy module)
 const stNodeLinear = new SoundTouchNode({
   context: audioCtx,
   interpolationStrategy: 'linear',
@@ -133,13 +133,19 @@ These ranges are intentionally broader than the typical musical sweet spot, but 
 
 ### Interpolation strategy
 
-AudioWorklet processing defaults to `lanczos`. You can pass an alternate strategy id at node construction:
+AudioWorklet processing defaults to `lanczos`. You can pass a strategy id at node construction:
 
 ```ts
 const stNode = new SoundTouchNode({
   context: audioCtx,
   interpolationStrategy: 'linear',
 });
+```
+
+If you want to use non-default strategies like `linear`, `hann`, `blackman`, or `kaiser`, register the strategy module in the worklet first:
+
+```ts
+await SoundTouchNode.registerStrategyModule(audioCtx, strategyModuleUrl);
 ```
 
 If an unknown strategy id is provided, the processor logs an info message and falls back to `lanczos`.
@@ -309,9 +315,9 @@ if (m) {
 
 // Or listen for every update
 stNode.addEventListener('metrics', (e) => {
-  const { framesBuffered, underrunCount, blockCount, timestamp } =
+  const { framesBuffered, underrunCount, blockCount, outputRms, outputPeak, timestamp } =
     (e as CustomEvent<ProcessorMetrics>).detail;
-  console.log(`[${timestamp.toFixed(0)}ms] buffered=${framesBuffered} underruns=${underrunCount}/${blockCount}`);
+  console.log(`[${timestamp.toFixed(0)}ms] buffered=${framesBuffered} underruns=${underrunCount}/${blockCount} rms=${outputRms.toFixed(4)} peak=${outputPeak.toFixed(4)}`);
 });
 ```
 
@@ -326,6 +332,8 @@ import type { ProcessorMetrics } from '@soundtouchjs/audio-worklet';
 | `framesBuffered` | Frames available in the output buffer at the last render block |
 | `underrunCount` | Cumulative render blocks where the output buffer was short |
 | `blockCount` | Total render blocks processed since the processor started |
+| `outputRms` | RMS of the last output block (both channels averaged) |
+| `outputPeak` | Peak absolute value of the last output block (both channels) |
 | `timestamp` | `performance.now()` on the main thread when metrics arrived |
 
 ## Mono input and output

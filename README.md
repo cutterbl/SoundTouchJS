@@ -66,7 +66,7 @@ source.start();
 
 `SoundTouchNode` exposes three AudioParams: `pitch`, `pitchSemitones`, and `playbackRate`. Playback speed is controlled via `playbackRate` — see the [audio-worklet README](packages/audio-worklet/README.md) for how the mirror pattern works.
 
-Interpolation defaults to `lanczos` (Lanczos kernel plugin) in both core and audio-worklet flows. You can opt into `linear` for A/B testing and latency/quality comparisons.
+Interpolation defaults to `lanczos` in both core and audio-worklet flows. Strategies such as `linear`, `hann`, `blackman`, and `kaiser` must be registered before use.
 
 See each package's README for full API documentation.
 

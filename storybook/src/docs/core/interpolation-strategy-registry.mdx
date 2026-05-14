@@ -104,8 +104,9 @@ Sets the process-wide default strategy id. All subsequently constructed `SoundTo
 Throws if the given id is not currently registered.
 
 ```ts
-setActiveInterpolationStrategy('linear');
-// or with initial params:
+registerKaiserStrategy({ registerInterpolationStrategy });
+
+// Set a non-default process-wide strategy for future instances:
 setActiveInterpolationStrategy({ id: 'kaiser', params: { zeroCrossings: 6, beta: 10 } });
 ```
 
