@@ -24,6 +24,8 @@ export default defineConfig(() => ({
       '@soundtouchjs/interpolation-strategy-lanczos': `${import.meta.dirname}/../packages/interpolation-strategy-lanczos/src/index.ts`,
       '@soundtouchjs/interpolation-strategy-linear': `${import.meta.dirname}/../packages/interpolation-strategy-linear/src/index.ts`,
       '@soundtouchjs/formant-correction-worklet': `${import.meta.dirname}/../packages/formant-correction-worklet/src/index.ts`,
+      '@soundtouchjs/stretch-phase-vocoder': `${import.meta.dirname}/../packages/stretch-phase-vocoder/src/index.ts`,
+      '@soundtouchjs/phase-vocoder-worklet': `${import.meta.dirname}/../packages/phase-vocoder-worklet/src/index.ts`,
     },
   },
   // Uncomment this if you are using workers.

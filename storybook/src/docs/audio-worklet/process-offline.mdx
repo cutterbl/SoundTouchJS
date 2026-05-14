@@ -41,16 +41,21 @@ interface ProcessOfflineOptions {
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `input` | — | Source `AudioBuffer` |
-| `processorUrl` | — | Path to the bundled processor script |
-| `pitch` | 1.0 | Pitch multiplier |
-| `pitchSemitones` | 0 | Semitone offset (combined with `pitch`) |
-| `playbackRate` | 1.0 | Speed multiplier; output length = `ceil(input.length / playbackRate)` |
-| `interpolationStrategy` | `'lanczos'` | Rate transposer kernel |
-| `stretchParameters` | — | WSOLA timing overrides (see [Stretch](../core/stretch)) |
-| `sampleBufferType` | `'circular'` | Internal buffer strategy |
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>input</code></td><td>—</td><td>Source <code>AudioBuffer</code></td></tr>
+    <tr><td><code>processorUrl</code></td><td>—</td><td>Path to the bundled processor script</td></tr>
+    <tr><td><code>pitch</code></td><td>1.0</td><td>Pitch multiplier</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>0</td><td>Semitone offset (combined with <code>pitch</code>)</td></tr>
+    <tr><td><code>playbackRate</code></td><td>1.0</td><td>Speed multiplier; output length = <code>ceil(input.length / playbackRate)</code></td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate transposer kernel</td></tr>
+    <tr><td><code>stretchParameters</code></td><td>—</td><td>WSOLA timing overrides (see <a href="./Stretch">Stretch</a>)</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Internal buffer strategy</td></tr>
+  </tbody>
+</table>
 
 ## Example
 

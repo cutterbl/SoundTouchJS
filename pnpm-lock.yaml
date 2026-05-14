@@ -83,6 +83,27 @@ importers:
       '@soundtouchjs/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@soundtouchjs/formant-correction-worklet':
+        specifier: workspace:*
+        version: link:../../packages/formant-correction-worklet
+      '@soundtouchjs/interpolation-strategy-blackman':
+        specifier: workspace:*
+        version: link:../../packages/interpolation-strategy-blackman
+      '@soundtouchjs/interpolation-strategy-hann':
+        specifier: workspace:*
+        version: link:../../packages/interpolation-strategy-hann
+      '@soundtouchjs/interpolation-strategy-kaiser':
+        specifier: workspace:*
+        version: link:../../packages/interpolation-strategy-kaiser
+      '@soundtouchjs/interpolation-strategy-lanczos':
+        specifier: workspace:*
+        version: link:../../packages/interpolation-strategy-lanczos
+      '@soundtouchjs/interpolation-strategy-linear':
+        specifier: workspace:*
+        version: link:../../packages/interpolation-strategy-linear
+      '@soundtouchjs/phase-vocoder-worklet':
+        specifier: workspace:*
+        version: link:../../packages/phase-vocoder-worklet
 
   packages/audio-worklet:
     dependencies:

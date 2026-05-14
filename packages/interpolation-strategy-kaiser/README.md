@@ -1,7 +1,3 @@
-## License
-
-MPL-2.0 — see [LICENSE](../../LICENSE) for details.
-
 # @soundtouchjs/interpolation-strategy-kaiser
 
 Kaiser interpolation strategy plugin for SoundTouchJS.
@@ -28,7 +24,9 @@ Tunable windowed-sinc strategy with strong flexibility for quality and transitio
 ## Params
 
 - `zeroCrossings` (default `4`, normalized to `2..16`)
-- `beta` (default `8.6`, normalized to `0..20`)
+- `beta` (default `8.6`, normalized to `0..20`) — Kaiser window shape parameter; higher = sharper cutoff, more ringing
+- `normalize` (default `false`) — when true, kernel weights are normalized to sum to 1
+- `windowPower` (default `1`) — exponent applied to the Kaiser window shape; values above 1 sharpen the window
 
 ## Related docs
 
@@ -41,3 +39,7 @@ Tunable windowed-sinc strategy with strong flexibility for quality and transitio
 - `kaiserStrategy`: Strategy descriptor with id `kaiser`.
 - `registerKaiserStrategy`: Helper that registers `kaiserStrategy` into a compatible registry.
 - `kaiserStrategy.defaultParams`: Runtime defaults for strategy params.
+
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

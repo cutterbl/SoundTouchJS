@@ -5,7 +5,9 @@ export const HannPlayground = () => (
     title="Hann Interpolation"
     description="Explore tunable parameters for the Hann interpolation strategy."
     codeSample={`const context = new AudioContext();
-await SoundTouchNode.register(context, '/path/to/processor.js');
+await SoundTouchNode.register(context, processorUrl);
+// Hann requires a strategy module — register it before constructing the node:
+await SoundTouchNode.registerStrategyModule(context, strategyInstallerUrl);
 const soundTouchNode = new SoundTouchNode({
   context,
   interpolationStrategy: {

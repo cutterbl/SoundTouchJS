@@ -62,12 +62,17 @@ stretch.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual ti
 stretch.setStretchParameters({ sequenceMs: 0 });           // back to auto
 ```
 
-| Parameter | Default | Meaning |
-|-----------|---------|---------|
-| `sequenceMs` | auto (~82–110 ms) | Processing window length; `0` = auto-calculate |
-| `seekWindowMs` | auto (~15–25 ms) | Seek window length; `0` = auto-calculate |
-| `overlapMs` | 8 ms | Crossfade overlap length |
-| `quickSeek` | `true` | Fast multi-pass seek; `false` = exhaustive |
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Default</th><th>Meaning</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>sequenceMs</code></td><td>auto (~82–110 ms)</td><td>Processing window length; <code>0</code> = auto-calculate</td></tr>
+    <tr><td><code>seekWindowMs</code></td><td>auto (~15–25 ms)</td><td>Seek window length; <code>0</code> = auto-calculate</td></tr>
+    <tr><td><code>overlapMs</code></td><td>8 ms</td><td>Crossfade overlap length</td></tr>
+    <tr><td><code>quickSeek</code></td><td><code>true</code></td><td>Fast multi-pass seek; <code>false</code> = exhaustive</td></tr>
+  </tbody>
+</table>
 
 ## Notes
 

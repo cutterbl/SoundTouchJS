@@ -1,0 +1,14 @@
+{
+  "name": "@soundtouchjs/demo",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["^build"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "vite"
+      }
+    }
+  }
+}

@@ -1,7 +1,3 @@
-## License
-
-MPL-2.0 — see [LICENSE](../../LICENSE) for details.
-
 # @soundtouchjs/interpolation-strategy-hann
 
 Hann interpolation strategy plugin for SoundTouchJS.
@@ -28,6 +24,8 @@ Good general-purpose quality with moderate roll-off.
 ## Params
 
 - `zeroCrossings` (default `4`, normalized to `2..8`)
+- `normalize` (default `false`) — when true, kernel weights are normalized to sum to 1
+- `windowPower` (default `1`) — exponent applied to the Hann window shape; values above 1 sharpen the window
 
 ## Related docs
 
@@ -40,3 +38,7 @@ Good general-purpose quality with moderate roll-off.
 - `hannStrategy`: Strategy descriptor with id `hann`.
 - `registerHannStrategy`: Helper that registers `hannStrategy` into a compatible registry.
 - `hannStrategy.defaultParams`: Runtime defaults for strategy params.
+
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

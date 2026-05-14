@@ -1,0 +1,171 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Interpolation Strategy Registry" />
+
+# Interpolation Strategy Registry
+
+**What is this?**
+
+The interpolation strategy registry is a process-wide lookup table that manages which strategies are available for use in `SoundTouch` and `RateTransposer`. It is part of `@soundtouchjs/core`.
+
+**Do I need to use this directly?**
+
+Most developers don't. You pass a strategy id when constructing `SoundTouch` or `SoundTouchNode` and the registry handles the rest. These functions become useful when you are building plugins, testing strategy availability, or changing the process-wide default at runtime.
+
+## Import
+
+```ts
+import {
+  registerInterpolationStrategy,
+  unregisterInterpolationStrategy,
+  hasInterpolationStrategy,
+  listInterpolationStrategies,
+  getActiveInterpolationStrategyId,
+  setActiveInterpolationStrategy,
+  normalizeInterpolationStrategyId,
+  resolveInterpolationStrategy,
+  resolveInterpolationStrategyRuntime,
+} from '@soundtouchjs/core';
+```
+
+All nine functions live in `packages/core/src/interpolationStrategyRegistry.ts` and are re-exported from the package root.
+
+---
+
+## `registerInterpolationStrategy(registration)`
+
+Adds a new strategy to the registry. The `id` must be unique; calling this again with the same `id` overwrites the previous entry.
+
+```ts
+registerInterpolationStrategy({
+  id: 'my-plugin/strategy',
+  baseStrategy: 'linear',   // built-in fallback when no custom kernel provided
+  kernel: myKernel,
+  defaultParams: { sharpness: 1 },
+  normalizeParams: (params, defaults) => ({ ...defaults, ...params }),
+  applyParams: (state, params) => { (state as any).sharpness = params.sharpness; },
+});
+```
+
+See [Strategy Plugin Authoring](./strategy-plugin-authoring) for the full plugin contract.
+
+---
+
+## `unregisterInterpolationStrategy(strategyId)`
+
+Removes a previously registered plugin strategy. Returns `true` if the strategy was found and removed, `false` if it was not registered or is a built-in (built-in strategies cannot be removed).
+
+If the removed strategy was the active process-wide default, the active id resets to `'lanczos'`.
+
+```ts
+const removed = unregisterInterpolationStrategy('my-plugin/strategy'); // true | false
+```
+
+---
+
+## `hasInterpolationStrategy(strategyId)`
+
+Returns `true` if the given id is currently in the registry.
+
+```ts
+if (!hasInterpolationStrategy('kaiser')) {
+  // register it first
+  registerKaiserStrategy({ registerInterpolationStrategy });
+}
+```
+
+---
+
+## `listInterpolationStrategies()`
+
+Returns all currently registered strategy ids as a sorted read-only array. Useful for inspecting what is available at runtime.
+
+```ts
+const ids = listInterpolationStrategies();
+// e.g. ['blackman', 'hann', 'kaiser', 'lanczos', 'linear']
+```
+
+---
+
+## `getActiveInterpolationStrategyId()`
+
+Returns the current process-wide default strategy id. When `SoundTouch` or `RateTransposer` is constructed without an explicit `interpolationStrategy`, this id is used.
+
+```ts
+const id = getActiveInterpolationStrategyId(); // 'lanczos' by default
+```
+
+---
+
+## `setActiveInterpolationStrategy(strategy)`
+
+Sets the process-wide default strategy id. All subsequently constructed `SoundTouch` or `RateTransposer` instances that do not specify an explicit strategy will use this id.
+
+Throws if the given id is not currently registered.
+
+```ts
+setActiveInterpolationStrategy('linear');
+// or with initial params:
+setActiveInterpolationStrategy({ id: 'kaiser', params: { zeroCrossings: 6, beta: 10 } });
+```
+
+> This changes the default for future instances only. Existing instances are not affected.
+
+---
+
+## `normalizeInterpolationStrategyId(strategy?)`
+
+Validates a user-provided strategy option and returns the resolved registered id. Throws if the id is not registered.
+
+Accepts either a plain string id or a descriptor object `{ id, params? }`. When called with no argument, returns the active process-wide default id.
+
+```ts
+const id = normalizeInterpolationStrategyId('lanczos');      // 'lanczos'
+const id2 = normalizeInterpolationStrategyId({ id: 'hann' }); // 'hann'
+const id3 = normalizeInterpolationStrategyId();               // active default
+```
+
+---
+
+## `resolveInterpolationStrategy(strategy?)`
+
+Resolves a strategy option to either a built-in base id string (`'lanczos'` or `'linear'`) or a plugin kernel function. Used internally by `RateTransposer` to select the correct interpolation path.
+
+```ts
+const result = resolveInterpolationStrategy('kaiser');
+// result is either 'lanczos' | 'linear' (if no custom kernel) or an InterpolationKernel function
+```
+
+---
+
+## `resolveInterpolationStrategyRuntime(strategy?)`
+
+Full runtime resolution: returns a `ResolvedInterpolationStrategyRuntime` object containing the resolved kernel, normalized params, and the optional `applyParams` hook. This is what `RateTransposer` calls internally to set up per-instance state.
+
+```ts
+import type { ResolvedInterpolationStrategyRuntime } from '@soundtouchjs/core';
+
+const runtime: ResolvedInterpolationStrategyRuntime = resolveInterpolationStrategyRuntime({
+  id: 'kaiser',
+  params: { zeroCrossings: 6, beta: 12 },
+});
+
+// runtime.id       → 'kaiser'
+// runtime.kernel   → the kaiser InterpolationKernel function
+// runtime.params   → { zeroCrossings: 6, beta: 12 } (normalized)
+// runtime.applyParams → hook for updating kernel state at runtime
+```
+
+`ResolvedInterpolationStrategyRuntime` shape:
+
+<table>
+  <thead>
+    <tr><th>Field</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>id</code></td><td>The resolved strategy id</td></tr>
+    <tr><td><code>kernel</code></td><td>The <code>InterpolationKernel</code> function to call per output sample</td></tr>
+    <tr><td><code>params</code></td><td>Normalized parameter object merged from defaults and overrides</td></tr>
+    <tr><td><code>applyParams</code></td><td>Optional hook to push updated params into existing kernel state</td></tr>
+  </tbody>
+</table>

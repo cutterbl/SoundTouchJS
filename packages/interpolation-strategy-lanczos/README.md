@@ -1,7 +1,3 @@
-## License
-
-MPL-2.0 — see [LICENSE](../../LICENSE) for details.
-
 # @soundtouchjs/interpolation-strategy-lanczos
 
 Lanczos interpolation strategy plugin for SoundTouchJS.
@@ -37,3 +33,7 @@ st.setInterpolationStrategyParams({ zeroCrossings: 6 });
 - `lanczosStrategy`: Strategy descriptor with id `lanczos`.
 - `registerLanczosStrategy`: Helper that registers `lanczosStrategy` into a compatible registry.
 - `lanczosStrategy.defaultParams`: Runtime defaults for strategy params.
+
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

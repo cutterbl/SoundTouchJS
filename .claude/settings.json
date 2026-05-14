@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs status)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --oneline -5)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs diff --cached --stat)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs commit -m ' *)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --oneline -10)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --oneline --all)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --oneline origin/feat/processRefactor..HEAD)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs show 4f7d7ca --stat)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs show 612ab66 --stat)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs show 5e06816 --stat)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --all --oneline --follow -p -- packages/audio-worklet/src/SoundTouchNode.ts)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --oneline --all -- packages/audio-worklet/src/SoundTouchNode.ts)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs show ca71398 --stat)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm dlx *)",
+      "Bash(node_modules/.bin/tsc --noEmit --strict --jsx react-jsx --target ES2024 --moduleResolution bundler --module ESNext --skipLibCheck storybook/src/stories/StretchParametersPlayground.tsx storybook/src/stories/ProcessOfflinePlayground.tsx storybook/src/stories/stretch-parameters-playground.stories.tsx storybook/src/stories/process-offline-playground.stories.tsx)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs show 7eb1433:storybook/src/docs/audio-worklet/getting-started.mdx)",
+      "Bash(node -e ' *)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log -1 --format=%B HEAD)",
+      "Bash(git -C /Users/cutter/Documents/Projects/soundtouchjs log --format=\"%h %an <%ae>%n  %s\" origin/feat/processRefactor..HEAD)",
+      "Bash(kill %1)",
+      "Bash(wait)",
+      "Bash(read -r output)",
+      "Bash(xargs ps -p)",
+      "Read(//tmp/**)",
+      "Bash(python3 -c \"import json,sys; g=json.load\\(sys.stdin\\); deps=g.get\\('graph',{}\\).get\\('dependencies',{}\\).get\\('@soundtouchjs/demo',[]\\); print\\(json.dumps\\(deps, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; p=json.loads\\(sys.stdin.read\\(\\)\\); t=p['targets']['dev']; print\\(json.dumps\\(t, indent=2\\)\\)\")"
+    ]
+  }
+}

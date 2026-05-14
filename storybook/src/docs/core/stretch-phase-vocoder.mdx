@@ -54,25 +54,35 @@ new PhaseVocoder({
 })
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `fftSize` | 2048 | FFT frame size; larger = better frequency resolution, higher startup latency |
-| `overlapFactor` | 4 | Overlap factor (75 % overlap); higher = smoother at the cost of more FFT calls |
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>fftSize</code></td><td>2048</td><td>FFT frame size; larger = better frequency resolution, higher startup latency</td></tr>
+    <tr><td><code>overlapFactor</code></td><td>4</td><td>Overlap factor (75% overlap); higher = smoother at the cost of more FFT calls</td></tr>
+  </tbody>
+</table>
 
 ## Public API
 
-| Member | Description |
-|--------|-------------|
-| `inputBuffer` | Source `SampleBuffer` (interleaved stereo L/R/L/R) |
-| `outputBuffer` | Destination `SampleBuffer` |
-| `tempo` | Time-stretch multiplier — same convention as WSOLA `Stretch` |
-| `sampleReq` | `fftSize / overlapFactor` — frames consumed per `process()` call |
-| `process()` | Consumes `sampleReq` frames; produces `round(sampleReq / tempo)` frames |
-| `clear()` | Resets all internal state including the sliding analysis window |
-| `clearMidBuffer()` | Resets only phase accumulators — use this after a seek |
-| `setParameters()` | No-op (accepts WSOLA signature for interface compatibility) |
-| `setStretchParameters()` | No-op (accepts WSOLA params for interface compatibility) |
-| `clone()` | Returns a new instance with the same `fftSize`/`overlapFactor` and empty state |
+<table>
+  <thead>
+    <tr><th>Member</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>inputBuffer</code></td><td>Source <code>SampleBuffer</code> (interleaved stereo L/R/L/R)</td></tr>
+    <tr><td><code>outputBuffer</code></td><td>Destination <code>SampleBuffer</code></td></tr>
+    <tr><td><code>tempo</code></td><td>Time-stretch multiplier — same convention as WSOLA <code>Stretch</code></td></tr>
+    <tr><td><code>sampleReq</code></td><td><code>fftSize / overlapFactor</code> — frames consumed per <code>process()</code> call</td></tr>
+    <tr><td><code>process()</code></td><td>Consumes <code>sampleReq</code> frames; produces <code>round(sampleReq / tempo)</code> frames</td></tr>
+    <tr><td><code>clear()</code></td><td>Resets all internal state including the sliding analysis window</td></tr>
+    <tr><td><code>clearMidBuffer()</code></td><td>Resets only phase accumulators — use this after a seek</td></tr>
+    <tr><td><code>setParameters()</code></td><td>No-op (accepts WSOLA signature for interface compatibility)</td></tr>
+    <tr><td><code>setStretchParameters()</code></td><td>No-op (accepts WSOLA params for interface compatibility)</td></tr>
+    <tr><td><code>clone()</code></td><td>Returns a new instance with the same <code>fftSize</code>/<code>overlapFactor</code> and empty state</td></tr>
+  </tbody>
+</table>
 
 ## `createPhaseVocoderFactory`
 
@@ -113,12 +123,17 @@ const win = makeHannWindow(N); // symmetric Hann window
 
 ## Trade-offs vs WSOLA
 
-| | WSOLA (default) | Phase vocoder |
-|--|--|--|
-| Quality at extreme ratios | Artifacts above 2× | Smooth at all ratios |
-| Transient preservation | Better (time-domain) | Worse (frequency smearing) |
-| Computation | Lower | Higher (FFT per hop) |
-| Startup latency | Lower | `fftSize` samples |
-| Artifacts | Clicks / repeats | "Phasiness" / smearing |
+<table>
+  <thead>
+    <tr><th></th><th>WSOLA (default)</th><th>Phase vocoder</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Quality at extreme ratios</td><td>Artifacts above 2×</td><td>Smooth at all ratios</td></tr>
+    <tr><td>Transient preservation</td><td>Better (time-domain)</td><td>Worse (frequency smearing)</td></tr>
+    <tr><td>Computation</td><td>Lower</td><td>Higher (FFT per hop)</td></tr>
+    <tr><td>Startup latency</td><td>Lower</td><td><code>fftSize</code> samples</td></tr>
+    <tr><td>Artifacts</td><td>Clicks / repeats</td><td>"Phasiness" / smearing</td></tr>
+  </tbody>
+</table>
 
 For most musical applications at moderate tempos (0.5–2×), WSOLA is a better default. The phase vocoder is a good choice for very slow-motion or very fast playback, or when WSOLA artifacts are unacceptable.

@@ -52,7 +52,7 @@ st.setInterpolationStrategyParams({ edgeHoldFrames: 4 });
 
 Current mutable params:
 
-- `lanczos`: `radius` (default `4`, normalized to `2..8`)
+- `lanczos`: `zeroCrossings` (default `4`, normalized to `2..8`), `normalize` (default `false`)
 - `linear`: `edgeHoldFrames` (default `1`, normalized to `0..32`)
 
 To use default Lanczos explicitly:
@@ -99,13 +99,20 @@ st.outputBuffer.extract(outputBuffer, 0, 4096);
 | Export                                | Description                                                              |
 | ------------------------------------- | ------------------------------------------------------------------------ |
 | `SoundTouch`                          | Main processing engine — set `pitch` or `pitchSemitones`                 |
+| `AbstractSamplePipe`                  | Base class for pipeline stages that read from an input buffer and write to an output buffer |
 | `CircularSampleBuffer`                | Circular interleaved sample buffer (default processing path)             |
 | `FifoSampleBuffer`                    | Resizable interleaved sample buffer (ES2024 `ArrayBuffer`)               |
-| `Stretch`                             | Time-stretch processor (used internally by `SoundTouch`)                 |
+| `Stretch`                             | WSOLA time-stretch stage (used internally by `SoundTouch`)               |
 | `RateTransposer`                      | Sample rate transposer (used internally by `SoundTouch`)                 |
-| `registerInterpolationStrategy`       | Registers a custom interpolation strategy id (or kernel)                 |
-| `resolveInterpolationStrategyRuntime` | Resolves runtime kernel + normalized params for an option                |
+| `registerInterpolationStrategy`       | Registers a custom interpolation strategy plugin                         |
+| `unregisterInterpolationStrategy`     | Removes a previously registered plugin strategy                          |
+| `hasInterpolationStrategy`            | Returns `true` if a strategy id is currently registered                  |
+| `listInterpolationStrategies`         | Returns all registered strategy ids sorted lexicographically             |
+| `getActiveInterpolationStrategyId`    | Returns the current process-wide default strategy id                     |
 | `setActiveInterpolationStrategy`      | Changes process-wide default interpolation strategy id                   |
+| `normalizeInterpolationStrategyId`    | Validates and resolves a strategy option to a registered id              |
+| `resolveInterpolationStrategy`        | Resolves a strategy option to a built-in base id or plugin kernel        |
+| `resolveInterpolationStrategyRuntime` | Resolves runtime kernel + normalized params + applier hook               |
 | `StretchParameters`                   | Type for WSOLA timing parameters passed to `setStretchParameters`        |
 | `StretchPipe`                         | Interface for a WSOLA-compatible stretch stage (implement to replace it) |
 | `StretchFactory`                      | Factory function type for creating a custom `StretchPipe`                |
@@ -185,6 +192,16 @@ See [`@soundtouchjs/audio-worklet`](../audio-worklet/README.md) for AudioWorklet
 - **Interpolation plugin architecture**: strategy registry with `lanczos` default and pluggable strategies
 - **Optimized internals**: Dirty-flag overlap buffers in `Stretch`
 - **Zero runtime dependencies**
+- **`StretchPipe` interface**: Allows replacing the built-in WSOLA `Stretch` stage with a custom implementation (e.g., phase vocoder)
+
+### Breaking changes
+
+If you are upgrading from an earlier version of `@soundtouchjs/core`:
+
+- **Removed exports**: `AbstractFifoSamplePipe` (replaced by `AbstractSamplePipe`), `FilterSupport`, `SimpleFilter`, `WebAudioBufferSource`, `PitchShifter`, `getWebAudioNode`
+- **Removed types**: `SamplePipe`, `PlayEventDetail`, `SourcePositionCallback`
+- **Constructor change**: `SoundTouch` now requires a named options object — `new SoundTouch({ sampleRate, sampleBufferType })` (was `new SoundTouch()`)
+- **Strategy ID rename**: `lanczos8` → `lanczos`, `hann8` → `hann`, `blackman8` → `blackman`, `kaiser8` → `kaiser`
 
 ## License
 

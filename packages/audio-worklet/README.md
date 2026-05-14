@@ -32,11 +32,24 @@ const audioCtx = new AudioContext();
 await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
 ```
 
-How you serve the processor file depends on your setup:
+How you resolve the processor URL depends on your build tool:
 
-- **Vite**: Copy or serve `node_modules/@soundtouchjs/audio-worklet/.dist/soundtouch-processor.js` from your `public/` directory
-- **Webpack**: Use `new URL('@soundtouchjs/audio-worklet/processor', import.meta.url)` with asset modules
-- **Static hosting**: Copy the file to your static assets directory
+- **Vite**: Use the `?url` import — Vite resolves it to the correct public URL automatically:
+  ```ts
+  import processorUrl from '@soundtouchjs/audio-worklet/processor?url';
+  await SoundTouchNode.register(audioCtx, processorUrl);
+  ```
+- **Webpack 5**: Use `new URL` with `import.meta.url` so webpack emits the file as a separate asset:
+  ```ts
+  const processorUrl = new URL('@soundtouchjs/audio-worklet/processor', import.meta.url).href;
+  await SoundTouchNode.register(audioCtx, processorUrl);
+  ```
+- **Static hosting**: Copy `.dist/soundtouch-processor.js` to your public directory and pass the path directly:
+  ```ts
+  await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+  ```
+
+See the [Getting Started guide](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-getting-started--docs) for CORS requirements and common setup mistakes.
 
 ### 2. Create a node and connect it
 

@@ -75,11 +75,16 @@ await SoundTouchNode.registerStrategyModule(context, strategyModuleUrl);
 
 `SoundTouchNode` exposes three `AudioParam` getters for runtime control. These are the **only** parameters available — the underlying engine's `tempo` and `rate` properties are managed internally by the processor and are not exposed.
 
-| Param            | Default | Range     | Description |
-| ---------------- | ------- | --------- | ----------- |
-| `pitch`          | 1.0     | 0.1 – 8.0 | Pitch multiplier. 1.0 = original pitch. Values above 1 raise pitch; below 1 lower it. |
-| `pitchSemitones` | 0       | -24 – 24  | Pitch shift in integer semitone steps, combined with `pitch`. Use for musical key changes (e.g. `+2` = up a whole step, `-12` = down an octave). |
-| `playbackRate`   | 1.0     | 0.1 – 8.0 | Must mirror the source node's `playbackRate`. The processor divides the effective pitch by this value to compensate for tempo-driven pitch shift. |
+<table>
+  <thead>
+    <tr><th>Param</th><th>Default</th><th>Range</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>pitch</code></td><td>1.0</td><td>0.1 – 8.0</td><td>Pitch multiplier. 1.0 = original pitch. Values above 1 raise pitch; below 1 lower it.</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>0</td><td>-24 – 24</td><td>Pitch shift in integer semitone steps, combined with <code>pitch</code>. Use for musical key changes (e.g. <code>+2</code> = up a whole step, <code>-12</code> = down an octave).</td></tr>
+    <tr><td><code>playbackRate</code></td><td>1.0</td><td>0.1 – 8.0</td><td>Must mirror the source node's <code>playbackRate</code>. The processor divides the effective pitch by this value to compensate for tempo-driven pitch shift.</td></tr>
+  </tbody>
+</table>
 
 ### How tempo control works
 
@@ -133,12 +138,17 @@ stNode.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual tim
 stNode.setStretchParameters({ sequenceMs: 0 });            // back to auto
 ```
 
-| Param | Default | Description |
-|-------|---------|-------------|
-| `sequenceMs` | auto | Processing window in ms; `0` = auto |
-| `seekWindowMs` | auto | Seek window in ms; `0` = auto |
-| `overlapMs` | 8 | Crossfade overlap in ms |
-| `quickSeek` | `true` | Fast seek; `false` = exhaustive |
+<table>
+  <thead>
+    <tr><th>Param</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>sequenceMs</code></td><td>auto</td><td>Processing window in ms; <code>0</code> = auto</td></tr>
+    <tr><td><code>seekWindowMs</code></td><td>auto</td><td>Seek window in ms; <code>0</code> = auto</td></tr>
+    <tr><td><code>overlapMs</code></td><td>8</td><td>Crossfade overlap in ms</td></tr>
+    <tr><td><code>quickSeek</code></td><td><code>true</code></td><td>Fast seek; <code>false</code> = exhaustive</td></tr>
+  </tbody>
+</table>
 
 ## Processor observability
 
@@ -158,12 +168,17 @@ stNode.addEventListener('metrics', (e) => {
 });
 ```
 
-| Field | Description |
-|-------|-------------|
-| `framesBuffered` | Frames available in the output buffer at the last render block |
-| `underrunCount` | Cumulative render blocks where the output buffer had fewer frames than requested |
-| `blockCount` | Total render blocks processed since the processor started |
-| `timestamp` | `performance.now()` recorded on the main thread when metrics arrived |
+<table>
+  <thead>
+    <tr><th>Field</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>framesBuffered</code></td><td>Frames available in the output buffer at the last render block</td></tr>
+    <tr><td><code>underrunCount</code></td><td>Cumulative render blocks where the output buffer had fewer frames than requested</td></tr>
+    <tr><td><code>blockCount</code></td><td>Total render blocks processed since the processor started</td></tr>
+    <tr><td><code>timestamp</code></td><td><code>performance.now()</code> recorded on the main thread when metrics arrived</td></tr>
+  </tbody>
+</table>
 
 ## Mono input and output
 

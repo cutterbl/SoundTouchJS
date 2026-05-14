@@ -4,12 +4,15 @@ A real-time audio processing library for pitch shifting and playback speed contr
 
 ## Monorepo
 
-This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes seven packages:
+This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes ten packages:
 
 | Package                                                                                               | npm                                                         | Description                                                              |
 | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
 | [`@soundtouchjs/core`](packages/core/README.md)                                                       | `npm install @soundtouchjs/core`                            | Core processing library — `SoundTouch`, buffers, and the interpolation registry |
-| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                     | `npm install @soundtouchjs/audio-worklet`                   | AudioWorklet implementation with `AudioParam`-based controls             |
+| [`@soundtouchjs/audio-worklet`](packages/audio-worklet/README.md)                                     | `npm install @soundtouchjs/audio-worklet`                   | AudioWorklet implementation with `AudioParam`-based controls, offline rendering, and processor metrics |
+| [`@soundtouchjs/stretch-phase-vocoder`](packages/stretch-phase-vocoder/README.md)                     | `npm install @soundtouchjs/stretch-phase-vocoder`           | Phase vocoder time-stretch algorithm — implements `StretchPipe`, usable standalone or as a `SoundTouch` stretch stage |
+| [`@soundtouchjs/phase-vocoder-worklet`](packages/phase-vocoder-worklet/README.md)                     | `npm install @soundtouchjs/phase-vocoder-worklet`           | AudioWorklet implementation using the phase vocoder for smoother extreme-ratio time-stretching |
+| [`@soundtouchjs/formant-correction-worklet`](packages/formant-correction-worklet/README.md)           | `npm install @soundtouchjs/formant-correction-worklet`      | AudioWorklet implementation with LPC-based formant preservation for natural-sounding vocal pitch shifts |
 | [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md)   | `npm install @soundtouchjs/interpolation-strategy-lanczos`  | Lanczos interpolation strategy plugin (default strategy id: `lanczos`)  |
 | [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)     | `npm install @soundtouchjs/interpolation-strategy-linear`   | Linear interpolation strategy plugin (strategy id: `linear`)             |
 | [`@soundtouchjs/interpolation-strategy-hann`](packages/interpolation-strategy-hann/README.md)         | `npm install @soundtouchjs/interpolation-strategy-hann`     | Hann interpolation strategy plugin (strategy id: `hann`)                |
@@ -29,6 +32,9 @@ If you are new to Web Audio, start with the demo guide: [apps/demo/README.md](ap
 - AudioWorklet API reference index: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
 - SoundTouchNode reference: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/audio-worklet-soundtouchnode--docs)
 - Interpolation strategy plugins: [packages/interpolation-strategy-lanczos/README.md](packages/interpolation-strategy-lanczos/README.md), [packages/interpolation-strategy-linear/README.md](packages/interpolation-strategy-linear/README.md), [packages/interpolation-strategy-hann/README.md](packages/interpolation-strategy-hann/README.md), [packages/interpolation-strategy-blackman/README.md](packages/interpolation-strategy-blackman/README.md), [packages/interpolation-strategy-kaiser/README.md](packages/interpolation-strategy-kaiser/README.md)
+- Phase vocoder (time-stretch algorithm): [packages/stretch-phase-vocoder/README.md](packages/stretch-phase-vocoder/README.md)
+- Phase vocoder AudioWorklet: [packages/phase-vocoder-worklet/README.md](packages/phase-vocoder-worklet/README.md)
+- Formant correction AudioWorklet: [packages/formant-correction-worklet/README.md](packages/formant-correction-worklet/README.md)
 - Beginner Web Audio + demo architecture guide: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
 
 ## Quick start
@@ -81,10 +87,12 @@ pnpm install
 
 ```sh
 pnpm build              # Build all projects
+pnpm test               # Run all tests
 pnpm coverage:summary   # Run package coverage and write consolidated report to .coverage-reports/
 pnpm typecheck          # Typecheck all projects
 pnpm dev                # Start demo dev server (Vite on port 8080)
 pnpm prettier           # Format all files
+pnpm nx storybook storybook  # Start Storybook docs server
 ```
 
 Individual project commands via Nx:
@@ -127,6 +135,23 @@ The `v0.4` release is a ground-up modernization:
 - **pnpm workspaces**: Workspace protocol (`workspace:*`) for inter-package dependencies
 - **Tooling**: Vite dev server, Vitest test runner, Prettier formatting, commitlint + husky, GitHub Actions CI, `nx release` for versioning and publishing
 - **Zero runtime dependencies** on `@soundtouchjs/core`
+- **New packages**: `@soundtouchjs/stretch-phase-vocoder`, `@soundtouchjs/phase-vocoder-worklet`, `@soundtouchjs/formant-correction-worklet`
+- **Offline rendering**: `processOffline()` in `@soundtouchjs/audio-worklet` renders an `AudioBuffer` without a live audio device
+- **Processor observability**: `SoundTouchNode.metrics` getter and `metrics` CustomEvent for monitoring render-thread health
+
+### Breaking changes
+
+If you are upgrading from an earlier version, the following APIs were removed:
+
+**`@soundtouchjs/core`**
+- Removed exports: `AbstractFifoSamplePipe` (replaced by `AbstractSamplePipe`), `FilterSupport`, `SimpleFilter`, `WebAudioBufferSource`, `PitchShifter`, `getWebAudioNode`
+- Removed types: `SamplePipe`, `PlayEventDetail`, `SourcePositionCallback`
+- `SoundTouch` constructor now takes a named options object: `new SoundTouch({ sampleRate, sampleBufferType, ... })` (was `new SoundTouch()`)
+- Interpolation strategy IDs renamed: `lanczos8` → `lanczos`, `hann8` → `hann`, `blackman8` → `blackman`, `kaiser8` → `kaiser`
+
+**`@soundtouchjs/audio-worklet`**
+- `SoundTouchNode` constructor now takes a named options object with a required `context` property: `new SoundTouchNode({ context: audioCtx })` (was `new SoundTouchNode(audioCtx)`)
+- `tempo` AudioParam removed — tempo is now controlled via the source node's `playbackRate` mirrored to `stNode.playbackRate` (see [audio-worklet README](packages/audio-worklet/README.md) for the pattern)
 
 ## Contributing
 

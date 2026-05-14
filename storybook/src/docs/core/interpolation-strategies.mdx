@@ -80,8 +80,8 @@ node.setInterpolationStrategyParams({ beta: 10 });
 
 ## Parameter notes
 
-- lanczos: zeroCrossings (2..8, default 4)
-- linear: edgeHoldFrames (0..32, default 1)
-- hann: zeroCrossings (2..8, default 4)
-- blackman: zeroCrossings (2..8, default 4)
-- kaiser: zeroCrossings (2..16, default 4), beta (0..20, default 8.6)
+- lanczos: zeroCrossings (2..8, default 4), normalize (bool, default false)
+- linear: edgeHoldFrames (0..32, default 1), blend (0..1, default 1 = pure linear), normalize (bool, default false); zeroCrossings is an alias for edgeHoldFrames
+- hann: zeroCrossings (2..8, default 4), normalize (bool, default false), windowPower (default 1)
+- blackman: zeroCrossings (2..8, default 4), normalize (bool, default false), alpha/beta/gamma window coefficients (defaults 0.42, 0.5, 0.08)
+- kaiser: zeroCrossings (2..16, default 4), beta (0..20, default 8.6), normalize (bool, default false), windowPower (default 1)

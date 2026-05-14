@@ -32,13 +32,18 @@ new SoundTouch({
 })
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `sampleRate` | `44100` | Processing sample rate in Hz |
-| `sampleBufferType` | `'circular'` | Buffer strategy for all chain buffers |
-| `sampleBufferFactory` | — | Custom factory; overrides `sampleBufferType` |
-| `interpolationStrategy` | `'lanczos'` | Rate transposer interpolation kernel |
-| `stretchFactory` | — | Factory for a custom time-stretch stage; when provided, the default WSOLA `Stretch` is not created |
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>sampleRate</code></td><td><code>44100</code></td><td>Processing sample rate in Hz</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Buffer strategy for all chain buffers</td></tr>
+    <tr><td><code>sampleBufferFactory</code></td><td>—</td><td>Custom factory; overrides <code>sampleBufferType</code></td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate transposer interpolation kernel</td></tr>
+    <tr><td><code>stretchFactory</code></td><td>—</td><td>Factory for a custom time-stretch stage; when provided, the default WSOLA <code>Stretch</code> is not created</td></tr>
+  </tbody>
+</table>
 
 ## Public API
 

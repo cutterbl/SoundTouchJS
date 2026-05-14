@@ -36,8 +36,11 @@ A buffer is just a chunk of audio data—think of it as a container holding a pi
 ## What does this repo include?
 
 - **@soundtouchjs/core**: The main engine and building blocks. Use this if you want to build your own audio pipeline or do offline processing.
-- **@soundtouchjs/audio-worklet**: The easiest way to use SoundTouchJS in real-time browser audio. Handles all the tricky parts for you.
-- **Interpolation plugins**: Extra modules for fine-tuning sound quality or performance. You can swap these in and out.
+- **@soundtouchjs/audio-worklet**: The easiest way to use SoundTouchJS in real-time browser audio. Handles pitch shifting, tempo control, offline rendering, and processor health monitoring.
+- **@soundtouchjs/stretch-phase-vocoder**: An alternative time-stretch algorithm (phase vocoder) that produces smoother results at extreme playback ratios. Can be used as a drop-in stretch stage inside `SoundTouch`, or on its own.
+- **@soundtouchjs/phase-vocoder-worklet**: An AudioWorklet node backed by the phase vocoder. Use it instead of `SoundTouchNode` when you need very slow or very fast playback without artifacts.
+- **@soundtouchjs/formant-correction-worklet**: An AudioWorklet node that pitch-shifts voices while keeping the speaker's natural timbre. Without this, shifting pitch up makes voices sound like a chipmunk; shifting down makes them sound like a giant.
+- **Interpolation plugins**: Five swappable modules (`lanczos`, `linear`, `hann`, `blackman`, `kaiser`) for tuning the quality and CPU cost of sample-rate conversion.
 - **Demo app**: Try everything live in your browser ([apps/demo/](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo)).
 
 ---
@@ -47,6 +50,8 @@ If you’re new to audio, start with the **Getting Started** guide. If you’re 
 ## When to Use Each Package
 
 - Use **@soundtouchjs/audio-worklet** for modern, real-time browser audio. This is the default for most apps.
+- Use **@soundtouchjs/phase-vocoder-worklet** instead of audio-worklet when playback rate is extreme (< 0.5× or > 2×) and WSOLA artifacts are audible. If "phasiness" is acceptable, this gives smoother results.
+- Use **@soundtouchjs/formant-correction-worklet** when pitch-shifting voices or speech. Without formant correction, large pitch shifts make voices sound like a chipmunk (up) or giant (down).
 - Use **@soundtouchjs/core** for custom DSP, offline processing, or non-browser environments.
 - Use interpolation plugins for quality/latency tradeoffs or to implement your own strategy.
 
@@ -74,7 +79,7 @@ Try the [Playground](../playground) in Storybook for live, interactive parameter
 - Always register the processor before creating a `SoundTouchNode`.
 - To control playback speed, set both the source node's `playbackRate` **and** `stNode.playbackRate` to the same value — this keeps pitch compensation accurate.
 - Call `audioCtx.resume()` in a user gesture to comply with browser autoplay policies.
-- For advanced use, see the [core package docs](../../packages/core/README.md) and [audio-worklet package docs](../../packages/audio-worklet/README.md).
+- For advanced use, see the [core package docs](https://github.com/cutterbl/SoundTouchJS/blob/master/packages/core/README.md) and [audio-worklet package docs](https://github.com/cutterbl/SoundTouchJS/blob/master/packages/audio-worklet/README.md).
 
 ## Documentation Index
 
@@ -89,25 +94,19 @@ Try the [Playground](../playground) in Storybook for live, interactive parameter
 
 ### Core Library
 
+- [SoundTouch](./SoundTouch)
+- [Stretch](./Stretch)
+- [RateTransposer](./RateTransposer)
 - [Abstract Sample Pipe](./core/abstract-sample-pipe)
 - [Circular Sample Buffer](./core/circular-sample-buffer)
 - [Fifo Sample Buffer](./core/fifo-sample-buffer)
-- [Get Active Interpolation Strategy ID](./core/get-active-interpolation-strategy-id)
-- [Has Interpolation Strategy](./core/has-interpolation-strategy)
 - [Interpolation Strategies](./core/interpolation-strategies)
-  - [Basics](./core/interpolation-strategies)
+  - [Overview](./core/interpolation-strategies)
+  - [Registry API](./core/interpolation-strategy-registry)
   - [Strategy Plugin Authoring](./core/strategy-plugin-authoring)
   - [Lanczos Strategy](./core/lanczos-strategy)
   - [Linear Strategy](./core/linear-strategy)
   - [Hann Strategy](./core/hann-strategy)
   - [Blackman Strategy](./core/blackman-strategy)
   - [Kaiser Strategy](./core/kaiser-strategy)
-- [Normalize Interpolation Strategy ID](./core/normalize-interpolation-strategy-id)
-- [Rate Transposer](./core/rate-transposer)
-- [Register Interpolation Strategy](./core/register-interpolation-strategy)
-- [Resolve Interpolation Strategy](./core/resolve-interpolation-strategy)
-- [Set Active Interpolation Strategy](./core/set-active-interpolation-strategy)
-- [SoundTouch](./core/sound-touch)
-- [Stretch](./core/stretch)
 - [Phase Vocoder](./core/stretch-phase-vocoder)
-- [Unregister Interpolation Strategy](./core/unregister-interpolation-strategy)

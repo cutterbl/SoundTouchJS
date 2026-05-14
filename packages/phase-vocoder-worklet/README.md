@@ -132,13 +132,6 @@ node.addEventListener('metrics', (e) => {
 | `blockCount` | Total render blocks processed |
 | `timestamp` | `performance.now()` when the metrics arrived on the main thread |
 
-## Parameters
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `fftSize` | 2048 | FFT frame size — larger gives better frequency resolution but higher latency (`fftSize` samples) |
-| `overlapFactor` | 4 | Overlap factor — `4` = 75 % overlap (good quality); `8` = 87.5 % overlap (smoother, 2× cost) |
-
 ## Trade-offs vs `SoundTouchNode`
 
 | | `SoundTouchNode` (WSOLA) | `PhaseVocoderNode` |

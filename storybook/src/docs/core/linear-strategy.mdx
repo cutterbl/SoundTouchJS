@@ -42,8 +42,13 @@ params: { edgeHoldFrames: 1, blend: 0.5, normalize: true }
 
 **How do I use it?**
 
+Linear requires registration before use (unlike `lanczos`, which is pre-registered):
+
 ```ts
-import { SoundTouch } from '@soundtouchjs/core';
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerLinearStrategy } from '@soundtouchjs/interpolation-strategy-linear';
+
+registerLinearStrategy({ registerInterpolationStrategy });
 
 const soundTouch = new SoundTouch({
   interpolationStrategy: {

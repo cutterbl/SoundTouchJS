@@ -75,7 +75,10 @@ export function levinsonDurbin(
       num -= a[j] * r[m - 1 - j];
     }
     if (Math.abs(E) < 1e-15) break;
-    const k = num / E;
+    // Clamp to |k| < 1 to guarantee a stable all-pole synthesis filter.
+    // Unclamped values ≥ 1 occur on transients or silence edges and cause
+    // the IIR synthesis filter to diverge to Inf permanently.
+    const k = Math.max(-0.9999, Math.min(0.9999, num / E));
 
     // Save current coefficients before updating.
     for (let j = 0; j < m - 1; j++) aPrev[j] = a[j];
@@ -162,6 +165,12 @@ export function applySynthesisFilter(
     let y = frame[n];
     for (let k = 0; k < order; k++) {
       y += a[k] * zi[k];
+    }
+    // Reset state if the filter has diverged (e.g. accumulated floating-point
+    // drift or coefficients that slipped through clamping on a transient).
+    if (!Number.isFinite(y)) {
+      zi.fill(0);
+      y = 0;
     }
     out[n] = y;
     // Shift state: newest output goes to zi[0].

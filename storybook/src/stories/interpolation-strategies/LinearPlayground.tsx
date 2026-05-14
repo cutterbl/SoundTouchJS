@@ -5,12 +5,14 @@ export const LinearPlayground = () => (
     title="Linear Interpolation"
     description="Explore tunable parameters for the Linear interpolation strategy."
     codeSample={`const context = new AudioContext();
-await SoundTouchNode.register(context, '/path/to/processor.js');
+await SoundTouchNode.register(context, processorUrl);
+// Linear requires a strategy module — register it before constructing the node:
+await SoundTouchNode.registerStrategyModule(context, strategyInstallerUrl);
 const soundTouchNode = new SoundTouchNode({
   context,
   interpolationStrategy: {
     id: 'linear',
-    params: {},
+    params: { edgeHoldFrames: 1, blend: 1 },
   },
 });`}
     explanation="Linear interpolation is the simplest strategy."

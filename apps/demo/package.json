@@ -7,6 +7,13 @@
   "type": "module",
   "dependencies": {
     "@soundtouchjs/core": "workspace:*",
-    "@soundtouchjs/audio-worklet": "workspace:*"
+    "@soundtouchjs/audio-worklet": "workspace:*",
+    "@soundtouchjs/phase-vocoder-worklet": "workspace:*",
+    "@soundtouchjs/formant-correction-worklet": "workspace:*",
+    "@soundtouchjs/interpolation-strategy-lanczos": "workspace:*",
+    "@soundtouchjs/interpolation-strategy-linear": "workspace:*",
+    "@soundtouchjs/interpolation-strategy-hann": "workspace:*",
+    "@soundtouchjs/interpolation-strategy-blackman": "workspace:*",
+    "@soundtouchjs/interpolation-strategy-kaiser": "workspace:*"
   }
 }

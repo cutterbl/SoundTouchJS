@@ -61,37 +61,52 @@ new PhaseVocoderNode({
 })
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `context` | required | AudioContext or OfflineAudioContext |
-| `fftSize` | 2048 | FFT frame size — larger = better frequency resolution, higher latency |
-| `overlapFactor` | 4 | Overlap factor — 4 = 75 % overlap; 8 = 87.5 % overlap (smoother, 2× cost) |
-| `outputChannelCount` | 2 | `1` for mono destinations; input is always processed as stereo |
-| `sampleBufferType` | `'circular'` | Internal buffer strategy |
-| `interpolationStrategy` | `'lanczos'` | Rate-transposer interpolation kernel |
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>context</code></td><td>required</td><td>AudioContext or OfflineAudioContext</td></tr>
+    <tr><td><code>fftSize</code></td><td>2048</td><td>FFT frame size — larger = better frequency resolution, higher latency</td></tr>
+    <tr><td><code>overlapFactor</code></td><td>4</td><td>Overlap factor — 4 = 75% overlap; 8 = 87.5% overlap (smoother, 2× cost)</td></tr>
+    <tr><td><code>outputChannelCount</code></td><td>2</td><td><code>1</code> for mono destinations; input is always processed as stereo</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Internal buffer strategy</td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate-transposer interpolation kernel</td></tr>
+  </tbody>
+</table>
 
 ## AudioParams
 
-| Param | Default | Range | Description |
-|-------|---------|-------|-------------|
-| `pitch` | `1.0` | `0.1–8.0` | Pitch multiplier (k-rate) |
-| `pitchSemitones` | `0` | `-24–24` | Pitch shift in semitones (k-rate) |
-| `playbackRate` | `1.0` | `0.1–8.0` | Playback rate; set this to match your source node's `playbackRate` (k-rate) |
+<table>
+  <thead>
+    <tr><th>Param</th><th>Default</th><th>Range</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>pitch</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Pitch multiplier (k-rate)</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td><code>0</code></td><td><code>-24–24</code></td><td>Pitch shift in semitones (k-rate)</td></tr>
+    <tr><td><code>playbackRate</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Playback rate; set this to match your source node's <code>playbackRate</code> (k-rate)</td></tr>
+  </tbody>
+</table>
 
 ## Public API
 
-| Member | Description |
-|--------|-------------|
-| `PhaseVocoderNode.register(ctx, url)` | Registers the processor module. Must be called before constructing nodes. |
-| `PhaseVocoderNode.registerStrategyModule(ctx, url)` | Loads an interpolation strategy plugin into worklet scope. |
-| `PhaseVocoderNode.processorName` | The registered processor name string (`'phase-vocoder-processor'`). |
-| `pitch` | Pitch multiplier AudioParam. |
-| `pitchSemitones` | Semitone pitch shift AudioParam. |
-| `playbackRate` | Playback rate AudioParam. |
-| `setInterpolationStrategy(strategy)` | Switches rate-transposer interpolation strategy at runtime. |
-| `setInterpolationStrategyParams(params)` | Updates parameters for the active strategy. |
-| `setStretchParameters(params)` | No-op for the phase vocoder (API parity with `SoundTouchNode`). |
-| `metrics` | Latest `ProcessorMetrics` snapshot, or `null`. |
+<table>
+  <thead>
+    <tr><th>Member</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>PhaseVocoderNode.register(ctx, url)</code></td><td>Registers the processor module. Must be called before constructing nodes.</td></tr>
+    <tr><td><code>PhaseVocoderNode.registerStrategyModule(ctx, url)</code></td><td>Loads an interpolation strategy plugin into worklet scope.</td></tr>
+    <tr><td><code>PhaseVocoderNode.processorName</code></td><td>The registered processor name string (<code>'phase-vocoder-processor'</code>).</td></tr>
+    <tr><td><code>pitch</code></td><td>Pitch multiplier AudioParam.</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>Semitone pitch shift AudioParam.</td></tr>
+    <tr><td><code>playbackRate</code></td><td>Playback rate AudioParam.</td></tr>
+    <tr><td><code>setInterpolationStrategy(strategy)</code></td><td>Switches rate-transposer interpolation strategy at runtime.</td></tr>
+    <tr><td><code>setInterpolationStrategyParams(params)</code></td><td>Updates parameters for the active strategy.</td></tr>
+    <tr><td><code>setStretchParameters(params)</code></td><td>No-op for the phase vocoder (API parity with <code>SoundTouchNode</code>).</td></tr>
+    <tr><td><code>metrics</code></td><td>Latest <code>ProcessorMetrics</code> snapshot, or <code>null</code>.</td></tr>
+  </tbody>
+</table>
 
 ## Processor observability
 
@@ -109,19 +124,29 @@ const m = node.metrics; // ProcessorMetrics | null
 
 `ProcessorMetrics`:
 
-| Field | Description |
-|-------|-------------|
-| `framesBuffered` | Output frames available at the last render block |
-| `underrunCount` | Cumulative blocks with fewer output frames than requested |
-| `blockCount` | Total render blocks processed since creation |
-| `timestamp` | `performance.now()` on the main thread when metrics arrived |
+<table>
+  <thead>
+    <tr><th>Field</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>framesBuffered</code></td><td>Output frames available at the last render block</td></tr>
+    <tr><td><code>underrunCount</code></td><td>Cumulative blocks with fewer output frames than requested</td></tr>
+    <tr><td><code>blockCount</code></td><td>Total render blocks processed since creation</td></tr>
+    <tr><td><code>timestamp</code></td><td><code>performance.now()</code> on the main thread when metrics arrived</td></tr>
+  </tbody>
+</table>
 
 ## Trade-offs vs `SoundTouchNode`
 
-| | `SoundTouchNode` (WSOLA) | `PhaseVocoderNode` |
-|--|--|--|
-| Quality at extreme ratios | Artifacts above 2× | Smooth at all ratios |
-| Transient preservation | Better (time-domain) | Worse (frequency smearing) |
-| Computation | Lower | Higher (FFT per hop) |
-| Startup latency | Lower | `fftSize` samples |
-| Artifacts | Clicks / repeats | "Phasiness" / smearing |
+<table>
+  <thead>
+    <tr><th></th><th><code>SoundTouchNode</code> (WSOLA)</th><th><code>PhaseVocoderNode</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Quality at extreme ratios</td><td>Artifacts above 2×</td><td>Smooth at all ratios</td></tr>
+    <tr><td>Transient preservation</td><td>Better (time-domain)</td><td>Worse (frequency smearing)</td></tr>
+    <tr><td>Computation</td><td>Lower</td><td>Higher (FFT per hop)</td></tr>
+    <tr><td>Startup latency</td><td>Lower</td><td><code>fftSize</code> samples</td></tr>
+    <tr><td>Artifacts</td><td>Clicks / repeats</td><td>"Phasiness" / smearing</td></tr>
+  </tbody>
+</table>

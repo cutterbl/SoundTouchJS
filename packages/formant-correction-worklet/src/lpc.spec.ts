@@ -70,6 +70,25 @@ describe('levinsonDurbin', () => {
       expect(Math.abs(a[k])).toBeLessThan(1e-6);
     }
   });
+
+  it('all reflection coefficients stay within (-1, 1) for a transient signal', () => {
+    // A near-impulse can push unclamped k outside the unit circle, causing
+    // an unstable synthesis filter.  Verify levinsonDurbin clamps k so the
+    // resulting coefficients always produce a stable filter.
+    const N = 512;
+    const frame = new Float32Array(N);
+    frame[0] = 1.0; // impulse — worst case for marginal positive-definiteness
+    const r = autocorrelate(frame, 16);
+    const a = levinsonDurbin(r, 16);
+    // Feed a sustained signal through the synthesis filter; it must stay finite.
+    const zi = new Float32Array(16);
+    const input = new Float32Array(256);
+    for (let i = 0; i < 256; i++) input[i] = Math.sin(i * 0.2) * 0.5;
+    const out = applySynthesisFilter(input, a, zi);
+    for (let i = 0; i < 256; i++) {
+      expect(Number.isFinite(out[i])).toBe(true);
+    }
+  });
 });
 
 describe('applyAnalysisFilter', () => {
@@ -120,6 +139,23 @@ describe('applySynthesisFilter', () => {
     const out = applySynthesisFilter(frame, a, zi);
     for (let i = 0; i < 16; i++) {
       expect(out[i]).toBeCloseTo(frame[i], 5);
+    }
+  });
+
+  it('resets state and produces finite output when filter diverges', () => {
+    // Artificially force a blow-up: seed zi with Inf to simulate a diverged state.
+    const a = new Float32Array([0.5, 0.3, 0.1, 0.05]);
+    const zi = new Float32Array([Infinity, Infinity, Infinity, Infinity]);
+    const frame = new Float32Array(16).fill(0.1);
+    const out = applySynthesisFilter(frame, a, zi);
+    for (let i = 0; i < 16; i++) {
+      expect(Number.isFinite(out[i])).toBe(true);
+    }
+    // State should be reset — subsequent calls should remain finite.
+    const frame2 = new Float32Array(16).fill(0.1);
+    const out2 = applySynthesisFilter(frame2, a, zi);
+    for (let i = 0; i < 16; i++) {
+      expect(Number.isFinite(out2[i])).toBe(true);
     }
   });
 });

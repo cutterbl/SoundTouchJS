@@ -78,37 +78,52 @@ new FormantCorrectionNode({
 })
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `context` | required | AudioContext or OfflineAudioContext |
-| `outputChannelCount` | 2 | `1` for mono destinations; input is always processed as stereo |
-| `sampleBufferType` | `'circular'` | Internal buffer strategy |
-| `interpolationStrategy` | `'lanczos'` | Rate-transposer interpolation kernel |
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>context</code></td><td>required</td><td>AudioContext or OfflineAudioContext</td></tr>
+    <tr><td><code>outputChannelCount</code></td><td>2</td><td><code>1</code> for mono destinations; input is always processed as stereo</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Internal buffer strategy</td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate-transposer interpolation kernel</td></tr>
+  </tbody>
+</table>
 
 ## AudioParams
 
-| Param | Default | Range | Description |
-|-------|---------|-------|-------------|
-| `pitch` | `1.0` | `0.1–8.0` | Pitch multiplier (k-rate) |
-| `pitchSemitones` | `0` | `-24–24` | Semitone pitch shift (k-rate) |
-| `playbackRate` | `1.0` | `0.1–8.0` | Match the source node's `playbackRate` for accurate pitch compensation (k-rate) |
-| `formantStrength` | `1.0` | `0.0–1.0` | `0` = raw pitch shift; `1` = full formant correction (k-rate) |
+<table>
+  <thead>
+    <tr><th>Param</th><th>Default</th><th>Range</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>pitch</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Pitch multiplier (k-rate)</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td><code>0</code></td><td><code>-24–24</code></td><td>Semitone pitch shift (k-rate)</td></tr>
+    <tr><td><code>playbackRate</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Match the source node's <code>playbackRate</code> for accurate pitch compensation (k-rate)</td></tr>
+    <tr><td><code>formantStrength</code></td><td><code>1.0</code></td><td><code>0.0–1.0</code></td><td><code>0</code> = raw pitch shift; <code>1</code> = full formant correction (k-rate)</td></tr>
+  </tbody>
+</table>
 
 ## Public API
 
-| Member | Description |
-|--------|-------------|
-| `FormantCorrectionNode.register(ctx, url)` | Registers the processor module. |
-| `FormantCorrectionNode.registerStrategyModule(ctx, url)` | Loads an interpolation strategy plugin. |
-| `FormantCorrectionNode.processorName` | Registered processor name string. |
-| `pitch` | Pitch multiplier AudioParam. |
-| `pitchSemitones` | Semitone pitch shift AudioParam. |
-| `playbackRate` | Playback rate AudioParam. |
-| `formantStrength` | Formant correction strength AudioParam. |
-| `setInterpolationStrategy(strategy)` | Switches interpolation strategy at runtime. |
-| `setInterpolationStrategyParams(params)` | Updates active strategy parameters. |
-| `setStretchParameters(params)` | Applies WSOLA timing parameters. |
-| `metrics` | Latest `ProcessorMetrics` snapshot, or `null`. |
+<table>
+  <thead>
+    <tr><th>Member</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>FormantCorrectionNode.register(ctx, url)</code></td><td>Registers the processor module.</td></tr>
+    <tr><td><code>FormantCorrectionNode.registerStrategyModule(ctx, url)</code></td><td>Loads an interpolation strategy plugin.</td></tr>
+    <tr><td><code>FormantCorrectionNode.processorName</code></td><td>Registered processor name string.</td></tr>
+    <tr><td><code>pitch</code></td><td>Pitch multiplier AudioParam.</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>Semitone pitch shift AudioParam.</td></tr>
+    <tr><td><code>playbackRate</code></td><td>Playback rate AudioParam.</td></tr>
+    <tr><td><code>formantStrength</code></td><td>Formant correction strength AudioParam.</td></tr>
+    <tr><td><code>setInterpolationStrategy(strategy)</code></td><td>Switches interpolation strategy at runtime.</td></tr>
+    <tr><td><code>setInterpolationStrategyParams(params)</code></td><td>Updates active strategy parameters.</td></tr>
+    <tr><td><code>setStretchParameters(params)</code></td><td>Applies WSOLA timing parameters.</td></tr>
+    <tr><td><code>metrics</code></td><td>Latest <code>ProcessorMetrics</code> snapshot, or <code>null</code>.</td></tr>
+  </tbody>
+</table>
 
 ## Processor observability
 
@@ -140,9 +155,14 @@ const colored = applySynthesisFilter(residual, a, zi); // re-color
 
 ## Trade-offs vs `SoundTouchNode`
 
-| | `SoundTouchNode` | `FormantCorrectionNode` |
-|--|--|--|
-| Formant shift | Yes (chipmunk/giant) | Corrected |
-| Computation | Lower | Higher (LPC per block) |
-| Best use case | Instruments, music | Vocals, speech |
-| At `formantStrength = 0` | — | Identical to `SoundTouchNode` |
+<table>
+  <thead>
+    <tr><th></th><th><code>SoundTouchNode</code></th><th><code>FormantCorrectionNode</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Formant shift</td><td>Yes (chipmunk/giant)</td><td>Corrected</td></tr>
+    <tr><td>Computation</td><td>Lower</td><td>Higher (LPC per block)</td></tr>
+    <tr><td>Best use case</td><td>Instruments, music</td><td>Vocals, speech</td></tr>
+    <tr><td>At <code>formantStrength = 0</code></td><td>—</td><td>Identical to <code>SoundTouchNode</code></td></tr>
+  </tbody>
+</table>

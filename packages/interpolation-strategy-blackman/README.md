@@ -1,7 +1,3 @@
-## License
-
-MPL-2.0 — see [LICENSE](../../LICENSE) for details.
-
 # @soundtouchjs/interpolation-strategy-blackman
 
 Blackman interpolation strategy plugin for SoundTouchJS.
@@ -28,6 +24,8 @@ Better stopband rejection than Hann with a slightly wider transition band.
 ## Params
 
 - `zeroCrossings` (default `4`, normalized to `2..8`)
+- `normalize` (default `false`) — when true, kernel weights are normalized to sum to 1
+- `alpha` (default `0.42`), `beta` (default `0.5`), `gamma` (default `0.08`) — Blackman window coefficients for advanced window shape control
 
 ## Related docs
 
@@ -40,3 +38,7 @@ Better stopband rejection than Hann with a slightly wider transition band.
 - `blackmanStrategy`: Strategy descriptor with id `blackman`.
 - `registerBlackmanStrategy`: Helper that registers `blackmanStrategy` into a compatible registry.
 - `blackmanStrategy.defaultParams`: Runtime defaults for strategy params.
+
+## License
+
+MPL-2.0 — see [LICENSE](../../LICENSE) for details.

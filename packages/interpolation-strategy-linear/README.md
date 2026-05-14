@@ -19,7 +19,10 @@ st.setInterpolationStrategyParams({ edgeHoldFrames: 3 });
 
 ## Params
 
-- `edgeHoldFrames` (default `1`, normalized to `0..32`)
+- `edgeHoldFrames` (default `1`, normalized to `0..32`) — frames held at edges to avoid clicks
+- `blend` (default `1`, normalized to `0..1`) — `1` = pure linear interpolation; `0` = nearest-neighbor; values between blend the two
+- `normalize` (default `false`) — when true, kernel weights are normalized to sum to 1
+- `zeroCrossings` — alias for `edgeHoldFrames` (accepted for cross-strategy API consistency)
 
 ## Related docs
 

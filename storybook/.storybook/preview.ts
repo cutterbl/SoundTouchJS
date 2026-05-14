@@ -13,6 +13,11 @@ const preview: Preview = {
           'Core',
         ];
 
+        // Items listed here sort before all others within their group.
+        const subOrder = {
+          'Audio Worklet': ['Audio Worklet/Getting Started'],
+        };
+
         const leftRoot = left.title.split('/')[0];
         const rightRoot = right.title.split('/')[0];
         const leftIndex = order.indexOf(leftRoot);
@@ -27,6 +32,18 @@ const preview: Preview = {
           }
           if (leftIndex !== rightIndex) {
             return leftIndex - rightIndex;
+          }
+        }
+
+        // Same group — check sub-ordering before falling back to locale sort.
+        if (leftRoot === rightRoot) {
+          const pinned = subOrder[leftRoot] ?? [];
+          const li = pinned.indexOf(left.title);
+          const ri = pinned.indexOf(right.title);
+          if (li !== -1 || ri !== -1) {
+            if (li === -1) return 1;
+            if (ri === -1) return -1;
+            return li - ri;
           }
         }
 

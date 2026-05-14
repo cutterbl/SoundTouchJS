@@ -11,9 +11,25 @@
         font-family: system-ui, sans-serif;
       }
 
-      input,
       button {
         display: block;
+      }
+
+      select {
+        display: inline-block;
+        margin-bottom: 4px;
+      }
+
+      /* Slider controls — matches storybook Playground pattern */
+      .slider-label {
+        display: block;
+        margin-bottom: 0.75rem;
+      }
+
+      input[type='range'] {
+        display: block;
+        width: 100%;
+        margin: 2px 0;
       }
 
       .progress,
@@ -46,6 +62,33 @@
         color: #fff;
       }
 
+      .node-options {
+        padding: 6px 10px;
+        background: #bbb;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .metrics-panel {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        display: inline-flex;
+        gap: 20px;
+        margin: 4px 0 8px;
+      }
+
+      .metrics-panel span {
+        color: #4ec9b0;
+        font-weight: bold;
+      }
+
       #codeBlock {
         margin-top: 16px;
         background: #1e1e1e;
@@ -68,20 +111,70 @@
   </head>
   <body>
     <h3>SoundTouchJS AudioWorklet Demo</h3>
+
+    Track:
+    <select id="trackSelect">
+      <option value="./bensound-actionable.mp3">Actionable</option>
+      <option value="./bensound-downtown.mp3">Downtown</option>
+      <option value="./bensound-happiness.mp3">Happiness</option>
+      <option value="./bensound-hipjazz.mp3">Hip Jazz</option>
+      <option value="./bensound-retrosoul.mp3">Retro Soul</option>
+    </select>
+
     <div class="mode-toggle">
       <button id="modeBuffer" class="active">AudioBuffer</button>
       <button id="modeElement">Audio Element</button>
     </div>
+
     <label style="display: flex; gap: 1rem">
       <input type="checkbox" id="circularAdapterToggle" />
       Use FIFO sample buffers (reloads demo)
     </label>
     <div id="adapterMode"></div>
-    <label style="display: flex; gap: 1rem">
-      <input type="checkbox" id="interpolationToggle" />
-      Use linear interpolation (reloads demo)
-    </label>
-    <div id="interpolationMode"></div>
+
+    Node type:
+    <select id="nodeTypeSelect">
+      <option value="soundtouch">SoundTouchNode (WSOLA)</option>
+      <option value="phase-vocoder">PhaseVocoderNode</option>
+      <option value="formant-correction">FormantCorrectionNode</option>
+    </select>
+
+    <div id="pvOptions" class="node-options" style="display: none; width: 650px">
+      FFT size:
+      <select id="fftSizeSelect">
+        <option value="512">512</option>
+        <option value="1024">1024</option>
+        <option value="2048" selected>2048</option>
+        <option value="4096">4096</option>
+      </select>
+      Overlap factor:
+      <select id="overlapFactorSelect">
+        <option value="2">2</option>
+        <option value="4" selected>4</option>
+        <option value="8">8</option>
+      </select>
+    </div>
+
+    <div id="fcOptions" class="node-options" style="display: none; width: 650px">
+      <label class="slider-label" style="flex: 1; min-width: 200px; margin-bottom: 0">
+        Formant strength: <span id="formantStrengthOutput">1.00</span>
+        <input
+          type="range"
+          id="formantStrengthSlider"
+          min="0"
+          max="1"
+          step="0.01"
+          value="1"
+          list="formant-ticks"
+        />
+        <datalist id="formant-ticks">
+          <option value="0" label="0"></option>
+          <option value="0.5" label="0.5"></option>
+          <option value="1" label="1"></option>
+        </datalist>
+      </label>
+    </div>
+
     <div id="bufferControls">
       <button id="play" disabled>Play</button>
       <button id="stop">Pause</button>
@@ -93,122 +186,116 @@
     <div id="elementControls" style="display: none">
       <audio id="audioEl" src="./bensound-actionable.mp3" controls></audio>
     </div>
-    <label style="display: flex; gap: 1rem">
+
+    <label style="display: flex; gap: 1rem; margin-bottom: 0.5rem">
       <input type="checkbox" id="loopToggle" />
       Loop playback
     </label>
-    Rate:
-    <input
-      type="range"
-      autofocus
-      min="0.1"
-      max="4.0"
-      name="tempoSlider"
-      value="1.0"
-      id="tempoSlider"
-      step="0.01"
-      list="temporange"
-    />
-    <datalist id="temporange">
-      <option value="0.1" label="0"></option>
-      <option value="0.5"></option>
-      <option value="1.0"></option>
-      <option value="1.5"></option>
-      <option value="2.0"></option>
-      <option value="2.5"></option>
-      <option value="3.0"></option>
-      <option value="3.5"></option>
-      <option value="4.0" label="4"></option>
-    </datalist>
-    <div id="tempo"></div>
-    Pitch:
-    <input
-      type="range"
-      autofocus
-      min="0.1"
-      max="2.0"
-      name="pitchSlider"
-      value="1.0"
-      id="pitchSlider"
-      step="0.01"
-      list="pitchrange"
-    />
-    <datalist id="pitchrange">
-      <option value="0.1" label="0"></option>
-      <option value="0.5"></option>
-      <option value="1.0"></option>
-      <option value="1.5"></option>
-      <option value="2.0" label="2"></option>
-    </datalist>
-    <div id="pitch"></div>
 
-    Change Key:
-    <input
-      type="range"
-      autofocus
-      min="-7.0"
-      max="7.0"
-      name="keySlider"
-      value="0"
-      id="keySlider"
-      step="1"
-      list="keyrange"
-    />
-    <datalist id="keyrange">
-      <option value="-7"></option>
-      <option value="-6"></option>
-      <option value="-5"></option>
-      <option value="-4"></option>
-      <option value="-3"></option>
-      <option value="-2"></option>
-      <option value="-1"></option>
-      <option value="0"></option>
-      <option value="1"></option>
-      <option value="2"></option>
-      <option value="3"></option>
-      <option value="4"></option>
-      <option value="5"></option>
-      <option value="6"></option>
-      <option value="7"></option>
-    </datalist>
-    <div id="key"></div>
+    Interpolation strategy:
+    <select id="strategySelect">
+      <option value="lanczos" selected>Lanczos (default)</option>
+      <option value="linear">Linear</option>
+      <option value="hann">Hann</option>
+      <option value="blackman">Blackman</option>
+      <option value="kaiser">Kaiser</option>
+    </select>
 
-    Volume:
-    <input
-      type="range"
-      autofocus
-      min="0.0"
-      max="10.0"
-      name="volumeSlider"
-      value="1.0"
-      id="volumeSlider"
-      step="0.01"
-      list="volumerange"
-    />
-    <datalist id="volumerange">
-      <option value="0.0" label="0"></option>
-      <option value="0.5"></option>
-      <option value="1.0"></option>
-      <option value="1.5"></option>
-      <option value="2.0" label="2"></option>
-      <option value="2.5"></option>
-      <option value="3.0"></option>
-      <option value="3.5"></option>
-      <option value="4.0" label="4"></option>
-      <option value="4.5"></option>
-      <option value="5.0"></option>
-      <option value="5.5"></option>
-      <option value="6.0" label="6"></option>
-      <option value="6.5"></option>
-      <option value="7.0"></option>
-      <option value="7.5"></option>
-      <option value="8.0" label="8"></option>
-      <option value="8.5"></option>
-      <option value="9.0"></option>
-      <option value="9.5"></option>
-      <option value="10.0" label="10"></option>
-    </datalist>
-    <div id="volume"></div>
+    <fieldset style="margin: 12px 0; padding: 8px; width: 650px">
+      <legend>Playback Parameters</legend>
+    <label class="slider-label">
+      Rate: <span id="tempo">1.00</span>
+      <input
+        type="range"
+        autofocus
+        min="0.1"
+        max="4.0"
+        name="tempoSlider"
+        value="1.0"
+        id="tempoSlider"
+        step="0.01"
+        list="temporange"
+      />
+      <datalist id="temporange">
+        <option value="0.1" label="0.1"></option>
+        <option value="1.0" label="1"></option>
+        <option value="2.0" label="2"></option>
+        <option value="4.0" label="4"></option>
+      </datalist>
+    </label>
+
+    <label class="slider-label">
+      Pitch: <span id="pitch">1.00</span>
+      <input
+        type="range"
+        min="0.1"
+        max="2.0"
+        name="pitchSlider"
+        value="1.0"
+        id="pitchSlider"
+        step="0.01"
+        list="pitchrange"
+      />
+      <datalist id="pitchrange">
+        <option value="0.1" label="0.1"></option>
+        <option value="0.5" label="0.5"></option>
+        <option value="1.0" label="1"></option>
+        <option value="1.5" label="1.5"></option>
+        <option value="2.0" label="2"></option>
+      </datalist>
+    </label>
+
+    <label class="slider-label">
+      Change Key: <span id="key">0</span>
+      <input
+        type="range"
+        min="-12"
+        max="12"
+        name="keySlider"
+        value="0"
+        id="keySlider"
+        step="1"
+        list="keyrange"
+      />
+      <datalist id="keyrange">
+        <option value="-12" label="-12"></option>
+        <option value="-6" label="-6"></option>
+        <option value="0" label="0"></option>
+        <option value="6" label="6"></option>
+        <option value="12" label="12"></option>
+      </datalist>
+    </label>
+
+    <label class="slider-label">
+      Volume: <span id="volume">1.00</span>
+      <input
+        type="range"
+        min="0.0"
+        max="10.0"
+        name="volumeSlider"
+        value="1.0"
+        id="volumeSlider"
+        step="0.01"
+        list="volumerange"
+      />
+      <datalist id="volumerange">
+        <option value="0" label="0"></option>
+        <option value="2" label="2"></option>
+        <option value="4" label="4"></option>
+        <option value="6" label="6"></option>
+        <option value="8" label="8"></option>
+        <option value="10" label="10"></option>
+      </datalist>
+    </label>
+    </fieldset>
+
+    Processor metrics:
+    <div class="metrics-panel">
+      Buffered: <span id="metricsFrames">--</span>
+      &nbsp;Underruns: <span id="metricsUnderruns">--</span>
+      &nbsp;Blocks: <span id="metricsBlocks">--</span>
+    </div>
+
     <div id="codeBlock"></div>
     <script type="module" src="./src/main.ts"></script>
   </body>
