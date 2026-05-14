@@ -25,6 +25,6 @@
 
 ## Git Commit Requests
 
-- When the user asks to "stage and commit", always stage the requested changes and create a commit using Conventional Commits format.
+- When the user asks to "stage and commit", stage all current changes by default unless the user explicitly scopes which changes to include, and create a commit using Conventional Commits format.
 - The commit subject must be sentence-case and match repository conventions (for example: `feat(core): Add pitch bend support` or `chore: Update lint configuration`).
 - Do not use vague commit subjects; choose the type/scope/subject based on the actual staged changes.
