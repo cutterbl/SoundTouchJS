@@ -12,6 +12,12 @@
         "commands": ["tsc --build tsconfig.lib.json", "vite build"],
         "parallel": false
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["{projectRoot}/src/**/*.ts"]
+      }
     }
   }
 }

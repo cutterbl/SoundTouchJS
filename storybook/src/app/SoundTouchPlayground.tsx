@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import processorModuleUrl from '../../../packages/audio-worklet/src/processor.ts?url';
+import processorModuleUrl from '../../../packages/audio-worklet/src/processor.ts?worker&url';
 import actionableTrack from '../../../apps/demo/public/bensound-actionable.mp3?url';
 import downtownTrack from '../../../apps/demo/public/bensound-downtown.mp3?url';
 import happinessTrack from '../../../apps/demo/public/bensound-happiness.mp3?url';

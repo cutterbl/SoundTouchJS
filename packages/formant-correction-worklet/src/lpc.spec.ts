@@ -89,6 +89,18 @@ describe('levinsonDurbin', () => {
       expect(Number.isFinite(out[i])).toBe(true);
     }
   });
+
+  it('terminates early when energy collapses to near-zero during recursion', () => {
+    // Craft an autocorrelation that forces k to be clamped to ±0.9999 on
+    // consecutive iterations, causing E to drop below 1e-15 and triggering
+    // the energy-guard early-exit branch.
+    const r = new Float32Array([1e-9, 1e-9, 0]);
+    const a = levinsonDurbin(r, 2);
+    expect(a.length).toBe(2);
+    for (let i = 0; i < 2; i++) {
+      expect(Number.isFinite(a[i])).toBe(true);
+    }
+  });
 });
 
 describe('applyAnalysisFilter', () => {

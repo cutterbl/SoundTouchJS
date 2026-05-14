@@ -33,6 +33,13 @@
         "command": "vitest run --passWithNoTests"
       }
     }
+    ,
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["{projectRoot}/src/**/*.ts"]
+      }
+    }
   },
   "tags": []
 }

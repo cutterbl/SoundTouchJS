@@ -450,9 +450,9 @@ function setMode(mode: SourceMode): void {
   keyOutput.textContent = '0';
   volumeSlider.value = '1';
   volumeOutput.textContent = '1.00';
-  stNode?.pitch && (stNode.pitch.value = 1);
-  stNode?.pitchSemitones && (stNode.pitchSemitones.value = 0);
-  gainNode && (gainNode.gain.value = 1);
+  if (stNode?.pitch) stNode.pitch.value = 1;
+  if (stNode?.pitchSemitones) stNode.pitchSemitones.value = 0;
+  if (gainNode) gainNode.gain.value = 1;
 
   updateCodeBlock();
 }

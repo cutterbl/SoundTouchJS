@@ -119,7 +119,7 @@ function requireRegisteredStrategy(
   }
 
   throw new Error(
-    `Unknown interpolation strategy id \"${strategyId}\". Register it before use.`,
+    `Unknown interpolation strategy id "${strategyId}". Register it before use.`,
   );
 }
 

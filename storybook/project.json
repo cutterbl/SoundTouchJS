@@ -16,7 +16,7 @@
       "executor": "@nx/storybook:build",
       "options": {
         "configDir": "storybook/.storybook",
-        "outputDir": "dist/storybook"
+        "outputDir": "./static-storybook"
       },
       "inputs": ["default", "^default"]
     }

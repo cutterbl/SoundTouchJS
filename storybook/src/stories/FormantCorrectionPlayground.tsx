@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react';
 
-import processorModuleUrl from '../../../packages/formant-correction-worklet/src/formant-correction-processor.ts?url';
+import processorModuleUrl from '../../../packages/formant-correction-worklet/src/formant-correction-processor.ts?worker&url';
 import actionableTrack from '../../../apps/demo/public/bensound-actionable.mp3?url';
 import downtownTrack from '../../../apps/demo/public/bensound-downtown.mp3?url';
 import happinessTrack from '../../../apps/demo/public/bensound-happiness.mp3?url';
@@ -131,6 +131,7 @@ export function FormantCorrectionPlayground({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('Idle');
+  const [metrics, setMetrics] = useState<ProcessorMetrics | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const nodeRef = useRef<FormantCorrectionNode | null>(null);
@@ -169,6 +170,7 @@ export function FormantCorrectionPlayground({
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
+    setMetrics(null);
   }, [clearSourceNode]);
 
   const createGraph = useCallback(async (): Promise<void> => {
@@ -181,6 +183,10 @@ export function FormantCorrectionPlayground({
       interpolationStrategy,
     });
     node.connect(context.destination);
+
+    node.addEventListener('metrics', (e: Event) => {
+      setMetrics((e as CustomEvent<ProcessorMetrics>).detail);
+    });
 
     audioContextRef.current = context;
     nodeRef.current = node;
@@ -500,6 +506,23 @@ export function FormantCorrectionPlayground({
       <p style={{ marginBottom: 0, marginTop: '0.75rem', color: '#374151' }}>
         {status}
       </p>
+
+      <div
+        style={{
+          marginTop: '0.75rem',
+          padding: '0.5rem 0.75rem',
+          background: '#f3f4f6',
+          borderRadius: 6,
+          fontSize: '0.8rem',
+          color: '#374151',
+          display: 'flex',
+          gap: '1.5rem',
+        }}
+      >
+        <span><strong>Buffered frames:</strong> {metrics?.framesBuffered ?? 0}</span>
+        <span><strong>Underruns:</strong> {metrics?.underrunCount ?? 0}</span>
+        <span><strong>Blocks processed:</strong> {metrics?.blockCount ?? 0}</span>
+      </div>
 
       <div style={{ marginTop: '1rem' }}>
         <strong>TypeScript example</strong>

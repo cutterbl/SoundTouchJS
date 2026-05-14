@@ -28,10 +28,11 @@ export default defineConfig(() => ({
       '@soundtouchjs/phase-vocoder-worklet': `${import.meta.dirname}/../packages/phase-vocoder-worklet/src/index.ts`,
     },
   },
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [],
-  // },
+  // Worker config: bundle ?worker&url imports as self-contained ES modules
+  // so that AudioWorklet processors load correctly with no unresolved imports.
+  worker: {
+    format: 'es',
+  },
   build: {
     outDir: './dist',
     emptyOutDir: true,

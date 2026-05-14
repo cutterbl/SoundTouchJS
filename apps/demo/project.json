@@ -9,6 +9,12 @@
         "cwd": "{projectRoot}",
         "command": "vite"
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["{projectRoot}/src/**/*.ts", "{projectRoot}/src/**/*.tsx"]
+      }
     }
   }
 }

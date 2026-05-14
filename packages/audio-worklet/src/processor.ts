@@ -297,7 +297,7 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
         framesBuffered: available,
         underrunCount: this._underrunCount,
         blockCount: this._blockCount,
-      });
+      } satisfies MetricsMessage);
     }
 
     if (toExtract > 0) {

@@ -3,8 +3,10 @@ import {
   getActiveInterpolationStrategyId,
   hasInterpolationStrategy,
   listInterpolationStrategies,
+  normalizeInterpolationStrategyId,
   registerInterpolationStrategy,
   resolveInterpolationStrategy,
+  resolveInterpolationStrategyRuntime,
   setActiveInterpolationStrategy,
   unregisterInterpolationStrategy,
 } from './interpolationStrategyRegistry.js';
@@ -76,5 +78,71 @@ describe('interpolationStrategyRegistry', () => {
     expect(result).toBe(42);
     expect(called).toBe(1);
     unregisterInterpolationStrategy('plugin/test-kernel');
+  });
+
+  it('normalizes a strategy id', () => {
+    const id = normalizeInterpolationStrategyId('lanczos');
+    expect(id).toBe('lanczos');
+  });
+
+  it('normalizeInterpolationStrategyId throws for unknown strategy', () => {
+    expect(() =>
+      normalizeInterpolationStrategyId('plugin/nonexistent' as never),
+    ).toThrow();
+  });
+
+  it('resolves runtime strategy state', () => {
+    const runtime = resolveInterpolationStrategyRuntime('lanczos');
+    expect(runtime.id).toBe('lanczos');
+    expect(typeof runtime.kernel).toBe('function');
+  });
+
+  it('resolves runtime strategy with explicit params', () => {
+    registerInterpolationStrategy({
+      id: 'plugin/test-params',
+      kernel: () => 0,
+      defaultParams: { alpha: 0.5 },
+    });
+    const runtime = resolveInterpolationStrategyRuntime({
+      id: 'plugin/test-params',
+      params: { alpha: 0.8 },
+    });
+    expect(runtime.params['alpha']).toBe(0.8);
+    unregisterInterpolationStrategy('plugin/test-params');
+  });
+
+  it('resolves runtime strategy for alias that delegates to kernel', () => {
+    const kernel = () => 0;
+    registerInterpolationStrategy({ id: 'plugin/base-kernel', kernel });
+    registerInterpolationStrategy({
+      id: 'plugin/alias',
+      baseStrategy: 'plugin/base-kernel',
+    });
+    const runtime = resolveInterpolationStrategyRuntime('plugin/alias');
+    expect(runtime.kernel).toBe(kernel);
+    unregisterInterpolationStrategy('plugin/alias');
+    unregisterInterpolationStrategy('plugin/base-kernel');
+  });
+
+  it('detects resolution cycles', () => {
+    registerInterpolationStrategy({
+      id: 'plugin/cycleA',
+      baseStrategy: 'plugin/cycleB',
+    });
+    registerInterpolationStrategy({
+      id: 'plugin/cycleB',
+      baseStrategy: 'plugin/cycleA',
+    });
+    expect(() => resolveInterpolationStrategyRuntime('plugin/cycleA')).toThrow(
+      'cycle',
+    );
+    unregisterInterpolationStrategy('plugin/cycleA');
+    unregisterInterpolationStrategy('plugin/cycleB');
+  });
+
+  it('does not unregister a strategy that is not registered', () => {
+    expect(unregisterInterpolationStrategy('plugin/ghost' as never)).toBe(
+      false,
+    );
   });
 });

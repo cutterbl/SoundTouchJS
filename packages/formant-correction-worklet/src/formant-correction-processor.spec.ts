@@ -263,5 +263,109 @@ describe('formant-correction-processor', () => {
       expect(outL[0]).toBeCloseTo(0.1, 5);
       expect(outR[0]).toBeCloseTo(0.2, 5);
     });
+
+    it('routes output to a mono output channel when only one output is provided', async () => {
+      await import('./formant-correction-processor.js');
+      extract.mockImplementation((target: Float32Array) => {
+        target[0] = 0.5; target[1] = 0.6;
+      });
+      outputFrameCount = 1;
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } });
+      const outMono = new Float32Array(1);
+
+      expect(() =>
+        instance.process(
+          [[new Float32Array([0.3])]],
+          [[outMono]],
+          baseParams,
+        ),
+      ).not.toThrow();
+      expect(receive).toHaveBeenCalledWith(1);
+    });
+
+    it('reallocates sample buffers when frame count exceeds initial allocation', async () => {
+      await import('./formant-correction-processor.js');
+      const largeCount = 256;
+      outputFrameCount = largeCount;
+      extract.mockImplementation((target: Float32Array, _start: number, frames: number) => {
+        for (let i = 0; i < frames * 2; i++) target[i] = 0.1;
+      });
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } });
+      const outL = new Float32Array(largeCount);
+      const outR = new Float32Array(largeCount);
+
+      expect(() =>
+        instance.process(
+          [[new Float32Array(largeCount)]],
+          [[outL, outR]],
+          baseParams,
+        ),
+      ).not.toThrow();
+    });
+  });
+
+  describe('error resilience', () => {
+    it('logs and recovers when setInterpolationStrategy throws', async () => {
+      await import('./formant-correction-processor.js');
+      setInterpolationStrategy.mockImplementationOnce(() => { throw new Error('strategy error'); });
+      const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } }) as unknown as {
+        port: { onmessage: ((e: { data: unknown }) => void) | null };
+        process: RegisteredProcessorCtor['prototype']['process'];
+      };
+      instance.port.onmessage?.({ data: { type: 'set-interpolation-strategy', strategy: 'linear' } });
+      expect(() =>
+        instance.process([[new Float32Array(2)]], [[new Float32Array(2), new Float32Array(2)]], baseParams),
+      ).not.toThrow();
+
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to switch interpolation strategy:'),
+        expect.anything(),
+      );
+      infoSpy.mockRestore();
+    });
+
+    it('logs and recovers when setInterpolationStrategyParams throws', async () => {
+      await import('./formant-correction-processor.js');
+      setInterpolationStrategyParams.mockImplementationOnce(() => { throw new Error('params error'); });
+      const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } }) as unknown as {
+        port: { onmessage: ((e: { data: unknown }) => void) | null };
+        process: RegisteredProcessorCtor['prototype']['process'];
+      };
+      instance.port.onmessage?.({ data: { type: 'set-interpolation-strategy-params', params: { alpha: 0.5 } } });
+      expect(() =>
+        instance.process([[new Float32Array(2)]], [[new Float32Array(2), new Float32Array(2)]], baseParams),
+      ).not.toThrow();
+
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to update interpolation strategy params.'),
+      );
+      infoSpy.mockRestore();
+    });
+
+    it('logs and recovers when setStretchParameters throws', async () => {
+      await import('./formant-correction-processor.js');
+      setStretchParameters.mockImplementationOnce(() => { throw new Error('stretch error'); });
+      const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } }) as unknown as {
+        port: { onmessage: ((e: { data: unknown }) => void) | null };
+        process: RegisteredProcessorCtor['prototype']['process'];
+      };
+      instance.port.onmessage?.({ data: { type: 'set-stretch-parameters', params: { overlapMs: 8 } } });
+      expect(() =>
+        instance.process([[new Float32Array(2)]], [[new Float32Array(2), new Float32Array(2)]], baseParams),
+      ).not.toThrow();
+
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to update stretch parameters.'),
+      );
+      infoSpy.mockRestore();
+    });
   });
 });

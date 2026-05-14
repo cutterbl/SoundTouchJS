@@ -18,11 +18,7 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": ["^typecheck"],
-      "outputs": [
-        "{projectRoot}/.dist/**/*.d.ts",
-        "{projectRoot}/.dist/**/*.d.ts.map",
-        "{projectRoot}/.dist/.tsbuildinfo"
-      ],
+      "outputs": ["{projectRoot}/.dist/**/*.d.ts", "{projectRoot}/.dist/**/*.d.ts.map", "{projectRoot}/.dist/.tsbuildinfo"],
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
@@ -34,6 +30,12 @@
       "options": {
         "cwd": "{projectRoot}",
         "command": "vitest run --passWithNoTests"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["{projectRoot}/src/**/*.ts"]
       }
     }
   },

@@ -22,10 +22,8 @@
 
 import AbstractSamplePipe from './AbstractSamplePipe.js';
 import CircularSampleBuffer from './CircularSampleBuffer.js';
-import FifoSampleBuffer from './FifoSampleBuffer.js';
 import {
   createCircularSampleBufferAdapter,
-  createFifoSampleBufferAdapter,
   type SampleBufferAdapter,
   type SampleBufferAdapterFactory,
 } from './SampleBufferAdapter.js';
