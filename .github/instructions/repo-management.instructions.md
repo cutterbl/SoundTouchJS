@@ -23,6 +23,13 @@ docs(demo): Improve slider labels
 
 Valid types: `feat`, `fix`, `chore`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `build`, `revert`
 
+When the user asks Copilot to "stage and commit", Copilot must:
+
+1. Stage the intended changes.
+2. Create a commit using the Conventional Commits format above.
+3. Use a sentence-case subject aligned with the repository configuration.
+4. Select an appropriate type (and scope when useful) based on the actual changes.
+
 ## Release Workflow
 
 1. Commits land on `master` following conventional commit format
@@ -60,7 +67,7 @@ Uses whatever Node version ships with `ubuntu-latest` — no explicit Node setup
 | Hook         | Action                      | CI Behavior           |
 | ------------ | --------------------------- | --------------------- |
 | `commit-msg` | `pnpm commitlint --edit $1` | Runs                  |
-| `pre-commit` | `pnpm typecheck`            | Skipped (`$CI` guard) |
+| `pre-commit` | `pnpm typecheck && pnpm lint` | Skipped (`$CI` guard) |
 
 ## Package Publishing
 
@@ -69,3 +76,13 @@ Only `packages/core` is published. The `"files"` field in its `package.json` con
 - `dist/` (compiled JS + declarations)
 - `README.md`
 - `LICENSE`
+
+### Stage and Commit Instructions
+
+When working in local development, the repository is configured with a Husky pre-commit hook. This hook ensures that tasks such as linting and typechecking are executed before the commit is finalized. As a result, when staging and committing changes, Copilot must wait for these tasks to complete and summarize their output.
+
+#### Steps:
+1. Stage the changes using `git add <file>`.
+2. Commit the changes using `git commit -m "<commit message>"`.
+3. Wait for the pre-commit hook tasks to complete.
+4. Summarize the output of the pre-commit hook tasks, including any errors or warnings encountered.
