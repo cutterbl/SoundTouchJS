@@ -62,7 +62,7 @@ Package build output convention:
 - The demo app resolves `@soundtouchjs/core` to source (not dist) during development via a Vite alias
 - Workspace dependency uses `"workspace:*"` protocol (pnpm)
 - CI runs on GitHub Actions (`.github/workflows/main.yml`)
-- Pre-commit hook runs typecheck (skipped in CI via `$CI` env var)
+- Pre-commit hook runs typecheck and lint (skipped in CI via `$CI` env var)
 - Keep docs up to date with code changes: update affected README/docs files whenever public behavior, APIs, defaults, or workflows are changed
 
 ## Do Not
