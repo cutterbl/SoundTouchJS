@@ -1,0 +1,171 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/Phase Vocoder Node" />
+
+# PhaseVocoderNode
+
+**What is this?**
+
+`@soundtouchjs/phase-vocoder-worklet` provides an `AudioWorkletNode` backed by an FFT-based phase vocoder instead of the default WSOLA stretch algorithm. Use it as a drop-in replacement for `SoundTouchNode` when you need smoother time-stretching at extreme playback ratios.
+
+**When would I use it?**
+
+- Playback at extreme ratios (< 0.5× or > 2×) where WSOLA produces audible clicks or repeats.
+- Smooth slow-motion or very fast playback where "phasiness" is acceptable.
+- You need the full `SoundTouchNode` API (pitch, semitones, rate, interpolation strategy) with a different stretch core.
+
+For moderate ratios (0.5–2×) `SoundTouchNode` typically sounds better.
+
+## Setup
+
+### Registering the processor
+
+```ts
+import { PhaseVocoderNode } from '@soundtouchjs/phase-vocoder-worklet';
+
+const audioCtx = new AudioContext();
+// Vite:
+import processorUrl from '@soundtouchjs/phase-vocoder-worklet/processor?url';
+await PhaseVocoderNode.register(audioCtx, processorUrl);
+```
+
+See [Getting Started](./getting-started) for Vite, webpack, and static setups.
+
+## Basic usage
+
+```ts
+const node = new PhaseVocoderNode({
+  context: audioCtx,
+  fftSize: 2048,     // default
+  overlapFactor: 4,  // default
+});
+
+node.pitch.value = 1.5;        // 50 % pitch up
+node.pitchSemitones.value = 3; // shift by semitones
+node.playbackRate.value = 0.25; // extreme slow-down — smooth with phase vocoder
+
+node.connect(audioCtx.destination);
+sourceNode.connect(node);
+```
+
+## Constructor options
+
+```ts
+new PhaseVocoderNode({
+  context: audioCtx,
+  fftSize?: 512 | 1024 | 2048 | 4096,  // default: 2048
+  overlapFactor?: 2 | 4 | 8,           // default: 4
+  outputChannelCount?: 1 | 2,          // default: 2
+  sampleBufferType?: 'circular' | 'fifo',
+  interpolationStrategy?: RateTransposerInterpolationStrategy,
+})
+```
+
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>context</code></td><td>required</td><td>AudioContext or OfflineAudioContext</td></tr>
+    <tr><td><code>fftSize</code></td><td>2048</td><td>FFT frame size — larger = better frequency resolution, higher latency</td></tr>
+    <tr><td><code>overlapFactor</code></td><td>4</td><td>Overlap factor — 4 = 75% overlap; 8 = 87.5% overlap (smoother, 2× cost)</td></tr>
+    <tr><td><code>outputChannelCount</code></td><td>2</td><td><code>1</code> for mono destinations; input is always processed as stereo</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Internal buffer strategy</td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate-transposer interpolation kernel</td></tr>
+  </tbody>
+</table>
+
+## AudioParams
+
+<table>
+  <thead>
+    <tr><th>Param</th><th>Default</th><th>Range</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>pitch</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Pitch multiplier (k-rate)</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td><code>0</code></td><td><code>-24–24</code></td><td>Pitch shift in semitones (k-rate)</td></tr>
+    <tr><td><code>playbackRate</code></td><td><code>1.0</code></td><td><code>0.1–8.0</code></td><td>Playback rate; set this to match your source node's <code>playbackRate</code> (k-rate)</td></tr>
+  </tbody>
+</table>
+
+## Public API
+
+<table>
+  <thead>
+    <tr><th>Member</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>PhaseVocoderNode.register(ctx, url)</code></td><td>Registers the processor module. Must be called before constructing nodes.</td></tr>
+    <tr><td><code>PhaseVocoderNode.registerStrategyModule(ctx, url)</code></td><td>Loads an interpolation strategy plugin into worklet scope.</td></tr>
+    <tr><td><code>PhaseVocoderNode.processorName</code></td><td>The registered processor name string (<code>'phase-vocoder-processor'</code>).</td></tr>
+    <tr><td><code>pitch</code></td><td>Pitch multiplier AudioParam.</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>Semitone pitch shift AudioParam.</td></tr>
+    <tr><td><code>playbackRate</code></td><td>Playback rate AudioParam.</td></tr>
+    <tr><td><code>setInterpolationStrategy(strategy)</code></td><td>Switches rate-transposer interpolation strategy at runtime.</td></tr>
+    <tr><td><code>setInterpolationStrategyParams(params)</code></td><td>Updates parameters for the active strategy.</td></tr>
+    <tr><td><code>setStretchParameters(params)</code></td><td>No-op for the phase vocoder (API parity with <code>SoundTouchNode</code>).</td></tr>
+    <tr><td><code>processOffline(options)</code></td><td>Renders an <code>AudioBuffer</code> through the phase-vocoder worklet in an <code>OfflineAudioContext</code>.</td></tr>
+    <tr><td><code>metrics</code></td><td>Latest <code>ProcessorMetrics</code> snapshot, or <code>null</code>.</td></tr>
+  </tbody>
+</table>
+
+## Offline processing
+
+```ts
+import { processOffline } from '@soundtouchjs/phase-vocoder-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,
+  playbackRate: 0.5,
+  pitchSemitones: 3,
+  fftSize: 1024,
+  overlapFactor: 8,
+});
+```
+
+## Processor observability
+
+The render-thread processor posts metrics every 100 render blocks:
+
+```ts
+node.addEventListener('metrics', (e) => {
+  const { framesBuffered, underrunCount, blockCount, outputRms, outputPeak } =
+    (e as CustomEvent<ProcessorMetrics>).detail;
+  // e.g. display outputRms/outputPeak in your UI
+});
+
+// Or poll the getter:
+const m = node.metrics; // ProcessorMetrics | null
+```
+
+`ProcessorMetrics`:
+
+<table>
+  <thead>
+    <tr><th>Field</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>framesBuffered</code></td><td>Output frames available at the last render block</td></tr>
+    <tr><td><code>underrunCount</code></td><td>Cumulative blocks with fewer output frames than requested</td></tr>
+    <tr><td><code>blockCount</code></td><td>Total render blocks processed since creation</td></tr>
+    <tr><td><code>outputRms</code></td><td>Root mean square (RMS) of the last output block (both channels)</td></tr>
+    <tr><td><code>outputPeak</code></td><td>Peak absolute value of the last output block (both channels)</td></tr>
+    <tr><td><code>timestamp</code></td><td><code>performance.now()</code> on the main thread when metrics arrived</td></tr>
+  </tbody>
+</table>
+
+## Trade-offs vs `SoundTouchNode`
+
+<table>
+  <thead>
+    <tr><th></th><th><code>SoundTouchNode</code> (WSOLA)</th><th><code>PhaseVocoderNode</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Quality at extreme ratios</td><td>Artifacts above 2×</td><td>Smooth at all ratios</td></tr>
+    <tr><td>Transient preservation</td><td>Better (time-domain)</td><td>Worse (frequency smearing)</td></tr>
+    <tr><td>Computation</td><td>Lower</td><td>Higher (FFT per hop)</td></tr>
+    <tr><td>Startup latency</td><td>Lower</td><td><code>fftSize</code> samples</td></tr>
+    <tr><td>Artifacts</td><td>Clicks / repeats</td><td>"Phasiness" / smearing</td></tr>
+  </tbody>
+</table>

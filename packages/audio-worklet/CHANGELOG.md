@@ -1,3 +1,74 @@
+# 2.0.0 (2026-05-14)
+
+### 🚀 Features
+
+- Add live processor metrics to Storybook playgrounds ([f41f2e8](https://github.com/cutterbl/SoundTouchJS/commit/f41f2e8))
+- Refactor processing pipeline and update interpolation strategy integrations ([529a3e5](https://github.com/cutterbl/SoundTouchJS/commit/529a3e5))
+- **audio-worklet:** Add formant correction worklet ([1d5b049](https://github.com/cutterbl/SoundTouchJS/commit/1d5b049))
+- **audio-worklet:** Add phase vocoder packages ([60d7277](https://github.com/cutterbl/SoundTouchJS/commit/60d7277))
+- **core:** Add StretchPipe interface and stretchFactory option ([e3341fc](https://github.com/cutterbl/SoundTouchJS/commit/e3341fc))
+- **audio-worklet:** Add processor observability metrics ([ba7a767](https://github.com/cutterbl/SoundTouchJS/commit/ba7a767))
+- **audio-worklet:** Add processOffline() for OfflineAudioContext rendering ([a14eb10](https://github.com/cutterbl/SoundTouchJS/commit/a14eb10))
+- **core,audio-worklet:** Expose WSOLA timing parameters ([c8196a8](https://github.com/cutterbl/SoundTouchJS/commit/c8196a8))
+- ⚠️  Remove legacy ScriptProcessorNode API and simplify SoundTouch controls ([2047920](https://github.com/cutterbl/SoundTouchJS/commit/2047920))
+- Add Hann, Blackman, and Kaiser interpolation strategy packages ([58ccc34](https://github.com/cutterbl/SoundTouchJS/commit/58ccc34))
+- **workspace:** Add Storybook docs and interpolation strategy packages ([bf9ebb6](https://github.com/cutterbl/SoundTouchJS/commit/bf9ebb6))
+- Update README to reflect LGPL-3.0 license upgrade ([#64](https://github.com/cutterbl/SoundTouchJS/pull/64))
+
+### 💅 Refactors
+
+- **core,docs:** Standardize interpolation strategy IDs and params\n\n- Rename all strategy IDs (hann8, blackman8, kaiser8, lanczos8) to (hann, blackman, kaiser, lanczos)\n- Standardize on zeroCrossings for kernel width param\n- Update all code, tests, and docs for new naming and parameter conventions\n- Remove deprecated lanczos8-strategy.mdx and update navigation\n- Add and update kitchen sink playgrounds for all strategies ([7c6ff25](https://github.com/cutterbl/SoundTouchJS/commit/7c6ff25))
+
+### 📖 Documentation
+
+- **repo-management:** Update stage and commit instructions for Husky pre-commit hook ([6f28f52](https://github.com/cutterbl/SoundTouchJS/commit/6f28f52))
+- **repo-management:** Update stage and commit instructions for Husky pre-commit hook ([533f7b5](https://github.com/cutterbl/SoundTouchJS/commit/533f7b5))
+- Add Husky pre-commit hook instructions to repo-management ([20b816b](https://github.com/cutterbl/SoundTouchJS/commit/20b816b))
+- Update stage and commit instructions for Husky pre-commit hook ([d1d4701](https://github.com/cutterbl/SoundTouchJS/commit/d1d4701))
+
+### 🏡 Chore
+
+- Run lint in pre-commit hook ([880ef24](https://github.com/cutterbl/SoundTouchJS/commit/880ef24))
+- **agents:** Nx agent config ([50417a2](https://github.com/cutterbl/SoundTouchJS/commit/50417a2))
+- **docs:** Enrich CLAUDE.md with commands, architecture, and project conventions ([94d114b](https://github.com/cutterbl/SoundTouchJS/commit/94d114b))
+- Align interpolation strategy params, tests, and Storybook docs ([3a803da](https://github.com/cutterbl/SoundTouchJS/commit/3a803da))
+- Remove package coverage artifacts and update Storybook links ([2fb4792](https://github.com/cutterbl/SoundTouchJS/commit/2fb4792))
+- Commit current in-progress workspace state ([63bfd48](https://github.com/cutterbl/SoundTouchJS/commit/63bfd48))
+- ⚠️  **license:** Upgrade LGPL text to version 3 ([#63](https://github.com/cutterbl/SoundTouchJS/pull/63))
+
+### 🤖 CI
+
+- Switch Storybook Pages deploy to GitHub Actions ([5f8021b](https://github.com/cutterbl/SoundTouchJS/commit/5f8021b))
+
+### ⚠️  Breaking Changes
+
+- Remove legacy ScriptProcessorNode API and simplify SoundTouch controls  ([2047920](https://github.com/cutterbl/SoundTouchJS/commit/2047920))
+  PitchShifter, SimpleFilter, WebAudioBufferSource,
+  getWebAudioNode, and FilterSupport are no longer exported from
+  @soundtouchjs/core. SoundTouch no longer exposes rate, tempo, virtualRate,
+  or virtualTempo. SoundTouchNode no longer exposes tempo or rate AudioParams.
+  Remove PitchShifter, SimpleFilter, WebAudioBufferSource, getWebAudioNode,
+  FilterSupport, minsSecs, and noop — all solely supported the deprecated
+  ScriptProcessorNode path. AudioWorklet is supported in all targeted browsers
+  including iOS Safari 14.5+.
+  Simplify SoundTouch to pitch-only public control: remove rate, tempo,
+  virtualRate, virtualTempo, rateChange, and tempoChange setters. Internal
+  _rate and _tempo are now always derived from virtualPitch.
+  Remove tempo and rate AudioParams from SoundTouchNode. Playback speed is
+  controlled exclusively by mirroring playbackRate on both the source node
+  and SoundTouchNode.
+  Add CLAUDE.md with mandatory code change requirements: JSDoc, tests, and
+  documentation gates, plus Conventional Commits table and project conventions.
+  Update all READMEs, Storybook stories, and .mdx docs to reflect the current
+  public API and remove all references to removed symbols. Consolidate three
+  duplicate root-level .mdx files into their beginner-friendly core/ versions.
+- **license:** Upgrade LGPL text to version 3  ([#63](https://github.com/cutterbl/SoundTouchJS/pull/63))
+  License changed from LGPL-2.1 to LGPL-3.0; review compliance obligations.
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 1.0.10 (2026-04-06)
 
 ### 🚀 Features

@@ -1,0 +1,20 @@
+{
+  "name": "@soundtouchjs/demo",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["^build"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "vite"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["{projectRoot}/src/**/*.ts", "{projectRoot}/src/**/*.tsx"]
+      }
+    }
+  }
+}

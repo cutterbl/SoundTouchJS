@@ -1,0 +1,87 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies" />
+
+# Interpolation Strategies (For Everyone)
+
+When you change speed or pitch, SoundTouchJS has to estimate in-between samples. That estimation is the interpolation strategy. Different strategies trade CPU cost, latency, and sound quality.
+
+## Available strategies
+
+- lanczos (default): high-quality windowed-sinc baseline for most music and voice content.
+- linear (plugin): lowest complexity and typically lowest latency.
+- hann (plugin): good general-purpose quality with moderate roll-off.
+- blackman (plugin): better stopband rejection, with a slightly wider transition band.
+- kaiser (plugin): tunable strategy with flexible quality/performance tradeoffs.
+
+## Built-in vs plugin strategies
+
+- Built-in: lanczos is always available.
+- Plugin: linear, hann, blackman, and kaiser require registration before use.
+
+## Core usage
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerHannStrategy } from '@soundtouchjs/interpolation-strategy-hann';
+import { registerBlackmanStrategy } from '@soundtouchjs/interpolation-strategy-blackman';
+import { registerKaiserStrategy } from '@soundtouchjs/interpolation-strategy-kaiser';
+
+registerHannStrategy({ registerInterpolationStrategy });
+registerBlackmanStrategy({ registerInterpolationStrategy });
+registerKaiserStrategy({ registerInterpolationStrategy });
+
+const soundTouch = new SoundTouch({
+  interpolationStrategy: {
+    id: 'kaiser',
+    params: { zeroCrossings: 6, beta: 10 },
+  },
+});
+
+soundTouch.setInterpolationStrategy({
+  id: 'blackman',
+  params: { zeroCrossings: 5 },
+});
+soundTouch.setInterpolationStrategyParams({ zeroCrossings: 4 });
+```
+
+## AudioWorklet usage
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+import strategyInstallerModuleUrl from '../worklet/interpolation-strategies.installers.ts?url';
+
+const context = new AudioContext();
+await SoundTouchNode.register(context, processorModuleUrl);
+await SoundTouchNode.registerStrategyModule(
+  context,
+  strategyInstallerModuleUrl,
+);
+
+const node = new SoundTouchNode({
+  context,
+  interpolationStrategy: { id: 'hann', params: { zeroCrossings: 6 } },
+});
+
+node.setInterpolationStrategy({
+  id: 'kaiser',
+  params: { zeroCrossings: 6, beta: 12 },
+});
+node.setInterpolationStrategyParams({ beta: 10 });
+```
+
+## Strategy guidance
+
+- Use lanczos for best default quality.
+- Use linear when CPU and responsiveness are the priority.
+- Use hann for a balanced quality/performance profile.
+- Use blackman when stronger stopband rejection is more important than a tight transition.
+- Use kaiser when you want to tune behavior explicitly.
+
+## Parameter notes
+
+- lanczos: zeroCrossings (2..8, default 4), normalize (bool, default false)
+- linear: edgeHoldFrames (0..32, default 1), blend (0..1, default 1 = pure linear), normalize (bool, default false); zeroCrossings is an alias for edgeHoldFrames
+- hann: zeroCrossings (2..8, default 4), normalize (bool, default false), windowPower (default 1)
+- blackman: zeroCrossings (2..8, default 4), normalize (bool, default false), alpha/beta/gamma window coefficients (defaults 0.42, 0.5, 0.08)
+- kaiser: zeroCrossings (2..16, default 4), beta (0..20, default 8.6), normalize (bool, default false), windowPower (default 1)

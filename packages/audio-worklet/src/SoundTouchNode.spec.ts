@@ -1,58 +1,267 @@
-import { describe, it, expect, vi } from 'vitest';
-import { SoundTouchNode, PROCESSOR_NAME } from './index.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+interface MockNodeOptions {
+  outputChannelCount?: number[];
+  processorOptions?: unknown;
+  [key: string]: unknown;
+}
+
+const lastCtorOptions: { value: MockNodeOptions | undefined } = {
+  value: undefined,
+};
+
+type MessageListener = (event: MessageEvent) => void;
+
+class MockAudioWorkletNode {
+  parameters: Map<string, unknown>;
+  port: {
+    postMessage: ReturnType<typeof vi.fn>;
+    onmessage: MessageListener | null;
+  };
+  private _listeners: Map<string, EventListenerOrEventListenerObject[]> =
+    new Map();
+
+  constructor(
+    _context: BaseAudioContext,
+    _name: string,
+    options: MockNodeOptions,
+  ) {
+    lastCtorOptions.value = options;
+    this.parameters = new Map();
+    this.port = { postMessage: vi.fn(), onmessage: null };
+  }
+
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void {
+    if (!this._listeners.has(type)) this._listeners.set(type, []);
+    this._listeners.get(type)!.push(listener);
+  }
+
+  dispatchEvent(event: Event): boolean {
+    const listeners = this._listeners.get(event.type) ?? [];
+    for (const l of listeners) {
+      if (typeof l === 'function') {
+        l(event);
+      } else {
+        l.handleEvent(event);
+      }
+    }
+    return true;
+  }
+}
 
 describe('SoundTouchNode', () => {
-  describe('processorName', () => {
-    it('matches the shared constant', () => {
-      expect(SoundTouchNode.processorName).toBe(PROCESSOR_NAME);
+  beforeEach(() => {
+    vi.resetModules();
+    lastCtorOptions.value = undefined;
+    vi.stubGlobal('AudioWorkletNode', MockAudioWorkletNode);
+  });
+
+  it('matches the shared processor constant', async () => {
+    const { SoundTouchNode, PROCESSOR_NAME } = await import('./index.js');
+    expect(SoundTouchNode.processorName).toBe(PROCESSOR_NAME);
+  });
+
+  it('calls audioWorklet.addModule with the given URL', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const addModule = vi.fn().mockResolvedValue(undefined);
+    const context = {
+      audioWorklet: { addModule },
+    } as unknown as BaseAudioContext;
+
+    await SoundTouchNode.register(context, '/path/to/processor.js');
+    expect(addModule).toHaveBeenCalledWith('/path/to/processor.js');
+  });
+
+  it('registers strategy installer modules in worklet scope', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const addModule = vi.fn().mockResolvedValue(undefined);
+    const context = {
+      audioWorklet: { addModule },
+    } as unknown as BaseAudioContext;
+
+    await SoundTouchNode.registerStrategyModule(
+      context,
+      '/path/to/strategy.worklet.js',
+    );
+
+    expect(addModule).toHaveBeenCalledWith('/path/to/strategy.worklet.js');
+  });
+
+  it('accepts constructor options and exposes parameter accessors', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const context = {} as BaseAudioContext;
+    const node = new SoundTouchNode({
+      context,
+      sampleBufferType: 'fifo',
+      interpolationStrategy: 'lanczos',
+    });
+
+    const pitchParam = { value: 1.0 };
+    const semitonesParam = { value: 0 };
+    const playbackRateParam = { value: 1.0 };
+
+    (node as unknown as { parameters: Map<string, unknown> }).parameters =
+      new Map([
+        ['pitch', pitchParam],
+        ['pitchSemitones', semitonesParam],
+        ['playbackRate', playbackRateParam],
+      ]);
+
+    expect(node.pitch).toBe(pitchParam);
+    expect(node.pitchSemitones).toBe(semitonesParam);
+    expect(node.playbackRate).toBe(playbackRateParam);
+  });
+
+  it('sends runtime strategy control messages via MessagePort', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const context = {} as BaseAudioContext;
+    const node = new SoundTouchNode({ context });
+
+    node.setInterpolationStrategy('lanczos');
+    node.setInterpolationStrategyParams({ zeroCrossings: 6 });
+
+    const port = (
+      node as unknown as { port: { postMessage: ReturnType<typeof vi.fn> } }
+    ).port;
+    expect(port.postMessage).toHaveBeenNthCalledWith(1, {
+      type: 'set-interpolation-strategy',
+      strategy: 'lanczos',
+    });
+    expect(port.postMessage).toHaveBeenNthCalledWith(2, {
+      type: 'set-interpolation-strategy-params',
+      params: { zeroCrossings: 6 },
     });
   });
 
-  describe('register', () => {
-    it('calls audioWorklet.addModule with the given URL', async () => {
-      const addModule = vi.fn().mockResolvedValue(undefined);
-      const context = {
-        audioWorklet: { addModule },
-      } as unknown as BaseAudioContext;
+  it('sends set-stretch-parameters message via MessagePort', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const context = {} as BaseAudioContext;
+    const node = new SoundTouchNode({ context });
 
-      await SoundTouchNode.register(context, '/path/to/processor.js');
-      expect(addModule).toHaveBeenCalledWith('/path/to/processor.js');
+    node.setStretchParameters({ overlapMs: 12, quickSeek: false });
+
+    const port = (
+      node as unknown as { port: { postMessage: ReturnType<typeof vi.fn> } }
+    ).port;
+    expect(port.postMessage).toHaveBeenCalledWith({
+      type: 'set-stretch-parameters',
+      params: { overlapMs: 12, quickSeek: false },
     });
   });
 
-  describe('constructor', () => {
-    it('creates an instance extending AudioWorkletNode', () => {
-      const context = {} as BaseAudioContext;
-      const node = new SoundTouchNode(context);
-      expect(node).toBeInstanceOf(SoundTouchNode);
+  describe('outputChannelCount option', () => {
+    it('defaults to stereo (outputChannelCount [2]) when not specified', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({ context: {} as BaseAudioContext });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([2]);
+    });
+
+    it('passes [1] when outputChannelCount is 1', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({
+        context: {} as BaseAudioContext,
+        outputChannelCount: 1,
+      });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([1]);
+    });
+
+    it('passes [2] when outputChannelCount is 2', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      new SoundTouchNode({
+        context: {} as BaseAudioContext,
+        outputChannelCount: 2,
+      });
+      expect(lastCtorOptions.value?.outputChannelCount).toEqual([2]);
     });
   });
 
-  describe('parameter accessors', () => {
-    it('exposes pitch, tempo, rate, pitchSemitones, and playbackRate', () => {
-      const context = {} as BaseAudioContext;
-      const node = new SoundTouchNode(context);
+  describe('metrics', () => {
+    it('returns null before any metrics message is received', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+      expect(node.metrics).toBeNull();
+    });
 
-      const pitchParam = { value: 1.0 };
-      const tempoParam = { value: 1.0 };
-      const rateParam = { value: 1.0 };
-      const semitonesParam = { value: 0 };
-      const playbackRateParam = { value: 1.0 };
+    it('updates metrics getter when a metrics message arrives', async () => {
+      vi.stubGlobal('performance', { now: vi.fn().mockReturnValue(42) });
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
 
-      (node as unknown as { parameters: Map<string, unknown> }).parameters =
-        new Map([
-          ['pitch', pitchParam],
-          ['tempo', tempoParam],
-          ['rate', rateParam],
-          ['pitchSemitones', semitonesParam],
-          ['playbackRate', playbackRateParam],
-        ]);
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
 
-      expect(node.pitch).toBe(pitchParam);
-      expect(node.tempo).toBe(tempoParam);
-      expect(node.rate).toBe(rateParam);
-      expect(node.pitchSemitones).toBe(semitonesParam);
-      expect(node.playbackRate).toBe(playbackRateParam);
+      port.onmessage!({
+        data: {
+          type: 'metrics',
+          framesBuffered: 64,
+          underrunCount: 2,
+          blockCount: 100,
+        },
+      } as MessageEvent);
+
+      expect(node.metrics).toEqual({
+        framesBuffered: 64,
+        underrunCount: 2,
+        blockCount: 100,
+        timestamp: 42,
+      });
+    });
+
+    it('dispatches a metrics CustomEvent with the metrics detail', async () => {
+      vi.stubGlobal('performance', { now: vi.fn().mockReturnValue(99) });
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+      const received: unknown[] = [];
+      node.addEventListener('metrics', (e) => {
+        received.push((e as CustomEvent).detail);
+      });
+
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
+
+      port.onmessage!({
+        data: {
+          type: 'metrics',
+          framesBuffered: 128,
+          underrunCount: 0,
+          blockCount: 200,
+        },
+      } as MessageEvent);
+
+      expect(received).toHaveLength(1);
+      expect(received[0]).toMatchObject({
+        framesBuffered: 128,
+        underrunCount: 0,
+        blockCount: 200,
+        timestamp: 99,
+      });
+    });
+
+    it('ignores non-metrics messages on the port', async () => {
+      const { SoundTouchNode } = await import('./index.js');
+      const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+      const port = (
+        node as unknown as {
+          port: { onmessage: MessageListener | null };
+        }
+      ).port;
+
+      port.onmessage!({
+        data: { type: 'unknown-type', value: 42 },
+      } as MessageEvent);
+
+      expect(node.metrics).toBeNull();
     });
   });
 });

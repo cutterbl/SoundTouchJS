@@ -1,0 +1,91 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/processOffline" />
+
+# processOffline
+
+**What is this?**
+
+`processOffline` renders an entire `AudioBuffer` through SoundTouch processing in a single awaited call. It uses `OfflineAudioContext` so no real-time audio device is needed — useful for exporting or pre-processing audio files.
+
+**When would I use it?**
+
+- Exporting a pitch-shifted or tempo-adjusted clip to a downloadable file
+- Pre-processing audio before playback without a live audio graph
+- Server-side or headless browser environments
+
+## Import
+
+```ts
+import { processOffline } from '@soundtouchjs/audio-worklet';
+```
+
+## Signature
+
+```ts
+async function processOffline(options: ProcessOfflineOptions): Promise<AudioBuffer>
+```
+
+## Options
+
+```ts
+interface ProcessOfflineOptions {
+  input: AudioBuffer;               // source audio to process
+  processorUrl: string | URL;       // URL to soundtouch-processor.js
+  pitch?: number;                   // default 1.0
+  pitchSemitones?: number;          // default 0
+  playbackRate?: number;            // default 1.0; also scales output length
+  interpolationStrategy?: RateTransposerInterpolationStrategy;
+  stretchParameters?: StretchParameters;
+  sampleBufferType?: SampleBufferType;
+}
+```
+
+<table>
+  <thead>
+    <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>input</code></td><td>—</td><td>Source <code>AudioBuffer</code></td></tr>
+    <tr><td><code>processorUrl</code></td><td>—</td><td>Path to the bundled processor script</td></tr>
+    <tr><td><code>pitch</code></td><td>1.0</td><td>Pitch multiplier</td></tr>
+    <tr><td><code>pitchSemitones</code></td><td>0</td><td>Semitone offset (combined with <code>pitch</code>)</td></tr>
+    <tr><td><code>playbackRate</code></td><td>1.0</td><td>Speed multiplier; output length = <code>ceil(input.length / playbackRate)</code></td></tr>
+    <tr><td><code>interpolationStrategy</code></td><td><code>'lanczos'</code></td><td>Rate transposer kernel</td></tr>
+    <tr><td><code>stretchParameters</code></td><td>—</td><td>WSOLA timing overrides (see <a href="./Stretch">Stretch</a>)</td></tr>
+    <tr><td><code>sampleBufferType</code></td><td><code>'circular'</code></td><td>Internal buffer strategy</td></tr>
+  </tbody>
+</table>
+
+## Example
+
+```ts
+import { processOffline } from '@soundtouchjs/audio-worklet';
+
+// Fetch and decode a source file
+const response = await fetch('/audio.mp3');
+const arrayBuffer = await response.arrayBuffer();
+const audioCtx = new AudioContext();
+const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+// Process offline — no audio device needed
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl: '/soundtouch-processor.js',
+  pitchSemitones: -3,
+  playbackRate: 1.2,
+});
+
+// Play the result or export it
+const source = audioCtx.createBufferSource();
+source.buffer = processed;
+source.connect(audioCtx.destination);
+source.start();
+```
+
+## Notes
+
+- The output `AudioBuffer` has the same number of channels and sample rate as the input.
+- `playbackRate` affects both pitch compensation and output length estimation. For pitch-only changes, leave it at `1.0` and use `pitch` or `pitchSemitones`.
+- `processorUrl` must point to a fully-bundled processor script. See [Getting Started](./getting-started) for bundler-specific instructions.
+- The `OfflineAudioContext` does not support real-time automation; all `AudioParam` values are fixed at the time of rendering.

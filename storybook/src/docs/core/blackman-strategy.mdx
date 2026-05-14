@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Blackman Strategy" />
+
+# Blackman Strategy (Stronger Stopband Rejection)
+
+Blackman uses a stronger window profile than Hann, usually improving stopband rejection while widening the transition region.
+
+## When to use it
+
+- You want tighter suppression of unwanted high-frequency artifacts.
+- You can accept slightly wider transitions versus simpler windows.
+- You prioritize quality over absolute minimum CPU.
+
+
+## Tunable Parameters
+
+- **`zeroCrossings`**: How “wide” the smoothing is. Bigger = smoother, but more CPU. Try 4 to start (range: 2–8).
+- **`normalize`**: If true, output is normalized so weights sum to 1. Usually not needed, but can help with edge cases (default: false).
+- **`alpha`**, **`beta`**, **`gamma`**: Blackman window coefficients. Default: 0.42, 0.5, 0.08. Tweak for advanced window shape control.
+
+**Examples:**
+
+```ts
+// Default
+params: { zeroCrossings: 4 }
+// Wider kernel
+params: { zeroCrossings: 6 }
+// Enable normalization
+params: { zeroCrossings: 4, normalize: true }
+// Custom window coefficients
+params: { zeroCrossings: 4, alpha: 0.5, beta: 0.6, gamma: 0.7 }
+```
+
+## Example
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerBlackmanStrategy } from '@soundtouchjs/interpolation-strategy-blackman';
+
+registerBlackmanStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: { id: 'blackman', params: { zeroCrossings: 6 } },
+});
+```
+
+If you hear softening from transition width at larger edits, tune zeroCrossings and compare against Hann or Kaiser.

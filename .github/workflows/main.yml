@@ -7,9 +7,13 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  validation:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v6
@@ -17,7 +21,7 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
 
       - run: pnpm install --frozen-lockfile
         env:
@@ -25,9 +29,79 @@ jobs:
 
       - run: pnpm typecheck
 
+      - run: pnpm lint
+
       - run: pnpm build
 
-      - run: pnpm test
+      # Coverage summary chain (continue-on-error, always publish/upload/enforce)
+      - name: Generate coverage summary
+        id: coverage
+        run: pnpm coverage:summary
+        continue-on-error: true
+
+      - name: Publish coverage summary to Checks UI
+        if: always()
+        run: |
+          {
+            echo "# Coverage check"
+            echo
+            if [ "${{ steps.coverage.outcome }}" = "success" ]; then
+              echo "Result: passed"
+            else
+              echo "Result: failed"
+            fi
+            echo
+            cat .coverage-reports/summary.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-summary
+          path: .coverage-reports
+
+      - name: Post coverage summary as PR comment
+        if: always()
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const outcome = '${{ steps.coverage.outcome }}';
+            const status = outcome === 'success' ? '✅ passed' : '❌ failed';
+            let body = `## Coverage check\n\nResult: ${status}\n`;
+            try {
+              body += '\n' + fs.readFileSync('.coverage-reports/summary.md', 'utf8');
+            } catch {
+              body += '\n_(Coverage report not available.)_';
+            }
+            const marker = '<!-- coverage-summary -->';
+            body = marker + '\n' + body;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Enforce coverage summary status
+        if: steps.coverage.outcome != 'success'
+        run: exit 1
 
   release:
     if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore(release)')
@@ -43,7 +117,7 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
           version: 10.33.0

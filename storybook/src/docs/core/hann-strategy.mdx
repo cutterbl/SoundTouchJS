@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Hann Strategy" />
+
+# Hann Strategy (Balanced General Purpose)
+
+Hann is a windowed-sinc style strategy that balances quality and cost well for many workloads.
+
+## When to use it
+
+- You want better smoothing than linear.
+- You want lighter processing than higher-cost window options.
+- You need a general-purpose fallback for mixed audio content.
+
+
+## Tunable Parameters
+
+- **`zeroCrossings`**: How “wide” the smoothing is. Bigger = smoother, but more CPU. Try 4 to start (range: 2–8).
+- **`normalize`**: If true, output is normalized so weights sum to 1. Usually not needed, but can help with edge cases (default: false).
+- **`windowPower`**: Exponent to raise the Hann window, sharpening or smoothing the window shape (default: 1).
+
+**Examples:**
+
+```ts
+// Default
+params: { zeroCrossings: 4 }
+// Wider kernel
+params: { zeroCrossings: 6 }
+// Enable normalization
+params: { zeroCrossings: 4, normalize: true }
+// Sharper window
+params: { zeroCrossings: 4, windowPower: 2 }
+```
+
+## Example
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerHannStrategy } from '@soundtouchjs/interpolation-strategy-hann';
+
+registerHannStrategy({ registerInterpolationStrategy });
+
+const st = new SoundTouch({
+  interpolationStrategy: { id: 'hann', params: { zeroCrossings: 6 } },
+});
+```
+
+Use larger zeroCrossings for smoother output at higher CPU cost.

@@ -1,21 +1,23 @@
 {
   "name": "@soundtouchjs/core",
-  "version": "1.0.10",
+  "version": "2.0.0",
   "description": "An audio processing library for manipulating Web Audio Contexts",
-  "license": "LGPL-2.1",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
   "type": "module",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./.dist/index.d.ts",
+      "default": "./.dist/index.js"
     }
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
   "files": [
-    "dist",
+    ".dist",
+    "docs",
     "README.md",
     "LICENSE"
   ],
@@ -46,5 +48,8 @@
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@soundtouchjs/interpolation-strategy-lanczos": "workspace:*"
   }
 }

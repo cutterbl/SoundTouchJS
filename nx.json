@@ -6,7 +6,8 @@
     "production": [
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)",
-      "!{projectRoot}/tsconfig.spec.json"
+      "!{projectRoot}/tsconfig.spec.json",
+      
     ]
   },
   "neverConnectToCloud": true,
@@ -53,40 +54,74 @@
     "conventionalCommits": {
       "types": {
         "feat": {
-          "semverBump": "minor"
+          "semverBump": "minor",
+          "changelog": {
+            "title": "Features",
+            "hidden": false
+          }
         },
         "fix": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Bug Fixes",
+            "hidden": false
+          }
         },
         "perf": {
-          "semverBump": "patch"
-        },
-        "ci": {
-          "semverBump": "patch"
-        },
-        "chore": {
-          "semverBump": "patch"
-        },
-        "build": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Performance Improvements",
+            "hidden": false
+          }
         },
         "refactor": {
-          "semverBump": "patch"
+          "semverBump": "patch",
+          "changelog": {
+            "title": "Refactoring",
+            "hidden": false
+          }
+        },
+        "ci": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
+        },
+        "chore": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
+        },
+        "build": {
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "docs": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "style": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         },
         "test": {
-          "semverBump": "none"
+          "semverBump": "none",
+          "changelog": {
+            "hidden": true
+          }
         }
       }
     },
     "git": {
       "commit": true,
-      "commitMessage": "chore(release): publish {version}",
+      "commitMessage": "chore(release): Publish {version}",
       "tag": true,
       "tagMessage": "Release {version}"
     },
@@ -95,7 +130,18 @@
       "preVersionCommand": "pnpm dlx nx run-many -t build",
       "fallbackCurrentVersionResolver": "disk"
     },
-    "projects": ["@soundtouchjs/core", "@soundtouchjs/audio-worklet"],
+    "projects": [
+      "@soundtouchjs/core",
+      "@soundtouchjs/audio-worklet",
+      "@soundtouchjs/interpolation-strategy-lanczos",
+      "@soundtouchjs/interpolation-strategy-linear",
+      "@soundtouchjs/interpolation-strategy-hann",
+      "@soundtouchjs/interpolation-strategy-blackman",
+      "@soundtouchjs/interpolation-strategy-kaiser",
+      "@soundtouchjs/stretch-phase-vocoder",
+      "@soundtouchjs/phase-vocoder-worklet",
+      "@soundtouchjs/formant-correction-worklet"
+    ],
     "changelog": {
       "automaticFromRef": false,
       "createRelease": true,

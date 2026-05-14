@@ -1,0 +1,50 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Lanczos Strategy" />
+
+# Lanczos Strategy (High Quality)
+
+**What is Lanczos?**
+
+Lanczos is a fancy math method for making audio sound smooth and natural when you change its speed or pitch. It’s the default in SoundTouchJS because it usually sounds the best—like a high-res photo instead of a pixelated one.
+
+**When should I use it?**
+
+- If you want your audio to sound as close to the original as possible (music, podcasts, anything with voices or instruments)
+- If you don’t mind using a bit more CPU for better sound
+
+**What’s the catch?**
+
+- It uses more processing power than simpler methods, so it’s not always the best for live effects or on very slow devices.
+
+
+## Tunable Parameters
+
+- **`zeroCrossings`**: How “wide” the smoothing is. Bigger = smoother, but more CPU. Try 4 to start (range: 2–8).
+- **`normalize`**: If true, output is normalized so weights sum to 1. Usually not needed, but can help with edge cases (default: false).
+
+**Examples:**
+
+```ts
+// Default
+params: { zeroCrossings: 4 }
+// Wider kernel
+params: { zeroCrossings: 6 }
+// Enable normalization
+params: { zeroCrossings: 4, normalize: true }
+```
+
+**How do I use it?**
+
+```ts
+import { SoundTouch } from '@soundtouchjs/core';
+
+const soundTouch = new SoundTouch({
+  interpolationStrategy: {
+    id: 'lanczos',
+    params: { zeroCrossings: 4 }, // 4 is a good default
+  },
+});
+```
+
+**Tip:** If you’re not sure, just use the defaults. You can always experiment with the `zeroCrossings` value and listen for what sounds best in your app.

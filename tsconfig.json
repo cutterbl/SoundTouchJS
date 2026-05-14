@@ -11,6 +11,30 @@
     },
     {
       "path": "./packages/audio-worklet"
+    },
+    {
+      "path": "./packages/interpolation-strategy-lanczos"
+    },
+    {
+      "path": "./packages/interpolation-strategy-linear"
+    },
+    {
+      "path": "./packages/interpolation-strategy-hann"
+    },
+    {
+      "path": "./packages/interpolation-strategy-blackman"
+    },
+    {
+      "path": "./packages/interpolation-strategy-kaiser"
+    },
+    {
+      "path": "./packages/stretch-phase-vocoder"
+    },
+    {
+      "path": "./packages/phase-vocoder-worklet"
+    },
+    {
+      "path": "./packages/formant-correction-worklet"
     }
   ]
 }

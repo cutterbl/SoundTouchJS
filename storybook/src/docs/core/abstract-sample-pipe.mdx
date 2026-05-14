@@ -1,0 +1,46 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Abstract Sample Pipe" />
+
+# Abstract Sample Pipe
+
+**What is this?**
+
+This is a base class (a starting point) for building parts of an audio pipeline. If you imagine audio processing as an assembly line, each stage (like stretching or changing pitch) is a “pipe” that takes in sound, does something to it, and passes it on.
+
+**Do I need to use it?**
+
+Most developers will use the ready-made classes like `Stretch` or `RateTransposer`. Use this only if you want to build your own custom processing step.
+
+## Import
+
+```ts
+import { AbstractSamplePipe } from '@soundtouchjs/core';
+```
+
+## Purpose
+
+`AbstractSamplePipe` is the generic base class for pipeline stages that read from an input buffer and write to an output buffer.
+
+## Constructor
+
+```ts
+new AbstractSamplePipe({
+  createBuffers?: boolean,
+  inputBufferFactory?: () => TInputBuffer,
+  outputBufferFactory?: () => TOutputBuffer,
+})
+```
+
+When `createBuffers` is `true`, both factories are required.
+
+## Public API
+
+- `inputBuffer` getter and setter
+- `outputBuffer` getter and setter
+- `clear()`
+
+## Notes
+
+- Most applications use concrete subclasses (`Stretch`, `RateTransposer`) rather than using this class directly.
+- `clear()` delegates to both buffers when present.

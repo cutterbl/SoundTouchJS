@@ -1,0 +1,82 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Stretch" />
+
+# Stretch
+
+**What is this?**
+
+This is a building block for changing the tempo (speed) of audio without making it sound higher or lower. It’s like slowing down a song but keeping the same key.
+
+**When would I use it?**
+
+If you want to make music slower or faster without making it sound weird, use this class. It’s great for practice tools, karaoke, or music learning apps.
+
+`Stretch` is the TDStretch-style time-stretch stage used to change tempo without changing pitch.
+
+## Import
+
+```ts
+import { Stretch } from '@soundtouchjs/core';
+```
+
+## Constructor
+
+```ts
+new Stretch({
+  createBuffers?: boolean,
+  inputBufferAdapterFactory?: () => StretchReadBufferAdapter,
+  sampleBufferFactory?: () => SampleBuffer,
+})
+```
+
+## Public API
+
+- tempo (getter/setter)
+- inputChunkSize (getter)
+- outputChunkSize (getter)
+- overlapMs (getter/setter) — overlap crossfade period in ms; recalculates overlap length on set
+- quickSeek (getter/setter) — `true` (default) = fast scan; `false` = exhaustive search
+- clear()
+- clearMidBuffer()
+- setParameters(sampleRate, sequenceMs, seekWindowMs, overlapMs)
+- setStretchParameters(params: StretchParameters) — partial update convenience method
+- calculateOverlapLength(overlapInMsec?)
+- clone()
+- seekBestOverlapPosition(inputBuffer?)
+- process()
+
+## setStretchParameters
+
+Apply a partial set of WSOLA timing parameters without replacing all values at once:
+
+```ts
+import { Stretch } from '@soundtouchjs/core';
+import type { StretchParameters } from '@soundtouchjs/core';
+
+const stretch = new Stretch({ createBuffers: true });
+
+stretch.setStretchParameters({ overlapMs: 12 });          // overlap only
+stretch.setStretchParameters({ quickSeek: false });        // exhaustive search
+stretch.setStretchParameters({ sequenceMs: 80, seekWindowMs: 20 }); // manual timing
+stretch.setStretchParameters({ sequenceMs: 0 });           // back to auto
+```
+
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Default</th><th>Meaning</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>sequenceMs</code></td><td>auto (~82–110 ms)</td><td>Processing window length; <code>0</code> = auto-calculate</td></tr>
+    <tr><td><code>seekWindowMs</code></td><td>auto (~15–25 ms)</td><td>Seek window length; <code>0</code> = auto-calculate</td></tr>
+    <tr><td><code>overlapMs</code></td><td>8 ms</td><td>Crossfade overlap length</td></tr>
+    <tr><td><code>quickSeek</code></td><td><code>true</code></td><td>Fast multi-pass seek; <code>false</code> = exhaustive</td></tr>
+  </tbody>
+</table>
+
+## Notes
+
+- Uses overlap-add with best-overlap search across a seek window.
+- Quick-seek mode uses staged scan offsets and can fall back to full seek when candidate coverage is sparse.
+- `tempo` here is an internal DSP control on this pipeline stage. It is **not** exposed as an AudioParam on `SoundTouchNode`. See [SoundTouchNode](../audio-worklet/sound-touch-node) for the AudioWorklet public API.
+- For browser use, prefer calling `SoundTouchNode.setStretchParameters()` which queues updates on the render thread.

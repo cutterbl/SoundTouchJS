@@ -1,0 +1,133 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/Getting Started" />
+
+# Getting Started
+
+This guide explains how to register the SoundTouch processor in different build environments and how to resolve `processorModuleUrl` so the `AudioWorklet` can load it correctly.
+
+## Overview
+
+Before creating a `SoundTouchNode`, register the bundled processor script with the `AudioContext`:
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioCtx = new AudioContext();
+await SoundTouchNode.register(audioCtx, processorModuleUrl);
+```
+
+The processor script is the file at `@soundtouchjs/audio-worklet/processor` inside the package. How you resolve its URL depends on your build tool.
+
+---
+
+## Vite
+
+Vite has native support for `?url` imports, which returns the resolved public URL for any asset:
+
+```ts
+import processorUrl from '@soundtouchjs/audio-worklet/processor?url';
+
+await SoundTouchNode.register(audioCtx, processorUrl);
+```
+
+No extra configuration is needed. Vite handles file copying and hashing automatically.
+
+---
+
+## webpack 5
+
+Use the `URL` constructor with `import.meta.url` so webpack emits the file as a separate asset and injects the correct public path:
+
+```ts
+const processorUrl = new URL(
+  '@soundtouchjs/audio-worklet/processor',
+  import.meta.url,
+).href;
+
+await SoundTouchNode.register(audioCtx, processorUrl);
+```
+
+Make sure `output.publicPath` is set to `'auto'` (or your app's public path) in `webpack.config.js`:
+
+```js
+// webpack.config.mjs  (or webpack.config.js with "type":"module" in package.json)
+export default {
+  output: {
+    publicPath: 'auto',
+  },
+};
+```
+
+---
+
+## Static hosting / CDN
+
+Copy the pre-bundled file from the package to your static assets directory and reference it by its public path:
+
+```sh
+cp node_modules/@soundtouchjs/audio-worklet/.dist/soundtouch-processor.js public/
+```
+
+Then pass the path directly:
+
+```ts
+await SoundTouchNode.register(audioCtx, '/soundtouch-processor.js');
+```
+
+When using a CDN, deploy the file to your CDN origin and use the full URL. The processor script must be served from the **same origin** as your app, or with `Access-Control-Allow-Origin` headers, because `audioWorklet.addModule()` follows browser CORS policy.
+
+---
+
+## OfflineAudioContext
+
+`SoundTouchNode.register` works the same way with an `OfflineAudioContext`. Registration must still happen before creating nodes:
+
+```ts
+const offlineCtx = new OfflineAudioContext(2, outputLength, sampleRate);
+await SoundTouchNode.register(offlineCtx, processorUrl);
+const stNode = new SoundTouchNode({ context: offlineCtx });
+```
+
+When using `processOffline()`, registration is handled internally — you only need to pass `processorUrl`:
+
+```ts
+import { processOffline } from '@soundtouchjs/audio-worklet';
+
+const processed = await processOffline({
+  input: audioBuffer,
+  processorUrl,          // same URL resolution as above
+  pitchSemitones: -3,
+  playbackRate: 1.2,
+});
+```
+
+---
+
+## Common mistakes
+
+**Registering after constructing a node**
+
+`audioWorklet.addModule()` must resolve before `new SoundTouchNode(...)` is called. The node constructor throws if the processor is not yet registered.
+
+```ts
+// Wrong
+const stNode = new SoundTouchNode({ context: audioCtx }); // ❌ processor not registered
+await SoundTouchNode.register(audioCtx, processorUrl);
+
+// Correct
+await SoundTouchNode.register(audioCtx, processorUrl);    // ✅ register first
+const stNode = new SoundTouchNode({ context: audioCtx });
+```
+
+**Cross-origin processor URL without CORS headers**
+
+`audioWorklet.addModule()` fetches the script as a module worker. If hosted on a different origin, the server must return `Access-Control-Allow-Origin: *` (or your app's origin). Self-signed certificates in local development also cause fetch failures — use a properly configured dev server.
+
+**Using a relative path that resolves incorrectly**
+
+Relative paths like `'./soundtouch-processor.js'` resolve relative to the **page URL**, not the JavaScript module. Use an absolute path (`'/soundtouch-processor.js'`) or a build-tool-resolved URL.
+
+**`AudioContext` suspended on page load**
+
+Browsers block audio playback until a user gesture occurs. Call `audioCtx.resume()` inside a click or keydown handler before starting sources. Registration itself does not require a running context, but audio will not play until the context is resumed.

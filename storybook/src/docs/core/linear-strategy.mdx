@@ -1,0 +1,61 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Interpolation Strategies/Linear Strategy" />
+
+# Linear Strategy (Low Latency)
+
+**What is Linear?**
+
+Linear interpolation is a simple, fast way for the computer to "connect the dots" between audio samples. It’s not as smooth as Lanczos, but it’s much quicker—like drawing a straight line instead of a curve.
+
+**When should I use it?**
+
+- If you need instant response (live effects, games, interactive music tools)
+- If you’re running on slow devices or want to save battery/CPU
+
+**What’s the catch?**
+
+- The sound might be a little rougher or "robotic" compared to Lanczos, especially for music or voices.
+
+
+## Tunable Parameters
+
+- **`edgeHoldFrames`**: How much the algorithm "holds" the first and last bit of audio to avoid clicks or pops. Bigger numbers can help with glitches at the start/end, but too high can make things sound odd. Try 1 to start (range: 0–32).
+- **`zeroCrossings`**: Alias for `edgeHoldFrames` (for API clarity).
+- **`blend`**: Blend between nearest-neighbor (0) and linear (1) interpolation. `1` is pure linear (default), `0` is nearest, values in between blend the two (range: 0–1).
+- **`normalize`**: If true, output is normalized so weights sum to 1. For linear, this is usually not needed, but can be useful if blending with nearest (default: false).
+
+**Examples:**
+
+```ts
+// Pure linear (default)
+params: { edgeHoldFrames: 1, blend: 1 }
+// Pure nearest
+params: { edgeHoldFrames: 1, blend: 0 }
+// Blend halfway
+params: { edgeHoldFrames: 1, blend: 0.5 }
+// Use zeroCrossings alias
+params: { zeroCrossings: 2 }
+// Enable normalization
+params: { edgeHoldFrames: 1, blend: 0.5, normalize: true }
+```
+
+**How do I use it?**
+
+Linear requires registration before use (unlike `lanczos`, which is pre-registered):
+
+```ts
+import { SoundTouch, registerInterpolationStrategy } from '@soundtouchjs/core';
+import { registerLinearStrategy } from '@soundtouchjs/interpolation-strategy-linear';
+
+registerLinearStrategy({ registerInterpolationStrategy });
+
+const soundTouch = new SoundTouch({
+  interpolationStrategy: {
+    id: 'linear',
+    params: { edgeHoldFrames: 2 }, // 1 or 2 is a good start
+  },
+});
+```
+
+**Tip:** Use linear if you want the lowest possible delay, or if you’re building something interactive where speed matters more than perfect sound.

@@ -1,0 +1,27 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Audio Worklet/Processor Name" />
+
+# Processor Name
+
+**What is this?**
+
+`PROCESSOR_NAME` is just a string constant that both the main code and the audio processor use to make sure they’re talking about the same thing.
+
+**Do I need it?**
+
+Most developers don’t need to use this directly. It’s mainly for advanced use, like debugging or writing tests.
+
+## Import
+
+```ts
+import { PROCESSOR_NAME } from '@soundtouchjs/audio-worklet';
+```
+
+## Usage
+
+```ts
+const name = PROCESSOR_NAME;
+```
+
+You might use it if you’re building custom tools or want to check that everything is wired up correctly.

@@ -1,0 +1,47 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/RateTransposer" />
+
+# RateTransposer
+
+**What is this?**
+
+This is a building block for changing the speed (rate) of audio. It works by resampling the sound—like playing a tape faster or slower.
+
+**When would I use it?**
+
+If you want to speed up or slow down audio, or build your own custom pipeline, use this class. Most users will use `SoundTouch`, which includes this under the hood.
+
+`RateTransposer` performs sample-rate transposition and interpolation as one stage of SoundTouch processing.
+
+## Import
+
+```ts
+import { RateTransposer } from '@soundtouchjs/core';
+```
+
+## Constructor
+
+```ts
+new RateTransposer({
+  createBuffers?: boolean,
+  sampleBufferAdapterFactory?: SampleBufferAdapterFactory,
+  sampleBufferFactory?: () => SampleBuffer,
+  interpolationStrategy?: RateTransposerInterpolationStrategy,
+})
+```
+
+## Public API
+
+- rate (setter)
+- strategy (getter)
+- clear()
+- clone()
+- process()
+- transpose(numFrames?)
+
+## Notes
+
+- Strategy resolution is registry-driven via interpolationStrategyRegistry.
+- Instance-level kernel state is supported when strategy kernels provide createState().
+- `rate` here is an internal DSP control on this pipeline stage. It is **not** exposed as an AudioParam on `SoundTouchNode`. See [SoundTouchNode](../audio-worklet/sound-touch-node) for the AudioWorklet public API.

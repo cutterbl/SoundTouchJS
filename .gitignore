@@ -1,6 +1,12 @@
 node_modules
 dist
+.dist
+static-storybook
 .nx
+.coverage-reports
+packages/*/coverage
+coverage.json
+coverage
 *.tsbuildinfo
 .idea
 .vscode

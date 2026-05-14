@@ -1,0 +1,58 @@
+name: Deploy Storybook to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+    # Only run if this is a release commit
+    # (release job uses 'chore(release)' prefix)
+    # This ensures we only deploy after a successful release
+    # and not on every push to master
+    paths-ignore:
+      - '**.md'
+      - '**.yml'
+      - '**.yaml'
+      - '**.json'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    if: startsWith(github.event.head_commit.message, 'chore(release)')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - run: pnpm install --frozen-lockfile
+        env:
+          HUSKY: 0
+
+      - name: Build Storybook static site
+        run: pnpm nx run @soundtouchjs/storybook:build-storybook
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Storybook artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./static-storybook
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

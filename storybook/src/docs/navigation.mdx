@@ -1,0 +1,112 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# SoundTouchJS: Developer Introduction
+
+Welcome! SoundTouchJS helps you change the speed, pitch, or key of audio in the browser—no audio engineering background required.
+
+## What is SoundTouchJS?
+
+SoundTouchJS is a toolkit for working with audio in web apps. It lets you:
+
+- Slow down or speed up music (playback speed control)
+- Change the pitch (make voices higher/lower)
+- Shift the key of a song
+- Do all this in real time, with good sound quality
+
+You don’t need to know DSP (digital signal processing) or the Web Audio API to get started. We’ll explain everything as we go!
+
+## What is the Web Audio API?
+
+The Web Audio API is how browsers let you play, process, and analyze sound. Think of it as a set of building blocks for making music players, games, or audio tools in JavaScript.
+
+SoundTouchJS builds on top of this, so you can do advanced things without learning all the low-level details.
+
+## What are pitch and playback speed?
+
+- **Pitch**: How high or low a sound is (like a singer’s voice or a musical note). Changing pitch without changing speed is called pitch shifting.
+- **Playback speed**: How fast the audio plays back. In the Web Audio API, this is controlled via `playbackRate`. Slowing down or speeding up without changing pitch is called time stretching.
+- **Key**: The musical key of a piece. Shifting the key by semitones (half-steps) lets you transpose a song to a new key.
+
+## What’s a buffer?
+
+A buffer is just a chunk of audio data—think of it as a container holding a piece of sound. You don’t need to manage these directly unless you want to do custom stuff.
+
+## What does this repo include?
+
+- **@soundtouchjs/core**: The main engine and building blocks. Use this if you want to build your own audio pipeline or do offline processing.
+- **@soundtouchjs/audio-worklet**: The easiest way to use SoundTouchJS in real-time browser audio. Handles pitch shifting, tempo control, offline rendering, and processor health monitoring.
+- **@soundtouchjs/stretch-phase-vocoder**: An alternative time-stretch algorithm (phase vocoder) that produces smoother results at extreme playback ratios. Can be used as a drop-in stretch stage inside `SoundTouch`, or on its own.
+- **@soundtouchjs/phase-vocoder-worklet**: An AudioWorklet node backed by the phase vocoder. Use it instead of `SoundTouchNode` when you need very slow or very fast playback without artifacts.
+- **@soundtouchjs/formant-correction-worklet**: An AudioWorklet node that pitch-shifts voices while keeping the speaker's natural timbre. Without this, shifting pitch up makes voices sound like a chipmunk; shifting down makes them sound like a giant.
+- **Interpolation plugins**: Five swappable modules (`lanczos`, `linear`, `hann`, `blackman`, `kaiser`) for tuning the quality and CPU cost of sample-rate conversion.
+- **Demo app**: Try everything live in your browser ([apps/demo/](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo)).
+
+---
+
+If you’re new to audio, start with the **Getting Started** guide. If you’re curious, check out the Playground or the demo app!
+
+## When to Use Each Package
+
+- Use **@soundtouchjs/audio-worklet** for modern, real-time browser audio. This is the default for most apps.
+- Use **@soundtouchjs/phase-vocoder-worklet** instead of audio-worklet when playback rate is extreme (< 0.5× or > 2×) and WSOLA artifacts are audible. If "phasiness" is acceptable, this gives smoother results.
+- Use **@soundtouchjs/formant-correction-worklet** when pitch-shifting voices or speech. Without formant correction, large pitch shifts make voices sound like a chipmunk (up) or giant (down).
+- Use **@soundtouchjs/core** for custom DSP, offline processing, or non-browser environments.
+- Use interpolation plugins for quality/latency tradeoffs or to implement your own strategy.
+
+## Quick Start (AudioWorklet)
+
+```ts
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+
+const audioCtx = new AudioContext();
+// See Getting Started for processorModuleUrl details
+await SoundTouchNode.register(audioCtx, processorModuleUrl);
+
+const stNode = new SoundTouchNode({ context: audioCtx });
+stNode.connect(audioCtx.destination);
+```
+
+See **Getting Started** for a step-by-step guide, including how to resolve `processorModuleUrl` in different build setups (Vite, static, etc).
+
+## Playground & Demo
+
+Try the [Playground](../playground) in Storybook for live, interactive parameter control and transport. For a full demo with source code, see [apps/demo/README.md](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo/README.md).
+
+## Practical Integration Notes
+
+- Always register the processor before creating a `SoundTouchNode`.
+- To control playback speed, set both the source node's `playbackRate` **and** `stNode.playbackRate` to the same value — this keeps pitch compensation accurate.
+- Call `audioCtx.resume()` in a user gesture to comply with browser autoplay policies.
+- For advanced use, see the [core package docs](https://github.com/cutterbl/SoundTouchJS/blob/master/packages/core/README.md) and [audio-worklet package docs](https://github.com/cutterbl/SoundTouchJS/blob/master/packages/audio-worklet/README.md).
+
+## Documentation Index
+
+### Audio Worklet
+
+- [Getting Started](./audio-worklet/getting-started)
+- [Processor Name](./audio-worklet/processor-name)
+- [SoundTouchNode](./audio-worklet/sound-touch-node)
+- [processOffline](./audio-worklet/process-offline)
+- [PhaseVocoderNode](./audio-worklet/phase-vocoder-worklet)
+- [FormantCorrectionNode](./audio-worklet/formant-correction-worklet)
+
+### Core Library
+
+- [SoundTouch](./SoundTouch)
+- [Stretch](./Stretch)
+- [RateTransposer](./RateTransposer)
+- [Abstract Sample Pipe](./core/abstract-sample-pipe)
+- [Circular Sample Buffer](./core/circular-sample-buffer)
+- [Fifo Sample Buffer](./core/fifo-sample-buffer)
+- [Interpolation Strategies](./core/interpolation-strategies)
+  - [Overview](./core/interpolation-strategies)
+  - [Registry API](./core/interpolation-strategy-registry)
+  - [Strategy Plugin Authoring](./core/strategy-plugin-authoring)
+  - [Lanczos Strategy](./core/lanczos-strategy)
+  - [Linear Strategy](./core/linear-strategy)
+  - [Hann Strategy](./core/hann-strategy)
+  - [Blackman Strategy](./core/blackman-strategy)
+  - [Kaiser Strategy](./core/kaiser-strategy)
+- [Phase Vocoder](./core/stretch-phase-vocoder)

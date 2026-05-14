@@ -14,27 +14,32 @@ WebAudioBufferSource → SimpleFilter → SoundTouch → getWebAudioNode → Scr
 
 ## Module Structure
 
-| Module                   | Role                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `SoundTouch`             | Core engine — owns `Stretch` + `RateTransposer`, exposes `rate`, `tempo`, `pitch` |
-| `PitchShifter`           | Consumer-facing class — manages Web Audio node lifecycle, events, playback state  |
-| `Stretch`                | WSOLA time-stretching algorithm with overlap-add                                  |
-| `RateTransposer`         | Linear interpolation sample rate conversion                                       |
-| `FifoSampleBuffer`       | Float32Array ring buffer for interleaved stereo samples                           |
-| `AbstractFifoSamplePipe` | Base class for pipe stages with input/output buffers                              |
-| `FilterSupport`          | Abstract filter base; defines `SamplePipe` interface                              |
-| `SimpleFilter`           | Connects a `WebAudioBufferSource` to a `SoundTouch` pipe                          |
-| `WebAudioBufferSource`   | Adapter that reads from an `AudioBuffer`                                          |
-| `getWebAudioNode`        | Factory that creates a `ScriptProcessorNode` wired to a filter                    |
+| Module                 | Role                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `SoundTouch`           | Core engine — owns `Stretch` + `RateTransposer`, exposes `rate`, `tempo`, `pitch` |
+| `PitchShifter`         | Consumer-facing class — manages Web Audio node lifecycle, events, playback state  |
+| `Stretch`              | WSOLA time-stretching algorithm with overlap-add                                  |
+| `RateTransposer`       | Linear interpolation sample rate conversion                                       |
+| `CircularSampleBuffer` | Circular interleaved sample buffer used by the default processing path            |
+| `FifoSampleBuffer`     | Float32Array ring buffer for interleaved stereo samples                           |
+| `AbstractSamplePipe`   | Base class for pipe stages with input/output buffers                              |
+| `FilterSupport`        | Abstract filter base; defines `SamplePipe` interface                              |
+| `SimpleFilter`         | Connects a `WebAudioBufferSource` to a `SoundTouch` pipe                          |
+| `WebAudioBufferSource` | Adapter that reads from an `AudioBuffer`                                          |
+| `getWebAudioNode`      | Factory that creates a `ScriptProcessorNode` wired to a filter                    |
 
 ## Build
 
-TSC compiles `src/` → `dist/` (JS + `.d.ts` + source maps). Configured in `tsconfig.lib.json`.
+TSC compiles `src/` → `.dist/` (JS + `.d.ts` + source maps). Configured in `tsconfig.lib.json`.
+
+## Test Execution
+
+- Always run tests with `--run` to avoid watch mode (`pnpm exec vitest --run`).
 
 Published package exposes:
 
-- `dist/index.js` (ESM)
-- `dist/index.d.ts` (type declarations)
+- `.dist/index.js` (ESM)
+- `.dist/index.d.ts` (type declarations)
 
 ## Exported Types
 

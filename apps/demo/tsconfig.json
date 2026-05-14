@@ -6,11 +6,14 @@
   },
   "include": ["src/**/*.ts", "vite.config.ts"],
   "references": [
-    {
-      "path": "../../packages/audio-worklet"
-    },
-    {
-      "path": "../../packages/core"
-    }
+    { "path": "../../packages/audio-worklet" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/phase-vocoder-worklet" },
+    { "path": "../../packages/formant-correction-worklet" },
+    { "path": "../../packages/interpolation-strategy-lanczos" },
+    { "path": "../../packages/interpolation-strategy-linear" },
+    { "path": "../../packages/interpolation-strategy-hann" },
+    { "path": "../../packages/interpolation-strategy-blackman" },
+    { "path": "../../packages/interpolation-strategy-kaiser" }
   ]
 }

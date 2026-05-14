@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Circular Sample Buffer" />
+
+# Circular Sample Buffer
+
+**What is this?**
+
+This is a special container for audio data. Imagine a circular conveyor belt that never runs out of space—it wraps around and keeps going. It’s used to store sound as it’s being processed, especially when you need to handle continuous streams.
+
+**When would I use it?**
+
+If you’re building custom audio pipelines or need to process long or looping audio, this buffer helps manage the data efficiently.
+
+## Import
+
+```ts
+import { CircularSampleBuffer } from '@soundtouchjs/core';
+```
+
+## Purpose
+
+`CircularSampleBuffer` is a ring buffer for interleaved stereo sample frames with automatic growth.
+
+## Constructor
+
+```ts
+new CircularSampleBuffer(capacityFrames?: number)
+```
+
+## Public API
+
+- `capacityFrames` (getter)
+- `frameCount` (getter)
+- `clear()`
+- `ensureCapacity(minCapacityFrames)`
+- `pushSamples(source, sourceFrameOffset?, frameCount?)`
+- `putSamples(source, sourceFrameOffset?, frameCount?)`
+- `extract(target, sourceFrameOffset?, frameCount?, consume?)`
+- `readSample(sampleIndex)`
+- `dropFrames(frameCount)`
+- `receive(frameCount?)`
+
+## Notes
+
+- Samples are interleaved stereo (`L, R, L, R, ...`).
+- `extract(..., consume = true)` both reads and drops frames.
+- Out-of-range `readSample` returns `0`.

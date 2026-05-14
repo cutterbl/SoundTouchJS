@@ -1,0 +1,32 @@
+{
+  "name": "@soundtouchjs/interpolation-strategy-hann",
+  "version": "2.0.0",
+  "description": "Hann interpolation strategy for SoundTouchJS and audio-worklet.",
+  "type": "module",
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./.dist/index.js",
+      "types": "./.dist/index.d.ts"
+    }
+  },
+  "files": [
+    ".dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "soundtouchjs",
+    "interpolation",
+    "hann",
+    "audio",
+    "dsp"
+  ],
+  "author": "@soundtouchjs",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
+  "dependencies": {}
+}

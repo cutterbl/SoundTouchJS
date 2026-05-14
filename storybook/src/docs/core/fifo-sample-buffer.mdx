@@ -1,0 +1,52 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Core/Fifo Sample Buffer" />
+
+# Fifo Sample Buffer
+
+**What is this?**
+
+This is a container for audio data that works like a line at a store: first in, first out (FIFO). It’s used to keep track of sound as it moves through the processing pipeline.
+
+**When would I use it?**
+
+If you want to process audio in chunks and always handle the oldest data first, this buffer is for you. It’s especially useful for effects that need to “remember” what came before.
+
+## Import
+
+```ts
+import { FifoSampleBuffer } from '@soundtouchjs/core';
+```
+
+## Purpose
+
+`FifoSampleBuffer` is a resizable FIFO sample store optimized for interleaved stereo frame processing.
+
+## Constructor
+
+```ts
+new FifoSampleBuffer(maxFrames?: number)
+```
+
+## Public API
+
+- `vector` (getter)
+- `position` (getter)
+- `startIndex` (getter)
+- `frameCount` (getter)
+- `endIndex` (getter)
+- `clear()`
+- `put(numFrames)`
+- `putSamples(samples, position?, numFrames?)`
+- `putBuffer(buffer, position?, numFrames?)`
+- `receive(numFrames?)`
+- `receiveSamples(output, numFrames?)`
+- `extract(output, position?, numFrames?)`
+- `ensureCapacity(numFrames?)`
+- `ensureAdditionalCapacity(numFrames?)`
+- `rewind()`
+
+## Notes
+
+- Uses resizable `ArrayBuffer` on supported runtimes.
+- `vector` exposes underlying storage for low-level integrations.
