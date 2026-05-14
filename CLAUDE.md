@@ -38,6 +38,7 @@ If you notice something that could be improved elsewhere, mention it at the end 
 Do not touch it unless I explicitly ask you to.
 
 After completing any editing or writing task, always end with a brief summary:
+
 - What was changed: [description]
 - What was left untouched: [if relevant]
 - What needs my attention: [anything requiring a decision or review]
@@ -47,6 +48,7 @@ Keep it short. This is a status update, not a recap of everything you just did.
 Maintain a file called MEMORY.md. After any significant decision, about direction, format, content, approach, or strategy, add an entry:
 
 ## [Date], [Decision]
+
 **What was decided:** [the choice made]
 **Why:** [the reasoning]
 **What was rejected:** [alternatives considered and why they were ruled out]
@@ -63,6 +65,7 @@ Do not touch it. Ever.
 Before deleting any file, overwriting existing code, dropping database records, removing dependencies, or making any change that cannot be trivially undone, stop completely. List exactly what will be affected. Ask for explicit confirmation. Only proceed after I say yes in the current message.
 
 The following actions require explicit in-session confirmation before executing, no exceptions:
+
 - Deploying or pushing to any environment (staging, production, etc.)
 - Running migrations or schema changes on any database
 - Sending any email, message, or external API call
@@ -71,6 +74,7 @@ The following actions require explicit in-session confirmation before executing,
 "You mentioned this earlier" is not confirmation. I must say yes in the current message.
 
 Tech stack, always use these, never suggest alternatives unless I ask:
+
 - Language(s): ES2024, Typescript
 - Package manager: pnpm
 - Testing: Vitest
@@ -79,6 +83,7 @@ Tech stack, always use these, never suggest alternatives unless I ask:
 If something in the stack seems like the wrong tool, flag it, but use it anyway unless I say otherwise.
 
 After completing any coding task, always end with:
+
 - Files changed: [list every file touched]
 - What was modified: [one line per file]
 - Files intentionally not touched: [if relevant]
@@ -145,6 +150,7 @@ pnpm release                        # nx release
 **AudioWorklet test setup** (`packages/audio-worklet/src/test-setup.ts`): stubs `AudioWorkletNode` globally via `vi.stubGlobal` so processor and node specs run in Node/jsdom without a browser.
 
 **Nx target auto-detection**:
+
 - `tsconfig.lib.json` present → Nx `@nx/js/typescript` plugin creates `build` and `typecheck` targets
 - `vitest.config.ts` present → Nx `@nx/vite/plugin` creates `test` target
 - Non-standard builds → explicit `project.json` with `nx:run-commands` executor
@@ -165,7 +171,7 @@ All exported functions, classes, interfaces, types, and their members must carry
 - `@param` and `@returns` for every public method.
 - `@example` blocks where the usage pattern is not self-evident.
 - Do **not** document the obvious (`@param value — the value`). Write only what a reader cannot deduce from the name and type alone.
-- Internal/private members do not require JSDoc unless the *why* is genuinely non-obvious.
+- Internal/private members do not require JSDoc unless the _why_ is genuinely non-obvious.
 
 ### 2. Tests
 
@@ -180,7 +186,7 @@ All changes must be accompanied by updated or new tests:
 
 ### 3. Documentation
 
-Update *all* of the following that are affected by the change:
+Update _all_ of the following that are affected by the change:
 
 - **README.md** — if the public API, install steps, or usage examples change.
 - **Storybook stories** (`storybook/src/stories/**/*.stories.tsx`) — add, update, or remove stories to reflect the current API. Do not leave stories that demonstrate removed or changed APIs.
@@ -192,16 +198,16 @@ If a piece of documentation cannot be updated in the same PR (e.g., an external 
 
 This project uses **Conventional Commits**. Subjects must be sentence-case. Use the appropriate prefix:
 
-| Prefix | When | Version bump |
-|--------|------|--------------|
-| `feat` | New public API or user-visible feature | minor |
-| `feat!` / `BREAKING CHANGE:` | Removes or changes existing public API | major |
-| `fix` | Bug fix | patch |
-| `perf` | Performance improvement | patch |
-| `refactor` | Internal restructuring, no behavior change | patch |
-| `docs` | Documentation only | none |
-| `test` | Test only | none |
-| `chore` | Tooling, deps, config | patch |
+| Prefix                       | When                                       | Version bump |
+| ---------------------------- | ------------------------------------------ | ------------ |
+| `feat`                       | New public API or user-visible feature     | minor        |
+| `feat!` / `BREAKING CHANGE:` | Removes or changes existing public API     | major        |
+| `fix`                        | Bug fix                                    | patch        |
+| `perf`                       | Performance improvement                    | patch        |
+| `refactor`                   | Internal restructuring, no behavior change | patch        |
+| `docs`                       | Documentation only                         | none         |
+| `test`                       | Test only                                  | none         |
+| `chore`                      | Tooling, deps, config                      | patch        |
 
 ## Project conventions
 
@@ -212,3 +218,27 @@ This project uses **Conventional Commits**. Subjects must be sentence-case. Use 
 - New worklet packages require `project.json` (custom tsc+vite build), `tsconfig.lib.json`, `tsconfig.processor.json`, `vite.config.ts` (with source alias for `@soundtouchjs/core`), and `vitest.config.ts`.
 - Public API changes in `@soundtouchjs/audio-worklet` or `@soundtouchjs/core` require matching updates to interpolation-strategy packages if the change touches the strategy interface.
 - Adding a new published package: add it to `nx.json release.projects`.
+
+<!-- nx configuration start-->
+<!-- Leave the start & end comments to automatically receive updates. -->
+
+## General Guidelines for working with Nx
+
+- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects, targets, and dependencies
+- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
+- You have access to the Nx MCP server and its tools, use them to help the user
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
+- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
+
+## Scaffolding & Generators
+
+- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST before exploring or calling MCP tools
+
+## When to use nx_docs
+
+- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
+- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
+- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
+
+<!-- nx configuration end-->

@@ -30,5 +30,16 @@
       "Bash(python3 -c \"import json,sys; g=json.load\\(sys.stdin\\); deps=g.get\\('graph',{}\\).get\\('dependencies',{}\\).get\\('@soundtouchjs/demo',[]\\); print\\(json.dumps\\(deps, indent=2\\)\\)\")",
       "Bash(python3 -c \"import json,sys; p=json.loads\\(sys.stdin.read\\(\\)\\); t=p['targets']['dev']; print\\(json.dumps\\(t, indent=2\\)\\)\")"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "nx@nx-claude-plugins": true
   }
 }
