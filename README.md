@@ -122,6 +122,16 @@ For a beginner-oriented walkthrough of the signal graph, playback modes, loop be
 
 Music: "Actionable" from [Bensound.com](http://bensound.com). This is a limited use license — refer to [their licensing](https://www.bensound.com/licensing) for details.
 
+## Stage and Commit Instructions
+
+When working in local development, the repository is configured with a Husky pre-commit hook. This hook ensures that tasks such as linting and typechecking are executed before the commit is finalized. As a result, when staging and committing changes, Copilot must wait for these tasks to complete and summarize their output.
+
+### Steps:
+1. Stage the changes using `git add <file>`.
+2. Commit the changes using `git commit -m "<commit message>"`.
+3. Wait for the pre-commit hook tasks to complete.
+4. Summarize the output of the pre-commit hook tasks, including any errors or warnings encountered.
+
 ## What's changed
 
 The latest release builds on the modernization of `v0.4` with significant new features, tooling updates, and expanded package offerings:
