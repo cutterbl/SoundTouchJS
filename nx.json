@@ -130,19 +130,24 @@
       "preVersionCommand": "pnpm dlx nx run-many -t build",
       "fallbackCurrentVersionResolver": "disk"
     },
-    "projects": [
-      "@soundtouchjs/core",
-      "@soundtouchjs/worklet-base",
-      "@soundtouchjs/audio-worklet",
-      "@soundtouchjs/interpolation-strategy-lanczos",
-      "@soundtouchjs/interpolation-strategy-linear",
-      "@soundtouchjs/interpolation-strategy-hann",
-      "@soundtouchjs/interpolation-strategy-blackman",
-      "@soundtouchjs/interpolation-strategy-kaiser",
-      "@soundtouchjs/stretch-phase-vocoder",
-      "@soundtouchjs/phase-vocoder-worklet",
-      "@soundtouchjs/formant-correction-worklet"
-    ],
+    "groups": {
+      "packages": {
+        "projects": [
+          "@soundtouchjs/core",
+          "@soundtouchjs/worklet-base",
+          "@soundtouchjs/audio-worklet",
+          "@soundtouchjs/interpolation-strategy-lanczos",
+          "@soundtouchjs/interpolation-strategy-linear",
+          "@soundtouchjs/interpolation-strategy-hann",
+          "@soundtouchjs/interpolation-strategy-blackman",
+          "@soundtouchjs/interpolation-strategy-kaiser",
+          "@soundtouchjs/stretch-phase-vocoder",
+          "@soundtouchjs/phase-vocoder-worklet",
+          "@soundtouchjs/formant-correction-worklet"
+        ],
+        "projectsRelationship": "fixed"
+      }
+    },
     "changelog": {
       "automaticFromRef": false,
       "workspaceChangelog": {
