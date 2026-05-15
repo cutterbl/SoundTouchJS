@@ -6,7 +6,11 @@
  * You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { SoundTouch, resolveInterpolationStrategy } from '@soundtouchjs/core';
+import {
+  SoundTouchProcessorBase,
+  STANDARD_PARAMETER_DESCRIPTORS,
+} from '@soundtouchjs/worklet-base';
+import type { ParameterDescriptor, ProcessCoreResult } from '@soundtouchjs/worklet-base';
 import {
   DEFAULT_SAMPLE_BUFFER_TYPE,
   LPC_ORDER,
@@ -19,22 +23,11 @@ import {
   applySynthesisFilter,
 } from './lpc.js';
 import type {
-  InterpolationStrategyParams,
   RateTransposerInterpolationStrategy,
   SampleBufferType,
-  StretchParameters,
 } from '@soundtouchjs/core';
 
 const PROCESSOR_NAME = 'formant-correction-processor';
-
-/** @internal */
-interface ParameterDescriptor {
-  name: string;
-  defaultValue: number;
-  minValue: number;
-  maxValue: number;
-  automationRate: 'k-rate' | 'a-rate';
-}
 
 /** @internal */
 interface ProcessorConstructorOptions {
@@ -43,26 +36,6 @@ interface ProcessorConstructorOptions {
     interpolationStrategy?: RateTransposerInterpolationStrategy;
   };
 }
-
-interface SetInterpolationStrategyMessage {
-  type: 'set-interpolation-strategy';
-  strategy: RateTransposerInterpolationStrategy;
-}
-
-interface SetInterpolationStrategyParamsMessage {
-  type: 'set-interpolation-strategy-params';
-  params: Partial<InterpolationStrategyParams>;
-}
-
-interface SetStretchParametersMessage {
-  type: 'set-stretch-parameters';
-  params: StretchParameters;
-}
-
-type ProcessorMessage =
-  | SetInterpolationStrategyMessage
-  | SetInterpolationStrategyParamsMessage
-  | SetStretchParametersMessage;
 
 /** @internal */
 interface MetricsMessage {
@@ -87,30 +60,10 @@ interface MetricsMessage {
  * When `formantStrength = 0` the output is identical to `SoundTouchNode`.
  * When `formantStrength = 1` formants are fully locked to the original pitch.
  */
-class FormantCorrectionProcessor extends AudioWorkletProcessor {
+class FormantCorrectionProcessor extends SoundTouchProcessorBase {
   static get parameterDescriptors(): ParameterDescriptor[] {
     return [
-      {
-        name: 'pitch',
-        defaultValue: 1.0,
-        minValue: 0.1,
-        maxValue: 8.0,
-        automationRate: 'k-rate',
-      },
-      {
-        name: 'pitchSemitones',
-        defaultValue: 0,
-        minValue: -24,
-        maxValue: 24,
-        automationRate: 'k-rate',
-      },
-      {
-        name: 'playbackRate',
-        defaultValue: 1.0,
-        minValue: 0.1,
-        maxValue: 8.0,
-        automationRate: 'k-rate',
-      },
+      ...STANDARD_PARAMETER_DESCRIPTORS,
       {
         name: 'formantStrength',
         defaultValue: 1.0,
@@ -120,15 +73,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
       },
     ];
   }
-
-  private _pipe: SoundTouch;
-  private _samples: Float32Array;
-  private _outputSamples: Float32Array;
-  private pendingInterpolationStrategy: RateTransposerInterpolationStrategy | null;
-  private pendingInterpolationStrategyParams: Partial<InterpolationStrategyParams> | null;
-  private pendingStretchParameters: StretchParameters | null;
-  private _underrunCount: number;
-  private _blockCount: number;
 
   // Per-channel LPC state.
   private _inputHistL: Float32Array;
@@ -145,36 +89,16 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
    * @param options Worklet constructor options from the main thread.
    */
   constructor(options?: ProcessorConstructorOptions) {
-    super();
-    let interpolationStrategy =
-      options?.processorOptions?.interpolationStrategy;
-    try {
-      if (interpolationStrategy) {
-        resolveInterpolationStrategy(interpolationStrategy);
-      }
-    } catch (err) {
-      console.info(
-        '[FormantCorrectionProcessor] Unknown interpolation strategy id:',
-        interpolationStrategy,
-        '— falling back to lanczos.',
-      );
-      interpolationStrategy = 'lanczos';
-    }
-
-    this._pipe = new SoundTouch({
+    super('[FormantCorrectionProcessor]', {
       sampleRate,
       sampleBufferType:
         options?.processorOptions?.sampleBufferType ??
         DEFAULT_SAMPLE_BUFFER_TYPE,
-      interpolationStrategy,
+      interpolationStrategy: SoundTouchProcessorBase.resolveStrategy(
+        options?.processorOptions?.interpolationStrategy,
+        '[FormantCorrectionProcessor]',
+      ),
     });
-    this._samples = new Float32Array(128 * 2);
-    this._outputSamples = new Float32Array(128 * 2);
-    this.pendingInterpolationStrategy = null;
-    this.pendingInterpolationStrategyParams = null;
-    this.pendingStretchParameters = null;
-    this._underrunCount = 0;
-    this._blockCount = 0;
 
     this._inputHistL = new Float32Array(LPC_WINDOW);
     this._inputHistR = new Float32Array(LPC_WINDOW);
@@ -185,62 +109,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
     this._analysisZiR = new Float32Array(LPC_ORDER);
     this._synthesisZiL = new Float32Array(LPC_ORDER);
     this._synthesisZiR = new Float32Array(LPC_ORDER);
-
-    const port = this.port;
-    if (port !== undefined) {
-      port.onmessage = (event: MessageEvent<ProcessorMessage>) => {
-        const message = event.data;
-        if (message.type === 'set-interpolation-strategy') {
-          this.pendingInterpolationStrategy = message.strategy;
-          return;
-        }
-        if (message.type === 'set-interpolation-strategy-params') {
-          this.pendingInterpolationStrategyParams = message.params;
-          return;
-        }
-        if (message.type === 'set-stretch-parameters') {
-          this.pendingStretchParameters = message.params;
-        }
-      };
-    }
-  }
-
-  private applyPendingRuntimeUpdates(): void {
-    if (this.pendingInterpolationStrategy !== null) {
-      try {
-        this._pipe.setInterpolationStrategy(this.pendingInterpolationStrategy);
-      } catch (err) {
-        console.info(
-          '[FormantCorrectionProcessor] Failed to switch interpolation strategy:',
-          this.pendingInterpolationStrategy,
-        );
-      }
-      this.pendingInterpolationStrategy = null;
-    }
-
-    if (this.pendingInterpolationStrategyParams !== null) {
-      try {
-        this._pipe.setInterpolationStrategyParams(
-          this.pendingInterpolationStrategyParams,
-        );
-      } catch (err) {
-        console.info(
-          '[FormantCorrectionProcessor] Failed to update interpolation strategy params.',
-        );
-      }
-      this.pendingInterpolationStrategyParams = null;
-    }
-
-    if (this.pendingStretchParameters !== null) {
-      try {
-        this._pipe.setStretchParameters(this.pendingStretchParameters);
-      } catch (err) {
-        console.info(
-          '[FormantCorrectionProcessor] Failed to update stretch parameters.',
-        );
-      }
-      this.pendingStretchParameters = null;
-    }
   }
 
   /**
@@ -270,75 +138,30 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
     this._lpcR = levinsonDurbin(autocorrelate(winR, LPC_ORDER), LPC_ORDER);
   }
 
-  process(
-    inputs: Float32Array[][],
-    outputs: Float32Array[][],
+  protected override beforePipeProcess(
+    leftInput: Float32Array,
+    rightInput: Float32Array,
+    frameCount: number,
     parameters: Record<string, Float32Array>,
-  ): boolean {
-    this.applyPendingRuntimeUpdates();
-
-    const input = inputs[0];
-    const output = outputs[0];
-
-    if (!input || !input.length || !output[0] || !output[0].length) {
-      return true;
-    }
-
-    const leftInput = input[0];
-    const rightInput = input.length > 1 ? input[1] : input[0];
-    const leftOutput = output[0];
-    const rightOutput = output.length > 1 ? output[1] : output[0];
-    const frameCount = leftInput.length;
-
-    if (this._samples.length < frameCount * 2) {
-      this._samples = new Float32Array(frameCount * 2);
-      this._outputSamples = new Float32Array(frameCount * 2);
-    }
-
-    const pitch = parameters['pitch'][0];
-    const pitchSemitones = parameters['pitchSemitones'][0];
-    const playbackRate = parameters['playbackRate'][0];
-    const formantStrength = parameters['formantStrength'][0];
-
-    // Update LPC from input before sending to SoundTouch.
-    if (formantStrength > 0) {
+  ): void {
+    if ((parameters['formantStrength'][0] ?? 0) > 0) {
       this.updateLpc(leftInput, rightInput, frameCount);
     }
+  }
 
-    this._pipe.pitch =
-      (pitch * Math.pow(2, pitchSemitones / 12)) / playbackRate;
-
-    const samples = this._samples;
-    for (let i = 0; i < frameCount; i++) {
-      samples[i * 2] = leftInput[i];
-      samples[i * 2 + 1] = rightInput[i];
-    }
-
-    this._pipe.inputBuffer.putSamples(samples, 0, frameCount);
-    this._pipe.process();
-
-    const outputBuffer = this._pipe.outputBuffer;
-    const available = outputBuffer.frameCount;
-    const toExtract = Math.min(available, frameCount);
-
-    this._blockCount++;
-    if (available < frameCount) {
-      this._underrunCount++;
-    }
-
-    if (this._blockCount % 100 === 0) {
-      this.port.postMessage({
-        type: 'metrics',
-        framesBuffered: available,
-        underrunCount: this._underrunCount,
-        blockCount: this._blockCount,
-      } satisfies MetricsMessage);
-    }
+  protected override extractSamples(
+    leftOutput: Float32Array,
+    rightOutput: Float32Array,
+    frameCount: number,
+    toExtract: number,
+    parameters: Record<string, Float32Array>,
+  ): { outputRms: number; outputPeak: number } {
+    const formantStrength = parameters['formantStrength'][0] ?? 0;
 
     if (toExtract > 0) {
       const extracted = this._outputSamples;
-      outputBuffer.extract(extracted, 0, toExtract);
-      outputBuffer.receive(toExtract);
+      this._pipe.outputBuffer.extract(extracted, 0, toExtract);
+      this._pipe.outputBuffer.receive(toExtract);
 
       if (formantStrength > 0) {
         // Split pitch-shifted output into per-channel arrays.
@@ -378,7 +201,18 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
       rightOutput[i] = 0;
     }
 
-    return true;
+    return { outputRms: 0, outputPeak: 0 };
+  }
+
+  protected onProcessComplete(result: ProcessCoreResult): void {
+    if (this._blockCount % 100 === 0) {
+      this.port.postMessage({
+        type: 'metrics',
+        framesBuffered: result.available,
+        underrunCount: this._underrunCount,
+        blockCount: this._blockCount,
+      } satisfies MetricsMessage);
+    }
   }
 }
 

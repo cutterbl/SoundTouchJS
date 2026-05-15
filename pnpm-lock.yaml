@@ -131,6 +131,9 @@ importers:
       '@soundtouchjs/interpolation-strategy-lanczos':
         specifier: workspace:*
         version: link:../interpolation-strategy-lanczos
+      '@soundtouchjs/worklet-base':
+        specifier: workspace:*
+        version: link:../worklet-base
 
   packages/core:
     dependencies:
@@ -143,6 +146,9 @@ importers:
       '@soundtouchjs/core':
         specifier: workspace:*
         version: link:../core
+      '@soundtouchjs/worklet-base':
+        specifier: workspace:*
+        version: link:../worklet-base
 
   packages/interpolation-strategy-blackman: {}
 
@@ -162,8 +168,17 @@ importers:
       '@soundtouchjs/stretch-phase-vocoder':
         specifier: workspace:*
         version: link:../stretch-phase-vocoder
+      '@soundtouchjs/worklet-base':
+        specifier: workspace:*
+        version: link:../worklet-base
 
   packages/stretch-phase-vocoder:
+    dependencies:
+      '@soundtouchjs/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/worklet-base:
     dependencies:
       '@soundtouchjs/core':
         specifier: workspace:*

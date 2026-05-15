@@ -24,6 +24,10 @@ export default defineConfig({
         import.meta.dirname,
         '../core/src/index.ts',
       ),
+      '@soundtouchjs/worklet-base': resolve(
+        import.meta.dirname,
+        '../worklet-base/src/index.ts',
+      ),
     },
   },
 });

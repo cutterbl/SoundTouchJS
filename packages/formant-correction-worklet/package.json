@@ -46,7 +46,8 @@
   },
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "dependencies": {
-    "@soundtouchjs/core": "workspace:*"
+    "@soundtouchjs/core": "workspace:*",
+    "@soundtouchjs/worklet-base": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

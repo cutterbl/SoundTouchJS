@@ -47,7 +47,8 @@
   "homepage": "https://github.com/cutterbl/SoundTouchJS",
   "dependencies": {
     "@soundtouchjs/core": "workspace:*",
-    "@soundtouchjs/stretch-phase-vocoder": "workspace:*"
+    "@soundtouchjs/stretch-phase-vocoder": "workspace:*",
+    "@soundtouchjs/worklet-base": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

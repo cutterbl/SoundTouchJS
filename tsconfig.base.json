@@ -40,6 +40,9 @@
       ],
       "@soundtouchjs/formant-correction-worklet": [
         "./packages/formant-correction-worklet/src/index.ts"
+      ],
+      "@soundtouchjs/worklet-base": [
+        "./packages/worklet-base/src/index.ts"
       ]
     }
   },
