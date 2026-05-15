@@ -17,8 +17,14 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{projectRoot}",
-        "command": "tsc --noEmit --project tsconfig.lib.json"
-      }
+        "command": "tsc --build tsconfig.lib.json --emitDeclarationOnly"
+      },
+      "outputs": [
+        "{projectRoot}/.dist/**/*.d.ts",
+        "{projectRoot}/.dist/**/*.d.ts.map",
+        "{projectRoot}/.dist/tsconfig.tsbuildinfo"
+      ],
+      "dependsOn": ["^typecheck"]
     },
     "lint": {
       "executor": "@nx/eslint:lint",
