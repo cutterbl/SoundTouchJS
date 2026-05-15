@@ -61,7 +61,7 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
    * @param processorLabel - Label included in the fallback console message.
    * @returns The original `strategy` if valid, or `'lanczos'` as a fallback.
    */
-  protected static resolveStrategy(
+  public static resolveStrategy(
     strategy: RateTransposerInterpolationStrategy | undefined,
     processorLabel: string,
   ): RateTransposerInterpolationStrategy | undefined {
@@ -176,7 +176,9 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
     _rightInput: Float32Array,
     _frameCount: number,
     _parameters: Record<string, Float32Array>,
-  ): void {}
+  ): void {
+    return;
+  }
 
   /**
    * Extracts rendered frames from the output buffer, writes them to
