@@ -2,6 +2,10 @@
 
 An `AudioWorklet` integration that uses the phase vocoder time-stretch algorithm from `@soundtouchjs/stretch-phase-vocoder`. Provides `PhaseVocoderNode` as a drop-in replacement for `SoundTouchNode` when smoother time-stretching at extreme ratios is required.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
+Part of the [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) monorepo — for more information and so much more.
+
 ## Installation
 
 ```sh

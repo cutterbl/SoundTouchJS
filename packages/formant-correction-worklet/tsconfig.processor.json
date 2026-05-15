@@ -7,8 +7,9 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["src/formant-correction-processor.ts"],
+  "include": ["src/formant-correction-processor.ts", "../worklet-base/src/worklet-globals.d.ts"],
   "references": [
-    { "path": "../core/tsconfig.lib.json" }
+    { "path": "../core/tsconfig.lib.json" },
+    { "path": "../worklet-base/tsconfig.lib.json" }
   ]
 }

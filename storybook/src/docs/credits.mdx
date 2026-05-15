@@ -1,0 +1,68 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Credits" />
+
+# Credits
+
+SoundTouchJS exists because of the work of many people across multiple decades and programming languages. This page acknowledges them.
+
+## The origin: SoundTouch C++
+
+The algorithms at the heart of this library — WSOLA time-stretching, pitch shifting, and the interpolation kernels — were designed and implemented in C++ by **[Olli Parviainen](https://www.surina.net/soundtouch/)**. His [SoundTouch Audio Processing Library](https://www.surina.net/soundtouch/) has been open-source since 2001 and remains the reference implementation of these techniques. None of this would exist without that foundational work.
+
+## The JavaScript port
+
+**[Ryan Berdeen](http://ryanberdeen.com)** ported SoundTouch to JavaScript as [soundtouch-js](https://github.com/cutterbl/soundtouchjs). That port made the algorithms available in browser environments for the first time. **[Jakub Fiala](http://fiala.space)** and **[Adrian Holovaty](http://www.holovaty.com)** subsequently contributed improvements to the JavaScript codebase, extending its usability for real-world web audio scenarios.
+
+## SoundTouchJS
+
+**[Steve 'Cutter' Blades](https://cutterscrossing.com)** took over maintenance and eventually rewrote the entire codebase from the ground up. The rewrite converted the library to TypeScript, moved to a modern ES module architecture, introduced the AudioWorklet-based processing pipeline (replacing the deprecated `ScriptProcessorNode`), and expanded the project into the Nx monorepo it is today — with offline rendering, pluggable interpolation strategies, a phase vocoder time-stretch stage, formant correction, and full processor observability.
+
+The WSOLA algorithm and interpolation mathematics remain rooted in Olli's original designs; the TypeScript implementation, API design, worklet architecture, and surrounding packages are Cutter's work.
+
+## Demo music
+
+The audio files used in the demo application are licensed from [Bensound](https://www.bensound.com/) by **Benjamin Tissot** under a limited use license. All tracks require the following attribution:
+
+<table>
+  <thead>
+    <tr>
+      <th>Song</th>
+      <th>Artist</th>
+      <th>License code</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Happiness</td>
+      <td>Benjamin Tissot / Bensound</td>
+      <td>T2HY3XQJYR7LSCLE</td>
+    </tr>
+    <tr>
+      <td>Downtown</td>
+      <td>Benjamin Tissot / Bensound</td>
+      <td>53DRRGMDCYVAXUEQ</td>
+    </tr>
+    <tr>
+      <td>Hip Jazz</td>
+      <td>Benjamin Tissot / Bensound</td>
+      <td>M9MKLVDXCEAF7WJP</td>
+    </tr>
+    <tr>
+      <td>Retro Soul</td>
+      <td>Benjamin Tissot / Bensound</td>
+      <td>J3KC2T2MQMFHJQVY</td>
+    </tr>
+    <tr>
+      <td>Actionable</td>
+      <td>Benjamin Tissot / Bensound</td>
+      <td>XOCTXNNTGR7XQIFE</td>
+    </tr>
+  </tbody>
+</table>
+
+Refer to [Bensound's licensing terms](https://www.bensound.com/licensing) for permitted uses of these tracks.
+
+## License
+
+SoundTouchJS is published under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/).

@@ -2,6 +2,10 @@
 
 Core audio processing library for real-time pitch shifting using the Web Audio API. A TypeScript rewrite of the [SoundTouch](https://www.surina.net/soundtouch/) audio processing library.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
+Part of the [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) monorepo — for more information and so much more.
+
 ## Installation
 
 ```sh
@@ -183,7 +187,17 @@ For most musical applications, set `pitchSemitones` to the desired interval and 
 
 See [`@soundtouchjs/audio-worklet`](../audio-worklet/README.md) for AudioWorklet-based usage.
 
-## What's changed in v0.4
+## What's changed
+
+Notable additions and changes since the v0.4 rewrite:
+
+- **`StretchPipe` interface**: `SoundTouch` accepts a `stretchFactory` option to replace the built-in WSOLA `Stretch` stage with a custom implementation (e.g. phase vocoder).
+- **WSOLA timing parameters**: `setStretchParameters()` exposes `sequenceMs`, `seekWindowMs`, `overlapMs`, and `quickSeek` for tuning the time-stretch algorithm at runtime.
+- **Simplified public API**: `rate`, `tempo`, `virtualRate`, and `virtualTempo` removed from `SoundTouch`. Pitch is the only public control; playback speed is handled at the source node level.
+- **Interpolation strategy IDs standardised**: IDs renamed (`lanczos8` → `lanczos`, `hann8` → `hann`, `blackman8` → `blackman`, `kaiser8` → `kaiser`) and all strategy params unified around `zeroCrossings`.
+- **Licensing**: Moved from LGPL to MPL-2.0.
+
+### v0.4 (initial rewrite)
 
 - **Monorepo**: Now published as `@soundtouchjs/core` from an [Nx](https://nx.dev) monorepo (was `soundtouchjs`)
 - **TypeScript**: Full rewrite — strict mode, zero `any`, complete type exports
@@ -192,7 +206,6 @@ See [`@soundtouchjs/audio-worklet`](../audio-worklet/README.md) for AudioWorklet
 - **Interpolation plugin architecture**: strategy registry with `lanczos` default and pluggable strategies
 - **Optimized internals**: Dirty-flag overlap buffers in `Stretch`
 - **Zero runtime dependencies**
-- **`StretchPipe` interface**: Allows replacing the built-in WSOLA `Stretch` stage with a custom implementation (e.g., phase vocoder)
 
 ### Breaking changes
 

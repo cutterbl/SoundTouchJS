@@ -7,9 +7,10 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["src/phase-vocoder-processor.ts"],
+  "include": ["src/phase-vocoder-processor.ts", "../worklet-base/src/worklet-globals.d.ts"],
   "references": [
     { "path": "../core/tsconfig.lib.json" },
-    { "path": "../stretch-phase-vocoder/tsconfig.lib.json" }
+    { "path": "../stretch-phase-vocoder/tsconfig.lib.json" },
+    { "path": "../worklet-base/tsconfig.lib.json" }
   ]
 }

@@ -40,7 +40,7 @@ jobs:
         continue-on-error: true
 
       - name: Publish coverage summary to Checks UI
-        if: always()
+        if: steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure'
         run: |
           {
             echo "# Coverage check"
@@ -55,14 +55,14 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage report artifacts
-        if: always()
+        if: steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-summary
           path: .coverage-reports
 
       - name: Post coverage summary as PR comment
-        if: always()
+        if: steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure'
         uses: actions/github-script@v9
         with:
           script: |
@@ -100,7 +100,7 @@ jobs:
             }
 
       - name: Enforce coverage summary status
-        if: steps.coverage.outcome != 'success'
+        if: steps.coverage.outcome == 'failure'
         run: exit 1
 
   release:

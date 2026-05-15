@@ -2,6 +2,10 @@
 
 An `AudioWorklet` integration that applies SoundTouch pitch-shifting with LPC-based formant preservation. Use `FormantCorrectionNode` instead of `SoundTouchNode` when you need to shift pitch without the "chipmunk" or "giant" effect on voices.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
+Part of the [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) monorepo — for more information and so much more.
+
 ## Installation
 
 ```sh

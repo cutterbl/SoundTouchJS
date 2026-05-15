@@ -1,0 +1,51 @@
+{
+  "name": "@soundtouchjs/worklet-base",
+  "version": "0.1.0",
+  "description": "Abstract base processor for SoundTouchJS AudioWorklet packages",
+  "license": "MPL-2.0",
+  "licenseFile": "LICENSE",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./.dist/index.d.ts",
+      "default": "./.dist/index.js"
+    }
+  },
+  "main": "./.dist/index.js",
+  "types": "./.dist/index.d.ts",
+  "files": [
+    ".dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "audio",
+    "WebAudio",
+    "AudioWorklet",
+    "TypeScript",
+    "pitch",
+    "tempo",
+    "soundtouch"
+  ],
+  "author": "Steve 'Cutter' Blades",
+  "contributors": [
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutterbl/SoundTouchJS.git",
+    "directory": "packages/worklet-base"
+  },
+  "bugs": {
+    "url": "https://github.com/cutterbl/SoundTouchJS/issues"
+  },
+  "homepage": "https://github.com/cutterbl/SoundTouchJS",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@soundtouchjs/core": "workspace:*"
+  }
+}

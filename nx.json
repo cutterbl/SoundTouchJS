@@ -132,6 +132,7 @@
     },
     "projects": [
       "@soundtouchjs/core",
+      "@soundtouchjs/worklet-base",
       "@soundtouchjs/audio-worklet",
       "@soundtouchjs/interpolation-strategy-lanczos",
       "@soundtouchjs/interpolation-strategy-linear",

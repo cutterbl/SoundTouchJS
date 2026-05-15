@@ -35,6 +35,9 @@
     },
     {
       "path": "./packages/formant-correction-worklet"
+    },
+    {
+      "path": "./packages/worklet-base"
     }
   ]
 }

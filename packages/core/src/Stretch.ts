@@ -741,7 +741,6 @@ export default class Stretch
 
     this.preCalculateCorrelationReferenceStereo();
 
-    bestOffset = 0;
     bestCorrelation = this.calculateCrossCorrelationStereo(
       0,
       this.refMidBuffer,

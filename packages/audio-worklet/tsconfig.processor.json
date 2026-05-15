@@ -7,6 +7,9 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["src/processor.ts", "src/worklet-globals.d.ts"],
-  "references": [{ "path": "../core/tsconfig.lib.json" }]
+  "include": ["src/processor.ts", "../worklet-base/src/worklet-globals.d.ts"],
+  "references": [
+    { "path": "../core/tsconfig.lib.json" },
+    { "path": "../worklet-base/tsconfig.lib.json" }
+  ]
 }

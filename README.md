@@ -2,6 +2,8 @@
 
 A real-time audio processing library for pitch shifting and playback speed control using the Web Audio API. Converted, expanded, and maintained by [Cutter](https://cutterscrossing.com/), based on the original [SoundTouch](https://www.surina.net/soundtouch/) C++ library by Olli Parviainen.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
 ## Monorepo
 
 This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes ten packages:
@@ -157,15 +159,13 @@ Fork the repo, work in a branch, submit a Pull Request. Commits follow [Conventi
 
 For pull requests, CI also runs `pnpm coverage:summary`, gates on its result, and publishes `.coverage-reports/summary.md` in the PR Checks job summary.
 
-## In case you are interested
-
-The original SoundTouch library was written in C++ by Olli Parviainen. It was first ported to JavaScript by Ryan Berdeen, then further adapted by Jakub Fiala, Adrian Holovaty, and others. This project was converted to ES2015+ and has been expanded and maintained by Steve 'Cutter' Blades.
-
 ## License
 
 MPL-2.0 — see [LICENSE](LICENSE) for details.
 
-[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+## In case you are interested
+
+The original SoundTouch library was written in C++ by Olli Parviainen. It was first ported to JavaScript by Ryan Berdeen, then further adapted by Jakub Fiala, Adrian Holovaty, and others. This project was converted to ES2015+ and has been expanded and maintained by Steve 'Cutter' Blades.
 
 ## Contributors
 
