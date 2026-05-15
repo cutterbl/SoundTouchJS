@@ -1,0 +1,148 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Audio Worklet/Worklet Base" />
+
+# @soundtouchjs/worklet-base
+
+**What is this?**
+
+`@soundtouchjs/worklet-base` provides `SoundTouchProcessorBase` — the abstract base class shared by all SoundTouchJS AudioWorklet processor packages. It centralises the DSP pipeline, runtime-update queue, and sample-buffer management so that `SoundTouchProcessor`, `PhaseVocoderProcessor`, and `FormantCorrectionProcessor` all extend the same core without duplicating code.
+
+**When would I use it directly?**
+
+You do **not** need to install this package to use SoundTouchJS in a web app. Install one of the worklet packages instead:
+
+- [`@soundtouchjs/audio-worklet`](?path=/docs/audio-worklet-soundtouchnode--docs) — standard pitch/rate control
+- [`@soundtouchjs/phase-vocoder-worklet`](?path=/docs/audio-worklet-phase-vocoder-node--docs) — smoother extreme-ratio time-stretching
+- [`@soundtouchjs/formant-correction-worklet`](?path=/docs/audio-worklet-formant-correction-node--docs) — vocal pitch shifting with formant preservation
+
+Install `@soundtouchjs/worklet-base` only if you are building a **custom AudioWorklet processor** on top of the SoundTouch engine.
+
+## Installation
+
+```sh
+npm install @soundtouchjs/worklet-base
+```
+
+## Basic usage
+
+Extend `SoundTouchProcessorBase` inside your processor module and implement the required `onProcessComplete` hook:
+
+```ts
+import {
+  SoundTouchProcessorBase,
+  STANDARD_PARAMETER_DESCRIPTORS,
+} from '@soundtouchjs/worklet-base';
+import type { ProcessCoreResult } from '@soundtouchjs/worklet-base';
+
+class MyProcessor extends SoundTouchProcessorBase {
+  static get parameterDescriptors() {
+    return STANDARD_PARAMETER_DESCRIPTORS;
+  }
+
+  constructor() {
+    super('[MyProcessor]', {});
+  }
+
+  onProcessComplete(result: ProcessCoreResult): void {
+    this.port.postMessage({ type: 'metrics', ...result });
+  }
+}
+
+registerProcessor('my-processor', MyProcessor);
+```
+
+## Optional hooks
+
+Override these methods to customise the per-block DSP loop without reimplementing the pipeline:
+
+<table>
+  <thead>
+    <tr><th>Method</th><th>When to override</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>beforePipeProcess(left, right, frameCount, params)</code></td>
+      <td>Pre-pipe analysis — e.g. LPC coefficient extraction for formant correction. Default is a no-op.</td>
+    </tr>
+    <tr>
+      <td><code>extractSamples(leftOutput, rightOutput, frameCount)</code></td>
+      <td>Full extraction/write-back override — e.g. apply analysis and synthesis filters after the pipe. Default writes both channels and returns RMS/peak metrics.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Runtime messages
+
+Send messages to a running processor via `AudioWorkletNode.port.postMessage`. The base class handles these automatically:
+
+```ts
+// Change interpolation strategy
+node.port.postMessage({ type: 'setInterpolationStrategy', value: 'lanczos' });
+
+// Update strategy parameters
+node.port.postMessage({ type: 'setInterpolationStrategyParams', value: { ... } });
+
+// Update stretch parameters (tempo, pitch, rate)
+node.port.postMessage({ type: 'setStretchParameters', value: { ... } });
+```
+
+## API reference
+
+### `SoundTouchProcessorBase`
+
+Abstract class extending `AudioWorkletProcessor`.
+
+#### Constructor
+
+```ts
+new SoundTouchProcessorBase(processorLabel: string, pipeOptions: SoundTouchOptions)
+```
+
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>processorLabel</code></td><td>Label used in log/warning messages, e.g. <code>'[MyProcessor]'</code>.</td></tr>
+    <tr><td><code>pipeOptions</code></td><td>Options forwarded to <code>SoundTouch</code> — interpolation strategy, stretch parameters, etc.</td></tr>
+  </tbody>
+</table>
+
+#### Abstract method
+
+```ts
+abstract onProcessComplete(result: ProcessCoreResult): void
+```
+
+Called at the end of every successfully processed block. `result` contains `{ outputRms, outputPeak }` unless `extractSamples` is overridden to return different values.
+
+#### Static method
+
+```ts
+static resolveStrategy(
+  id: RateTransposerInterpolationStrategy | undefined,
+  label: string,
+): RateTransposerInterpolationStrategy | undefined
+```
+
+Validates a strategy ID against the interpolation registry. Falls back to `'lanczos'` and logs a warning for unknown IDs.
+
+### `STANDARD_PARAMETER_DESCRIPTORS`
+
+Array of `AudioParamDescriptor` objects for the three standard k-rate parameters: `pitch`, `pitchSemitones`, and `playbackRate`. Spread or return this directly from your `parameterDescriptors` getter.
+
+### Message types
+
+<table>
+  <thead>
+    <tr><th>Export</th><th>Shape</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>SetInterpolationStrategyMessage</code></td><td><code>{'{ type: \'setInterpolationStrategy\', value: RateTransposerInterpolationStrategy }'}</code></td></tr>
+    <tr><td><code>SetInterpolationStrategyParamsMessage</code></td><td><code>{'{ type: \'setInterpolationStrategyParams\', value: InterpolationStrategyParams }'}</code></td></tr>
+    <tr><td><code>SetStretchParametersMessage</code></td><td><code>{'{ type: \'setStretchParameters\', value: StretchParameters }'}</code></td></tr>
+    <tr><td><code>ProcessorMessage</code></td><td>Union of the three message types above.</td></tr>
+    <tr><td><code>ProcessCoreResult</code></td><td><code>{'{ outputRms: number, outputPeak: number }'}</code></td></tr>
+  </tbody>
+</table>
