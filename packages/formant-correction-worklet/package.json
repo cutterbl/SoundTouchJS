@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/formant-correction-worklet",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "AudioWorklet pitch-shifting with LPC-based formant preservation",
   "license": "MPL-2.0",
   "licenseFile": "LICENSE",
