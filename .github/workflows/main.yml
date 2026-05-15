@@ -5,6 +5,12 @@ on:
     branches: [master]
   push:
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual release'
 
 jobs:
   validation:
@@ -104,7 +110,7 @@ jobs:
         run: exit 1
 
   release:
-    if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore(release)')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore(release)'))
     runs-on: ubuntu-latest
 
     permissions:
