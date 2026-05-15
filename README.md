@@ -6,7 +6,7 @@ A real-time audio processing library for pitch shifting and playback speed contr
 
 ## Monorepo
 
-This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes ten packages:
+This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnpm.io/) workspaces. It publishes eleven packages:
 
 | Package                                                                                               | npm                                                         | Description                                                              |
 | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -15,6 +15,7 @@ This project is an [Nx](https://nx.dev) monorepo managed with [pnpm](https://pnp
 | [`@soundtouchjs/stretch-phase-vocoder`](packages/stretch-phase-vocoder/README.md)                     | `npm install @soundtouchjs/stretch-phase-vocoder`           | Phase vocoder time-stretch algorithm — implements `StretchPipe`, usable standalone or as a `SoundTouch` stretch stage |
 | [`@soundtouchjs/phase-vocoder-worklet`](packages/phase-vocoder-worklet/README.md)                     | `npm install @soundtouchjs/phase-vocoder-worklet`           | AudioWorklet implementation using the phase vocoder for smoother extreme-ratio time-stretching |
 | [`@soundtouchjs/formant-correction-worklet`](packages/formant-correction-worklet/README.md)           | `npm install @soundtouchjs/formant-correction-worklet`      | AudioWorklet implementation with LPC-based formant preservation for natural-sounding vocal pitch shifts |
+| [`@soundtouchjs/worklet-base`](packages/worklet-base/README.md)                                       | `npm install @soundtouchjs/worklet-base`                    | Abstract base class for building custom AudioWorklet processors on top of the SoundTouch engine |
 | [`@soundtouchjs/interpolation-strategy-lanczos`](packages/interpolation-strategy-lanczos/README.md)   | `npm install @soundtouchjs/interpolation-strategy-lanczos`  | Lanczos interpolation strategy plugin (default strategy id: `lanczos`)  |
 | [`@soundtouchjs/interpolation-strategy-linear`](packages/interpolation-strategy-linear/README.md)     | `npm install @soundtouchjs/interpolation-strategy-linear`   | Linear interpolation strategy plugin (strategy id: `linear`)             |
 | [`@soundtouchjs/interpolation-strategy-hann`](packages/interpolation-strategy-hann/README.md)         | `npm install @soundtouchjs/interpolation-strategy-hann`     | Hann interpolation strategy plugin (strategy id: `hann`)                |
@@ -37,6 +38,7 @@ If you are new to Web Audio, start with the demo guide: [apps/demo/README.md](ap
 - Phase vocoder (time-stretch algorithm): [packages/stretch-phase-vocoder/README.md](packages/stretch-phase-vocoder/README.md)
 - Phase vocoder AudioWorklet: [packages/phase-vocoder-worklet/README.md](packages/phase-vocoder-worklet/README.md)
 - Formant correction AudioWorklet: [packages/formant-correction-worklet/README.md](packages/formant-correction-worklet/README.md)
+- Custom worklet processor base class: [packages/worklet-base/README.md](packages/worklet-base/README.md)
 - Beginner Web Audio + demo architecture guide: [https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs](https://cutterscrossing.com/SoundTouchJS/?path=/docs/getting-started--docs)
 
 ## Quick start
