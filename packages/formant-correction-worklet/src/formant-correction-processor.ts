@@ -153,7 +153,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
         resolveInterpolationStrategy(interpolationStrategy);
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.info(
         '[FormantCorrectionProcessor] Unknown interpolation strategy id:',
         interpolationStrategy,
@@ -211,7 +210,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setInterpolationStrategy(this.pendingInterpolationStrategy);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[FormantCorrectionProcessor] Failed to switch interpolation strategy:',
           this.pendingInterpolationStrategy,
@@ -226,7 +224,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
           this.pendingInterpolationStrategyParams,
         );
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[FormantCorrectionProcessor] Failed to update interpolation strategy params.',
         );
@@ -238,7 +235,6 @@ class FormantCorrectionProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setStretchParameters(this.pendingStretchParameters);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[FormantCorrectionProcessor] Failed to update stretch parameters.',
         );

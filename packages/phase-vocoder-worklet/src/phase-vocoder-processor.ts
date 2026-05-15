@@ -160,7 +160,6 @@ class PhaseVocoderProcessor extends AudioWorkletProcessor {
         resolveInterpolationStrategy(interpolationStrategy);
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.info(
         '[PhaseVocoderProcessor] Unknown interpolation strategy id:',
         interpolationStrategy,
@@ -212,7 +211,6 @@ class PhaseVocoderProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setInterpolationStrategy(this.pendingInterpolationStrategy);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[PhaseVocoderProcessor] Failed to switch interpolation strategy:',
           this.pendingInterpolationStrategy,
@@ -227,7 +225,6 @@ class PhaseVocoderProcessor extends AudioWorkletProcessor {
           this.pendingInterpolationStrategyParams,
         );
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[PhaseVocoderProcessor] Failed to update interpolation strategy params.',
         );
@@ -239,7 +236,6 @@ class PhaseVocoderProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setStretchParameters(this.pendingStretchParameters);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[PhaseVocoderProcessor] Failed to update stretch parameters.',
         );

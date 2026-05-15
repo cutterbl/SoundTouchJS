@@ -36,6 +36,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
+    "@eslint/js": "^10.0.1",
     "@nx/eslint-plugin": "22.7.2",
     "@nx/js": "22.7.2",
     "@nx/storybook": "22.7.2",
@@ -49,7 +50,8 @@
     "@typescript-eslint/parser": "8.59.3",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.6",
-    "eslint": "^8.57.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-storybook": "10.4.0",
     "husky": "^9.1.7",
     "nx": "22.7.2",
     "prettier": "^3.8.3",
@@ -57,9 +59,9 @@
     "react-dom": "^19.2.0",
     "storybook": "^10.4.0",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3",
     "vite": "^8.0.13",
-    "vitest": "^4.1.6",
-    "eslint-plugin-storybook": "10.4.0"
+    "vitest": "^4.1.6"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

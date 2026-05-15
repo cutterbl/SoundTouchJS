@@ -146,7 +146,6 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       }
     } catch (err) {
       // Fallback to lanczos and log info
-      // eslint-disable-next-line no-console
       console.info(
         '[SoundTouchProcessor] Unknown interpolation strategy id:',
         interpolationStrategy,
@@ -193,7 +192,6 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setInterpolationStrategy(this.pendingInterpolationStrategy);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[SoundTouchProcessor] Failed to switch interpolation strategy:',
           this.pendingInterpolationStrategy,
@@ -208,7 +206,6 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
           this.pendingInterpolationStrategyParams,
         );
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[SoundTouchProcessor] Failed to update interpolation strategy params.',
         );
@@ -220,7 +217,6 @@ class SoundTouchProcessor extends AudioWorkletProcessor {
       try {
         this._pipe.setStretchParameters(this.pendingStretchParameters);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.info(
           '[SoundTouchProcessor] Failed to update stretch parameters.',
         );
