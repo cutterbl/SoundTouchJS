@@ -2,6 +2,10 @@
 
 An [AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet) implementation of the SoundTouchJS audio processing library. Provides real-time pitch shifting, tempo adjustment, and rate transposition on the audio rendering thread — replacing the deprecated `ScriptProcessorNode` approach.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
+Part of the [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) monorepo — for more information and so much more.
+
 ## Installation
 
 ```sh
@@ -352,7 +356,18 @@ const stNode = new SoundTouchNode({
 });
 ```
 
-## What's new in v0.4
+## What's changed
+
+Latest additions since the v0.4 rewrite:
+
+- **Offline rendering**: `processOffline()` renders an entire `AudioBuffer` through SoundTouch without a live audio device.
+- **Processor observability**: `SoundTouchNode.metrics` getter and `metrics` CustomEvent expose per-block health snapshots (buffered frames, underrun count, RMS, peak).
+- **Runtime WSOLA tuning**: `setStretchParameters()` queues updates to sequencing, seek-window, overlap, and quick-seek settings at render-block boundaries.
+- **Runtime interpolation control**: `setInterpolationStrategy()` and `setInterpolationStrategyParams()` switch strategy mid-playback without a constructor change.
+- **Worklet-base architecture**: `SoundTouchProcessor` now extends `SoundTouchProcessorBase` from `@soundtouchjs/worklet-base`, sharing the DSP pipeline with other worklet packages.
+- **Licensing**: Moved from LGPL to MPL-2.0.
+
+### v0.4 (initial rewrite)
 
 - Complete rewrite in TypeScript (strict mode, full type exports)
 - ESM only, targeting ES2024

@@ -2,6 +2,10 @@
 
 Blackman interpolation strategy plugin for SoundTouchJS.
 
+[I accept cash](https://paypal.me/cutterbl?locale.x=en_US) if you like what's been done.
+
+Part of the [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) monorepo — for more information and so much more.
+
 ## Usage
 
 ```ts

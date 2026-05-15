@@ -33,11 +33,7 @@
   ],
   "author": "Steve 'Cutter' Blades",
   "contributors": [
-    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)",
-    "Olli Parviainen <oparviai@iki.fi> (https://www.surina.net/soundtouch/)",
-    "Ryan Berdeen <ryan@ryanberdeen.com> (http://ryanberdeen.com/)",
-    "Jakub Fiala <jakub@fiala.space> (http://fiala.space/)",
-    "Adria Holovaty (http://www.holovaty.com/)"
+    "Steve 'Cutter' Blades <web.admin@cutterscrossing.com> (https://cutterscrossing.com/)"
   ],
   "repository": {
     "type": "git",

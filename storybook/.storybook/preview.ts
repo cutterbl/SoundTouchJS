@@ -6,6 +6,7 @@ const preview: Preview = {
       storySort: (left, right) => {
         const order = [
           'Introduction',
+          'Credits',
           'Getting Started',
           'Playground',
           'Audio Worklet',

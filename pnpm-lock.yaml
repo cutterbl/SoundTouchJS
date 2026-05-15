@@ -72,10 +72,10 @@ importers:
         specifier: ^3.8.3
         version: 3.8.3
       react:
-        specifier: ^19.2.0
+        specifier: ^19.2.6
         version: 19.2.6
       react-dom:
-        specifier: ^19.2.0
+        specifier: ^19.2.6
         version: 19.2.6(react@19.2.6)
       storybook:
         specifier: ^10.4.0
