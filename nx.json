@@ -126,7 +126,6 @@
       "tagMessage": "Release {version}"
     },
     "version": {
-      "conventionalCommits": true,
       "preVersionCommand": "pnpm dlx nx run-many -t build",
       "currentVersionResolver": "disk",
       "fallbackCurrentVersionResolver": "disk"
