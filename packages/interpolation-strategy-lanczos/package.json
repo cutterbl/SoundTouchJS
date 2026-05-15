@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/interpolation-strategy-lanczos",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Lanczos interpolation strategy for SoundTouchJS and audio-worklet.",
   "type": "module",
   "main": "./.dist/index.js",

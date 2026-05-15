@@ -1,3 +1,13 @@
+## 2.0.3 (2026-05-15)
+
+### Bug Fixes
+
+- **release:** Use flat projectsRelationship, remove per-package GitHub releases ([#77](https://github.com/cutterbl/SoundTouchJS/pull/77))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 2.0.2 (2026-05-15)
 
 ### Bug Fixes

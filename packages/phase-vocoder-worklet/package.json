@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/phase-vocoder-worklet",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "AudioWorklet integration for the SoundTouchJS phase vocoder time-stretch algorithm",
   "license": "MPL-2.0",
   "licenseFile": "LICENSE",

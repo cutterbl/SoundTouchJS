@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/worklet-base",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Abstract base processor for SoundTouchJS AudioWorklet packages",
   "license": "MPL-2.0",
   "licenseFile": "LICENSE",
