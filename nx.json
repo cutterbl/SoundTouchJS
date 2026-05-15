@@ -130,6 +130,7 @@
       "preVersionCommand": "pnpm dlx nx run-many -t build",
       "fallbackCurrentVersionResolver": "disk"
     },
+    "releaseTagPattern": "v{version}",
     "groups": {
       "packages": {
         "projects": [
