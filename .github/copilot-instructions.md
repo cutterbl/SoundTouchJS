@@ -25,6 +25,7 @@
 
 ## Git Commit Requests
 
+- **Never commit directly to `master`.** All commits must go on a branch. If not already on a branch, create one before staging or committing anything.
 - When the user asks to "stage and commit", stage all current changes by default unless the user explicitly scopes which changes to include, and create a commit using Conventional Commits format.
 - The commit subject must be sentence-case and match repository conventions (for example: `feat(core): Add pitch bend support` or `chore: Update lint configuration`).
 - Do not use vague commit subjects; choose the type/scope/subject based on the actual staged changes.
