@@ -72,6 +72,10 @@ export function levinsonDurbin(
     for (let j = 0; j < m - 1; j++) {
       num -= a[j] * r[m - 1 - j];
     }
+    // E is checked at the bottom of every iteration (line below); this guard
+    // is retained as a defensive pre-check for division-by-zero but is
+    // unreachable in practice since any E < 1e-15 already broke out below.
+    /* v8 ignore next */
     if (Math.abs(E) < 1e-15) break;
     // Clamp to |k| < 1 to guarantee a stable all-pole synthesis filter.
     // Unclamped values ≥ 1 occur on transients or silence edges and cause

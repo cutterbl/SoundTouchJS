@@ -88,6 +88,17 @@ beforeEach(() => {
 });
 
 describe('formant-correction-processor', () => {
+  it('includes formantStrength in parameterDescriptors', async () => {
+    await import('./formant-correction-processor.js');
+    const descriptors = (registeredCtor as unknown as { parameterDescriptors: Array<{ name: string }> }).parameterDescriptors;
+    expect(descriptors.some(d => d.name === 'formantStrength')).toBe(true);
+  });
+
+  it('constructs with default sampleBufferType when none is provided', async () => {
+    await import('./formant-correction-processor.js');
+    expect(() => new registeredCtor!({})).not.toThrow();
+  });
+
   it('falls back to lanczos for unknown interpolation strategy', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
     await import('./formant-correction-processor.js');
@@ -303,6 +314,74 @@ describe('formant-correction-processor', () => {
           baseParams,
         ),
       ).not.toThrow();
+    });
+
+    it('clamps non-finite extracted samples to 0 when formantStrength is 0', async () => {
+      await import('./formant-correction-processor.js');
+      extract.mockImplementation((target: Float32Array) => {
+        target[0] = Infinity;
+        target[1] = -Infinity;
+      });
+      outputFrameCount = 1;
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } });
+      const outL = new Float32Array(1);
+      const outR = new Float32Array(1);
+
+      instance.process(
+        [[new Float32Array([0])]],
+        [[outL, outR]],
+        { ...baseParams, formantStrength: new Float32Array([0]) },
+      );
+
+      expect(outL[0]).toBe(0);
+      expect(outR[0]).toBe(0);
+    });
+
+    it('clamps non-finite blended samples to 0 when formantStrength is 0.5 and raw samples are Infinity', async () => {
+      await import('./formant-correction-processor.js');
+      extract.mockImplementation((target: Float32Array, _start: number, frames: number) => {
+        for (let i = 0; i < frames; i++) {
+          target[i * 2] = Infinity;
+          target[i * 2 + 1] = Infinity;
+        }
+      });
+      outputFrameCount = 1;
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } });
+      const outL = new Float32Array(1);
+      const outR = new Float32Array(1);
+
+      instance.process(
+        [[new Float32Array([0.5])]],
+        [[outL, outR]],
+        { ...baseParams, formantStrength: new Float32Array([0.5]) },
+      );
+
+      expect(Number.isFinite(outL[0])).toBe(true);
+      expect(Number.isFinite(outR[0])).toBe(true);
+    });
+
+    it('treats missing formantStrength parameter as 0', async () => {
+      await import('./formant-correction-processor.js');
+      extract.mockImplementation((target: Float32Array) => {
+        target[0] = 0.3;
+        target[1] = 0.4;
+      });
+      outputFrameCount = 1;
+
+      const instance = new registeredCtor!({ processorOptions: { sampleBufferType: 'circular' } });
+      const outL = new Float32Array(1);
+      const outR = new Float32Array(1);
+
+      instance.process(
+        [[new Float32Array([0.5])]],
+        [[outL, outR]],
+        { ...baseParams, formantStrength: new Float32Array([]) },
+      );
+
+      expect(outL[0]).toBeCloseTo(0.3, 5);
+      expect(outR[0]).toBeCloseTo(0.4, 5);
     });
   });
 
