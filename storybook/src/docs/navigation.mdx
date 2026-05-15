@@ -40,6 +40,7 @@ A buffer is just a chunk of audio data—think of it as a container holding a pi
 - **@soundtouchjs/stretch-phase-vocoder**: An alternative time-stretch algorithm (phase vocoder) that produces smoother results at extreme playback ratios. Can be used as a drop-in stretch stage inside `SoundTouch`, or on its own.
 - **@soundtouchjs/phase-vocoder-worklet**: An AudioWorklet node backed by the phase vocoder. Use it instead of `SoundTouchNode` when you need very slow or very fast playback without artifacts.
 - **@soundtouchjs/formant-correction-worklet**: An AudioWorklet node that pitch-shifts voices while keeping the speaker's natural timbre. Without this, shifting pitch up makes voices sound like a chipmunk; shifting down makes them sound like a giant.
+- **@soundtouchjs/worklet-base**: Abstract base class shared by all SoundTouchJS worklet processors. Use this only if you are building a custom AudioWorklet processor on top of the SoundTouch engine.
 - **Interpolation plugins**: Five swappable modules (`lanczos`, `linear`, `hann`, `blackman`, `kaiser`) for tuning the quality and CPU cost of sample-rate conversion.
 - **Demo app**: Try everything live in your browser ([apps/demo/](https://github.com/cutterbl/SoundTouchJS/tree/main/apps/demo)).
 
@@ -52,6 +53,7 @@ If you’re new to audio, start with the **Getting Started** guide. If you’re 
 - Use **@soundtouchjs/audio-worklet** for modern, real-time browser audio. This is the default for most apps.
 - Use **@soundtouchjs/phase-vocoder-worklet** instead of audio-worklet when playback rate is extreme (< 0.5× or > 2×) and WSOLA artifacts are audible. If "phasiness" is acceptable, this gives smoother results.
 - Use **@soundtouchjs/formant-correction-worklet** when pitch-shifting voices or speech. Without formant correction, large pitch shifts make voices sound like a chipmunk (up) or giant (down).
+- Use **@soundtouchjs/worklet-base** only if you are building a **custom AudioWorklet processor** that needs the SoundTouch DSP pipeline. All three worklet packages above extend it internally.
 - Use **@soundtouchjs/core** for custom DSP, offline processing, or non-browser environments.
 - Use interpolation plugins for quality/latency tradeoffs or to implement your own strategy.
 

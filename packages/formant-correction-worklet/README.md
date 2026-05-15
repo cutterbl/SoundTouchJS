@@ -190,6 +190,10 @@ import {
 | Best use case | Instruments, music | Vocals, speech |
 | `formantStrength = 0` mode | — | Identical to `SoundTouchNode` |
 
+## Architecture
+
+`FormantCorrectionProcessor` extends `SoundTouchProcessorBase` from `@soundtouchjs/worklet-base`, sharing the DSP pipeline, runtime-update queue, and `STANDARD_PARAMETER_DESCRIPTORS` with the other SoundTouchJS worklet packages. The formant correction logic lives in `beforePipeProcess` (LPC analysis) and `extractSamples` (analysis/synthesis filter application + `formantStrength` blend) — both hooks defined by the base class contract.
+
 ## License
 
 MPL-2.0 — see [LICENSE](../../LICENSE) for details.

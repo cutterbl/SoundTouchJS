@@ -171,6 +171,10 @@ node.addEventListener('metrics', (e) => {
 | Startup latency | Lower | `fftSize` samples |
 | Artifacts | Clicks / repeats | "Phasiness" / smearing |
 
+## Architecture
+
+`PhaseVocoderProcessor` extends `SoundTouchProcessorBase` from `@soundtouchjs/worklet-base`, sharing the DSP pipeline, runtime-update queue, and `STANDARD_PARAMETER_DESCRIPTORS` with the other SoundTouchJS worklet packages. Override `beforePipeProcess` and `extractSamples` from the base if you need to customise the processing hooks.
+
 ## License
 
 MPL-2.0 — see [LICENSE](../../LICENSE) for details.
