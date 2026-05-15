@@ -1,3 +1,13 @@
+## 2.0.1 (2026-05-15)
+
+### Bug Fixes
+
+- **release:** Add repository field to interpolation strategy packages ([#68](https://github.com/cutterbl/SoundTouchJS/pull/68))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 # 2.0.0 (2026-05-14)
 
 ### 🚀 Features

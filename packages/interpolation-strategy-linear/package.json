@@ -1,6 +1,6 @@
 {
   "name": "@soundtouchjs/interpolation-strategy-linear",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Linear interpolation strategy for SoundTouchJS and audio-worklet.",
   "type": "module",
   "main": "./.dist/index.js",

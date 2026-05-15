@@ -1,3 +1,7 @@
+## 2.0.1 (2026-05-15)
+
+This was a version bump only for @soundtouchjs/audio-worklet to align it with other projects, there were no code changes.
+
 # 2.0.0 (2026-05-14)
 
 ### 🚀 Features
