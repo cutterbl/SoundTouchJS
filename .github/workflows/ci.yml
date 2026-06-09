@@ -47,7 +47,15 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: pnpm
+
       - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+          run_install: false
 
       - run: pnpm install --frozen-lockfile
         env:
