@@ -1,3 +1,13 @@
+## 2.0.4 (2026-06-09)
+
+### Bug Fixes
+
+- Dependency updates ([#81](https://github.com/cutterbl/SoundTouchJS/pull/81))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 2.0.3 (2026-05-15)
 
 ### Bug Fixes
