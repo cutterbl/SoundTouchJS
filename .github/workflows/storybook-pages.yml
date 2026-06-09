@@ -29,15 +29,15 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-          cache: pnpm
-
       - uses: pnpm/action-setup@v6
         with:
           version: 10.33.0
           run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: pnpm
 
       - run: pnpm install --frozen-lockfile
         env:

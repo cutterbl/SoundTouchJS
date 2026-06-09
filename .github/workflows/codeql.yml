@@ -31,11 +31,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-          cache: pnpm
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -45,6 +40,11 @@ jobs:
         with:
           version: 10.33.0
           run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: pnpm
 
       - run: pnpm install --frozen-lockfile
         env:
