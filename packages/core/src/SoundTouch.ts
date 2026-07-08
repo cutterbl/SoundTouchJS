@@ -144,6 +144,7 @@ export default class SoundTouch {
       });
     } else {
       this.stretch = new Stretch({
+        sampleRate: this._sampleRate,
         createBuffers: false,
         inputBufferAdapterFactory:
           this._sampleBufferType === 'circular'

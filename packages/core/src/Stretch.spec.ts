@@ -118,6 +118,14 @@ describe('Stretch', () => {
       expect(s.tempo).toBe(1);
     });
 
+    it('accepts an explicit sample rate', () => {
+      const defaultRate = new Stretch({ createBuffers: true });
+      const highRate = new Stretch({ createBuffers: true, sampleRate: 48000 });
+
+      expect(highRate.overlapLength).toBeGreaterThan(defaultRate.overlapLength);
+      expect(highRate.sampleReq).toBeGreaterThan(defaultRate.sampleReq);
+    });
+
     it('initializes overlap length from default parameters', () => {
       const s = new Stretch({ createBuffers: true });
       expect(s.overlapLength).toBeGreaterThan(0);

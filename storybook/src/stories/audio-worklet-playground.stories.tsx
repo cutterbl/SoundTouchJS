@@ -88,13 +88,18 @@ export const PlaybackRate: Story = {
       codeSample={`const context = new AudioContext();
 await SoundTouchNode.register(context, processorModuleUrl);
 const soundTouchNode = new SoundTouchNode({ context });
+const source = context.createBufferSource();
+
+source.connect(soundTouchNode);
 
 const rateSlider = document.querySelector<HTMLInputElement>('#rate');
 rateSlider?.addEventListener('input', (event) => {
   const input = event.currentTarget as HTMLInputElement;
-  soundTouchNode.playbackRate.value = Number(input.value);
+  const rate = Number(input.value);
+  source.playbackRate.value = rate;
+  soundTouchNode.playbackRate.value = rate;
 });`}
-      explanation="Playback rate changes overall transport speed. Use <1 for slow practice mode, >1 for fast review mode. For speech, small increments (1.0–1.5) usually sound best."
+      explanation="Playback rate changes overall transport speed. Keep source playbackRate and SoundTouchNode playbackRate in sync: source controls transport speed, while SoundTouch compensates pitch. Use <1 for slow practice mode and >1 for fast review mode."
     />
   ),
 };
@@ -166,11 +171,16 @@ const soundTouchNode = new SoundTouchNode({
   context,
   interpolationStrategy: 'hann', // plugin strategies also supported
 });
+const source = context.createBufferSource();
+
+source.connect(soundTouchNode);
 
 const rateSlider = document.querySelector<HTMLInputElement>('#rate');
 rateSlider?.addEventListener('input', (event) => {
   const input = event.currentTarget as HTMLInputElement;
-  soundTouchNode.playbackRate.value = Number(input.value);
+  const rate = Number(input.value);
+  source.playbackRate.value = rate;
+  soundTouchNode.playbackRate.value = rate;
 });`}
       explanation="Lanczos is the default strategy. Linear is typically fastest, Hann is a balanced general-purpose option, Blackman improves stopband rejection, and Kaiser is tunable with zeroCrossings/beta style controls in plugin strategies."
     />

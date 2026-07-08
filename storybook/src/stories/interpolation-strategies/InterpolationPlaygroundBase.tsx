@@ -18,6 +18,8 @@ const TRACKS = [
   { id: 'retrosoul', label: 'Bensound Retro Soul', url: retrosoulTrack },
 ];
 
+const PLAYBACK_RATE_VALUES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
 type RangeParamDef = { type?: 'range'; min: number; max: number; step: number; default: number };
 type BooleanParamDef = { type: 'boolean'; default: boolean };
 type SelectParamDef = { type: 'select'; options: string[]; default: string };
@@ -203,6 +205,7 @@ export const InterpolationPlaygroundBase = ({
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.loop = loopedRef.current;
+    source.playbackRate.value = playbackRateRef.current;
     source.connect(stNode);
     sourceNodeRef.current = source;
     sourceOffsetRef.current = offset;
@@ -299,6 +302,7 @@ export const InterpolationPlaygroundBase = ({
   useEffect(() => {
     playbackRateRef.current = playbackRate;
     if (soundTouchNodeRef.current) soundTouchNodeRef.current.playbackRate.value = playbackRate;
+    if (sourceNodeRef.current) sourceNodeRef.current.playbackRate.value = playbackRate;
   }, [playbackRate]);
 
   useEffect(() => {
@@ -391,17 +395,19 @@ export const InterpolationPlaygroundBase = ({
         <label style={{ display: 'block' }}>
           Playback rate: {playbackRate.toFixed(2)}
           <input
-            type="range" min={0.1} max={4} step={0.01} value={playbackRate}
+            type="range"
+            min={PLAYBACK_RATE_VALUES[0]}
+            max={PLAYBACK_RATE_VALUES[PLAYBACK_RATE_VALUES.length - 1]}
+            step={0.25}
+            value={playbackRate}
             list="rate-ticks"
             onChange={(e) => setPlaybackRate(Number(e.target.value))}
             style={{ display: 'block', width: '100%' }}
           />
           <datalist id="rate-ticks">
-            <option value={0.1} label="0.1" />
-            <option value={0.5} label="0.5" />
-            <option value={1} label="1" />
-            <option value={2} label="2" />
-            <option value={4} label="4" />
+            {PLAYBACK_RATE_VALUES.map((value) => (
+              <option key={`rate-${value}`} value={value} label={String(value)} />
+            ))}
           </datalist>
         </label>
 

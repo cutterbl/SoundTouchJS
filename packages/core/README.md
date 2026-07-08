@@ -144,6 +144,17 @@ st.setStretchParameters({ sequenceMs: 0 });             // back to auto
 
 `Stretch` also exposes individual `overlapMs` (getter/setter) and `quickSeek` (getter/setter) properties.
 
+If you use `Stretch` directly, pass the source sample rate in the constructor so its initial overlap and seek windows match the material you are processing:
+
+```ts
+import { Stretch } from '@soundtouchjs/core';
+
+const stretch = new Stretch({
+  createBuffers: true,
+  sampleRate: audioBuffer.sampleRate,
+});
+```
+
 #### Custom stretch stage via `stretchFactory`
 
 `SoundTouchOptions.stretchFactory` lets you replace the built-in WSOLA `Stretch` stage with any `StretchPipe`-compatible implementation:
@@ -158,7 +169,7 @@ const myFactory: StretchFactory = (sampleRate, opts) =>
 const st = new SoundTouch({ stretchFactory: myFactory });
 ```
 
-The factory receives the sample rate and a `StretchFactoryOptions` object containing `sampleBufferFactory` and `sampleBufferType`. `SoundTouch` calls `setParameters` on the returned instance after construction.
+The factory receives the sample rate and a `StretchFactoryOptions` object containing `sampleBufferFactory` and `sampleBufferType`. `SoundTouch` calls `setParameters` on the returned instance after construction, and the built-in `Stretch` now also receives that sample rate in its constructor.
 
 ## Constructor API (breaking)
 

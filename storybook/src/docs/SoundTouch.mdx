@@ -91,4 +91,6 @@ const st = new SoundTouch({ stretchFactory: myFactory });
 
 The factory receives the sample rate and a `StretchFactoryOptions` object containing `sampleBufferFactory` and `sampleBufferType`. `SoundTouch` calls `setParameters(sampleRate, 0, 0, 0)` on the returned instance after construction.
 
+When `stretchFactory` is omitted, `SoundTouch` constructs the built-in `Stretch` with that same sample rate up front.
+
 > **Note:** `tempo` and `rate` are internal pipeline values derived from `virtualPitch` — they are not part of the public API. For browser playback, use [`SoundTouchNode`](../audio-worklet/sound-touch-node), which manages the pipeline internally.

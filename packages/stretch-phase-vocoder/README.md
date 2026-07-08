@@ -121,8 +121,11 @@ import { fft, ifft, makeHannWindow } from '@soundtouchjs/stretch-phase-vocoder';
 
 | Option | Default | Description |
 |--------|---------|-------------|
+| `sampleRate` | ignored | Accepted for constructor/factory compatibility with `Stretch`; does not affect phase-vocoder processing |
 | `fftSize` | 2048 | FFT frame size — larger gives better frequency resolution but higher latency (`fftSize` samples) |
 | `overlapFactor` | 4 | Overlap factor — `4` = 75 % overlap (good quality); `8` = 87.5 % overlap (smoother, 2× cost) |
+
+When created through `createPhaseVocoderFactory()`, the factory forwards SoundTouch's processing sample rate into the constructor for compatibility with the built-in `Stretch` contract, but the phase vocoder intentionally ignores that value.
 
 ## License
 

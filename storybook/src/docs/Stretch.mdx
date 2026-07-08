@@ -24,11 +24,14 @@ import { Stretch } from '@soundtouchjs/core';
 
 ```ts
 new Stretch({
+  sampleRate?: number,
   createBuffers?: boolean,
   inputBufferAdapterFactory?: () => StretchReadBufferAdapter,
   sampleBufferFactory?: () => SampleBuffer,
 })
 ```
+
+`sampleRate` seeds the internal WSOLA window sizes. If you already know the source rate, pass it here so the initial overlap and seek windows are calculated for the correct audio context from construction time.
 
 ## Public API
 
@@ -54,7 +57,10 @@ Apply a partial set of WSOLA timing parameters without replacing all values at o
 import { Stretch } from '@soundtouchjs/core';
 import type { StretchParameters } from '@soundtouchjs/core';
 
-const stretch = new Stretch({ createBuffers: true });
+const stretch = new Stretch({
+  createBuffers: true,
+  sampleRate: audioBuffer.sampleRate,
+});
 
 stretch.setStretchParameters({ overlapMs: 12 });          // overlap only
 stretch.setStretchParameters({ quickSeek: false });        // exhaustive search

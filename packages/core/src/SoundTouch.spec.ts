@@ -93,6 +93,12 @@ describe('SoundTouch', () => {
       );
     });
 
+    it('passes the explicit sample rate into the default Stretch constructor', () => {
+      const st = new SoundTouch({ sampleRate: 48000 });
+
+      expect((st.stretch as Stretch).overlapLength).toBe(384);
+    });
+
     it('accepts interpolationStrategy option', () => {
       const st = new SoundTouch({ interpolationStrategy: 'lanczos' });
       expect(st.transposer).toBeInstanceOf(RateTransposer);
