@@ -1,3 +1,13 @@
+## 2.1.0 (2026-07-08)
+
+### Features
+
+- Add stretch sample-rate constructor support and align Storybook playback-rate controls ([#83](https://github.com/cutterbl/SoundTouchJS/pull/83))
+
+### ❤️ Thank You
+
+- Steve 'Cutter' Blades
+
 ## 2.0.4 (2026-06-09)
 
 ### Bug Fixes
