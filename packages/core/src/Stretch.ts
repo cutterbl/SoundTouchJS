@@ -130,6 +130,11 @@ export interface StretchParameters {
 }
 
 export interface StretchConstructorOptions {
+  /** Initial processing sample rate in Hz.
+   *
+   * @defaultValue 44100
+   */
+  sampleRate?: number;
   /** Whether to allocate internal input/output buffers. */
   createBuffers?: boolean;
   /** Factory for creating stretch input adapters. */
@@ -426,6 +431,7 @@ export default class Stretch
    * @param options Constructor options.
    */
   constructor({
+    sampleRate = 44100,
     createBuffers = false,
     inputBufferAdapterFactory = createFifoStretchInputBufferAdapter,
     sampleBufferFactory = () => new FifoSampleBuffer(),
@@ -452,7 +458,7 @@ export default class Stretch
 
     this._tempo = 1;
     this.setParameters(
-      44100,
+      sampleRate,
       DEFAULT_SEQUENCE_MS,
       DEFAULT_SEEKWINDOW_MS,
       DEFAULT_OVERLAP_MS,

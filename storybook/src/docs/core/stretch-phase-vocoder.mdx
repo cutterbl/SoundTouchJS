@@ -49,6 +49,7 @@ const st = new SoundTouch({
 
 ```ts
 new PhaseVocoder({
+  sampleRate?: number,                    // accepted for Stretch compatibility; ignored
   fftSize?: 512 | 1024 | 2048 | 4096,  // default: 2048
   overlapFactor?: 2 | 4 | 8,           // default: 4
 })
@@ -59,10 +60,13 @@ new PhaseVocoder({
     <tr><th>Option</th><th>Default</th><th>Description</th></tr>
   </thead>
   <tbody>
+    <tr><td><code>sampleRate</code></td><td>ignored</td><td>Accepted for constructor/factory compatibility with <code>Stretch</code>; does not affect phase-vocoder processing</td></tr>
     <tr><td><code>fftSize</code></td><td>2048</td><td>FFT frame size; larger = better frequency resolution, higher startup latency</td></tr>
     <tr><td><code>overlapFactor</code></td><td>4</td><td>Overlap factor (75% overlap); higher = smoother at the cost of more FFT calls</td></tr>
   </tbody>
 </table>
+
+When used through <code>createPhaseVocoderFactory()</code>, SoundTouch's processing sample rate is forwarded into the constructor for compatibility with the built-in <code>Stretch</code> contract, but the phase vocoder intentionally ignores it.
 
 ## Public API
 

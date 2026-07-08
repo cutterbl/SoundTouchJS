@@ -79,6 +79,12 @@ describe('PhaseVocoder', () => {
       const defaultPv = new PhaseVocoder();
       expect(defaultPv.sampleReq).toBe(2048 / 4);
     });
+
+    it('accepts a sampleRate option for Stretch compatibility', () => {
+      expect(
+        () => new PhaseVocoder({ sampleRate: 48000, fftSize: 512 }),
+      ).not.toThrow();
+    });
   });
 
   describe('no-op guards', () => {
@@ -253,6 +259,17 @@ describe('createPhaseVocoderFactory', () => {
       sampleBufferFactory: () => ({} as import('@soundtouchjs/core').SampleBuffer),
       sampleBufferType: 'circular',
     });
+    expect(pv.sampleReq).toBe(1024 / 4);
+  });
+
+  it('accepts the factory sample rate without changing algorithm behavior', () => {
+    const factory = createPhaseVocoderFactory(1024, 4);
+    const pv = factory(48000, {
+      sampleBufferFactory: () => ({} as import('@soundtouchjs/core').SampleBuffer),
+      sampleBufferType: 'circular',
+    });
+
+    expect(pv).toBeInstanceOf(PhaseVocoder);
     expect(pv.sampleReq).toBe(1024 / 4);
   });
 });

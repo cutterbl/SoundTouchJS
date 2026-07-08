@@ -81,16 +81,13 @@ const VOLUME_TICKS: readonly DatalistTick[] = [
   { value: 10, label: '10' },
 ];
 
+const PLAYBACK_RATE_VALUES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
 const RATE_TICKS: readonly DatalistTick[] = [
-  { value: 0.1, label: '0.1' },
-  { value: 0.5, label: '0.5' },
-  { value: 1, label: '1' },
-  { value: 1.5, label: '1.5' },
-  { value: 2, label: '2' },
-  { value: 2.5, label: '2.5' },
-  { value: 3, label: '3' },
-  { value: 3.5, label: '3.5' },
-  { value: 4, label: '4' },
+  ...PLAYBACK_RATE_VALUES.map((value) => ({
+    value,
+    label: String(value),
+  })),
 ];
 
 const PITCH_TICKS: readonly DatalistTick[] = [
@@ -358,6 +355,7 @@ export function InterpolationStrategyPlayground({
       const source = audioContextRef.current.createBufferSource();
       source.buffer = audioBufferRef.current;
       source.loop = loopEnabledRef.current;
+      source.playbackRate.value = rateRef.current;
       source.connect(soundTouchNodeRef.current);
       sourceNodeRef.current = source;
       sourceOffsetRef.current = offset;
@@ -445,6 +443,10 @@ export function InterpolationStrategyPlayground({
 
   useEffect(() => {
     rateRef.current = rate;
+
+    if (sourceNodeRef.current) {
+      sourceNodeRef.current.playbackRate.value = rate;
+    }
   }, [rate]);
 
   useEffect(() => {
@@ -552,9 +554,9 @@ export function InterpolationStrategyPlayground({
 
         <RangeControl
           label="Playback Rate"
-          min={0.1}
-          max={4}
-          step={0.01}
+          min={PLAYBACK_RATE_VALUES[0]}
+          max={PLAYBACK_RATE_VALUES[PLAYBACK_RATE_VALUES.length - 1]}
+          step={0.25}
           value={rate}
           onChange={setRate}
           ticks={RATE_TICKS}

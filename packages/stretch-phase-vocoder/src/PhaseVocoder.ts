@@ -26,12 +26,14 @@ export type PhaseVocoderOverlapFactor = 2 | 4 | 8;
  * Construction options for `PhaseVocoder`.
  *
  * @remarks
- * `sampleBufferFactory` and `sampleBufferType` are passed through from
- * `StretchFactoryOptions` when the vocoder is used as a `StretchPipe` inside
- * `SoundTouch`. They are not used internally by the phase vocoder algorithm
- * but are accepted for interface compatibility.
+ * `sampleRate`, `sampleBufferFactory`, and `sampleBufferType` are passed
+ * through from `StretchFactoryOptions` when the vocoder is used as a
+ * `StretchPipe` inside `SoundTouch`. They are not used internally by the
+ * phase vocoder algorithm but are accepted for interface compatibility.
  */
 export interface PhaseVocoderOptions {
+  /** Ignored — accepted for constructor compatibility with the built-in Stretch stage. */
+  sampleRate?: number;
   /** FFT frame size. Must be a power of two. @defaultValue 2048 */
   fftSize?: PhaseVocoderFftSize;
   /**
@@ -438,6 +440,6 @@ export function createPhaseVocoderFactory(
   fftSize: PhaseVocoderFftSize = 2048,
   overlapFactor: PhaseVocoderOverlapFactor = 4,
 ): StretchFactory {
-  return (_sampleRate, opts) =>
-    new PhaseVocoder({ fftSize, overlapFactor, ...opts });
+  return (sampleRate, opts) =>
+    new PhaseVocoder({ sampleRate, fftSize, overlapFactor, ...opts });
 }
