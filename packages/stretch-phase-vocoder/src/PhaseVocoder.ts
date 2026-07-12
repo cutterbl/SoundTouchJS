@@ -72,12 +72,13 @@ export interface PhaseVocoderOptions {
  * **Algorithm overview:**
  * 1. Accumulate analysis frames into a sliding `fftSize`-sample window.
  * 2. Apply a Hann window and compute the FFT of each channel.
- * 3. Run the phase-vocoder recursion once on the mid (L+R) spectrum — by FFT
- *    linearity it is the sum of the channel spectra, so no third FFT is
- *    needed — and resynthesize each channel as the shared mid synthesis phase
- *    plus that channel's instantaneous offset from the mid. This preserves
- *    the inter-channel phase difference exactly, keeping the stereo image
- *    (and center content) intact.
+ * 3. Run the phase-vocoder recursion at spectral peaks of the mid (L+R)
+ *    spectrum — by FFT linearity the sum of the channel spectra, so no third
+ *    FFT is needed — and rotate each peak's region of influence rigidly by
+ *    the peak's synthesis rotation (identity phase locking). Rigid rotation
+ *    preserves both the local phase structure (broadband/noise content stays
+ *    coherent under overlap-add) and the inter-channel phase difference
+ *    (stereo image and center content stay intact).
  * 4. Reconstruct with IFFT, apply Hann window, and overlap-add into an output buffer.
  * 5. Extract `Hs = round(Ha / tempo)` frames per processing step.
  *
@@ -117,10 +118,20 @@ export class PhaseVocoder implements StretchPipe {
   private imR: Float32Array;
 
   // Phase vocoder state on the mid (L+R) reference (bins = fftSize/2 + 1).
-  // A single shared recursion keeps the channels phase-coherent; values are
-  // wrapped to (−π, π] so float32 storage never loses phase resolution.
-  private prevPhaseM: Float32Array;
-  private synthPhaseM: Float32Array;
+  // The recursion runs only at spectral peaks (identity phase locking); each
+  // peak's region rotates rigidly, so phases are carried as complex spectra —
+  // inherently wrapped, no unbounded accumulators. prevMid holds the previous
+  // analysis mid spectrum, synthMid the previous synthesized mid spectrum.
+  private prevMidRe: Float32Array;
+  private prevMidIm: Float32Array;
+  private synthMidRe: Float32Array;
+  private synthMidIm: Float32Array;
+
+  // Per-frame scratch: current mid spectrum, its magnitudes, and peak indices.
+  private midRe: Float32Array;
+  private midIm: Float32Array;
+  private midMag: Float32Array;
+  private peaks: Int32Array;
 
   // Overlap-add accumulators (fftSize samples): windowed synthesis output
   // per channel, plus the squared-window sum used for exact normalization.
@@ -166,8 +177,14 @@ export class PhaseVocoder implements StretchPipe {
     this.imL = new Float32Array(N);
     this.reR = new Float32Array(N);
     this.imR = new Float32Array(N);
-    this.prevPhaseM = new Float32Array(bins);
-    this.synthPhaseM = new Float32Array(bins);
+    this.prevMidRe = new Float32Array(bins);
+    this.prevMidIm = new Float32Array(bins);
+    this.synthMidRe = new Float32Array(bins);
+    this.synthMidIm = new Float32Array(bins);
+    this.midRe = new Float32Array(bins);
+    this.midIm = new Float32Array(bins);
+    this.midMag = new Float32Array(bins);
+    this.peaks = new Int32Array(bins);
     this.olaL = new Float32Array(N);
     this.olaR = new Float32Array(N);
     this.olaNorm = new Float32Array(N);
@@ -223,8 +240,10 @@ export class PhaseVocoder implements StretchPipe {
    * continuity invariant is re-established on the next frame.
    */
   clearMidBuffer(): void {
-    this.prevPhaseM.fill(0);
-    this.synthPhaseM.fill(0);
+    this.prevMidRe.fill(0);
+    this.prevMidIm.fill(0);
+    this.synthMidRe.fill(0);
+    this.synthMidIm.fill(0);
     // The analysis window still holds valid samples; re-seed from the very
     // next frame rather than waiting for a full refill.
     this.hopsUntilPrimed = 1;
@@ -384,21 +403,27 @@ export class PhaseVocoder implements StretchPipe {
   }
 
   /**
-   * Runs the phase-vocoder recursion on the mid (L+R) reference and
-   * resynthesizes both channel spectra in-place.
+   * Runs the peak-locked phase-vocoder recursion on the mid (L+R) reference
+   * and resynthesizes both channel spectra in-place.
    *
    * @remarks
-   * The recursion (instantaneous-frequency estimate and synthesis-phase
-   * accumulation) is computed once per bin on the mid spectrum — by FFT
-   * linearity, `specL + specR` — and each channel's synthesis phase is the
-   * shared mid phase plus that channel's instantaneous offset from the mid:
-   * `synthC = synthM + (phaseC − phaseM)`. The inter-channel difference is
-   * therefore preserved exactly (`synthL − synthR = phaseL − phaseR`), so
-   * identical channels stay bit-identical and the stereo image is intact.
+   * Identity phase locking (Puckette 1995; Laroche & Dolson 1999): the
+   * instantaneous-frequency recursion runs only at spectral peaks of the mid
+   * magnitude — by FFT linearity the mid spectrum is `specL + specR`, so no
+   * third FFT is needed — and every bin in a peak's region of influence
+   * rotates rigidly by that peak's synthesis rotation. Rigid rotation
+   * preserves the analysis frame's local phase structure, which keeps
+   * overlap-added frames coherent for noise-like content too (a per-bin
+   * recursion re-randomizes those relationships once `Hs ≠ Ha`, costing
+   * ~3 dB of broadband level).
    *
-   * For bins where the mid spectrum nearly vanishes (anti-phase content) the
-   * reference phase is noisy; the inter-channel difference is still exact and
-   * the worst case is temporal smearing on those bins only.
+   * Both channels rotate by the same angle per bin, so the inter-channel
+   * phase difference is preserved exactly — identical channels stay
+   * bit-identical and the stereo image is intact.
+   *
+   * Phase state is carried as complex spectra (previous analysis mid and
+   * previous synthesized mid); complex storage is inherently wrapped, so
+   * there is no unbounded phase accumulator by construction.
    *
    * @param Ha Analysis hop size.
    * @param Hs Synthesis hop size.
@@ -410,56 +435,96 @@ export class PhaseVocoder implements StretchPipe {
     const imL = this.imL;
     const reR = this.reR;
     const imR = this.imR;
+    const midRe = this.midRe;
+    const midIm = this.midIm;
+    const midMag = this.midMag;
     const twoPi = 2.0 * Math.PI;
     const twoPiOverN = twoPi / N;
 
+    for (let k = 0; k < bins; k++) {
+      midRe[k] = reL[k] + reR[k];
+      midIm[k] = imL[k] + imR[k];
+      midMag[k] = Math.sqrt(midRe[k] * midRe[k] + midIm[k] * midIm[k]);
+    }
+
     if (this.hopsUntilPrimed > 0) {
-      // Pre-primed hops: (re-)seed the mid phase state and leave both
-      // spectra untouched so the IFFT reproduces the windowed input (the FFT
-      // of a real signal is already conjugate-symmetric — no fill needed).
+      // Pre-primed hops: (re-)seed the phase state and leave both spectra
+      // untouched so the IFFT reproduces the windowed input (the FFT of a
+      // real signal is already conjugate-symmetric — no fill needed).
       // Seeding repeats each hop until the analysis window is full, so the
       // recursion starts from the first fully-valid frame's structure rather
-      // than freezing the startup transient into the accumulators.
-      for (let k = 0; k < bins; k++) {
-        const phaseM = Math.atan2(imL[k] + imR[k], reL[k] + reR[k]);
-        this.prevPhaseM[k] = phaseM;
-        this.synthPhaseM[k] = phaseM;
-      }
+      // than freezing the startup transient into the phase state.
+      this.prevMidRe.set(midRe);
+      this.prevMidIm.set(midIm);
+      this.synthMidRe.set(midRe);
+      this.synthMidIm.set(midIm);
       this.hopsUntilPrimed--;
       return;
     }
 
+    // Find local maxima of the mid magnitude (plateau-tolerant). Silence
+    // degenerates to every bin being a "peak" with a zero rotation — harmless.
+    const peaks = this.peaks;
+    let peakCount = 0;
     for (let k = 0; k < bins; k++) {
-      const phaseM = Math.atan2(imL[k] + imR[k], reL[k] + reR[k]);
-
-      // Instantaneous phase deviation from expected advance, on the mid.
-      const expectedAdvance = k * twoPiOverN * Ha;
-      let delta = phaseM - this.prevPhaseM[k] - expectedAdvance;
-
-      // Wrap to (−π, π].
-      delta -= twoPi * Math.round(delta / twoPi);
-
-      // Accumulate synthesis phase scaled by the time-stretch ratio, wrapping
-      // so the float32 accumulator never loses phase resolution.
-      const trueFreq = k * twoPiOverN + delta / Ha;
-      let synthM = this.synthPhaseM[k] + trueFreq * Hs;
-      synthM -= twoPi * Math.round(synthM / twoPi);
-      this.synthPhaseM[k] = synthM;
-      this.prevPhaseM[k] = phaseM;
-
-      // Resynthesize each channel: keep its magnitude, use the shared mid
-      // synthesis phase plus the channel's offset from the mid. Offsets are
-      // differences of atan2 results, bounded in (−2π, 2π) — safe for cos/sin.
-      const magL = Math.sqrt(reL[k] * reL[k] + imL[k] * imL[k]);
-      const phL = synthM + (Math.atan2(imL[k], reL[k]) - phaseM);
-      reL[k] = magL * Math.cos(phL);
-      imL[k] = magL * Math.sin(phL);
-
-      const magR = Math.sqrt(reR[k] * reR[k] + imR[k] * imR[k]);
-      const phR = synthM + (Math.atan2(imR[k], reR[k]) - phaseM);
-      reR[k] = magR * Math.cos(phR);
-      imR[k] = magR * Math.sin(phR);
+      const left = k > 0 ? midMag[k - 1] : -1;
+      const right = k < bins - 1 ? midMag[k + 1] : -1;
+      if (midMag[k] >= left && midMag[k] >= right) {
+        peaks[peakCount++] = k;
+      }
     }
+
+    // Process each peak's region of influence: [regionStart, regionEnd).
+    // Boundaries sit at the midpoint between adjacent peaks.
+    let regionStart = 0;
+    for (let p = 0; p < peakCount; p++) {
+      const k = peaks[p];
+      const regionEnd = p + 1 < peakCount ? (k + peaks[p + 1] + 1) >> 1 : bins;
+
+      // Phase-vocoder recursion at the peak bin. Phase differences come from
+      // complex products against the stored previous spectra, so only the
+      // peak bins ever need atan2/cos/sin.
+      const phaseCur = Math.atan2(midIm[k], midRe[k]);
+      // arg(cur · conj(prev)) = phaseCur − phasePrev, already in (−π, π].
+      const phaseDiff = Math.atan2(
+        midIm[k] * this.prevMidRe[k] - midRe[k] * this.prevMidIm[k],
+        midRe[k] * this.prevMidRe[k] + midIm[k] * this.prevMidIm[k],
+      );
+
+      const expectedAdvance = k * twoPiOverN * Ha;
+      let delta = phaseDiff - expectedAdvance;
+      delta -= twoPi * Math.round(delta / twoPi); // wrap to (−π, π]
+
+      const trueFreq = k * twoPiOverN + delta / Ha;
+      const synthPrev = Math.atan2(this.synthMidIm[k], this.synthMidRe[k]);
+
+      // Rigid rotation for this peak's whole region: the peak's accumulated
+      // synthesis phase advance relative to its current analysis phase.
+      const theta = synthPrev + trueFreq * Hs - phaseCur;
+      const cosT = Math.cos(theta);
+      const sinT = Math.sin(theta);
+
+      for (let j = regionStart; j < regionEnd; j++) {
+        // Store the synthesized mid for the next frame's recursion.
+        this.synthMidRe[j] = midRe[j] * cosT - midIm[j] * sinT;
+        this.synthMidIm[j] = midRe[j] * sinT + midIm[j] * cosT;
+
+        const rl = reL[j];
+        const il = imL[j];
+        reL[j] = rl * cosT - il * sinT;
+        imL[j] = rl * sinT + il * cosT;
+
+        const rr = reR[j];
+        const ir = imR[j];
+        reR[j] = rr * cosT - ir * sinT;
+        imR[j] = rr * sinT + ir * cosT;
+      }
+
+      regionStart = regionEnd;
+    }
+
+    this.prevMidRe.set(midRe);
+    this.prevMidIm.set(midIm);
 
     // Fill conjugate-symmetric bins for real output, both channels.
     for (let k = bins; k < N; k++) {

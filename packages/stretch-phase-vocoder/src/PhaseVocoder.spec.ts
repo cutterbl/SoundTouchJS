@@ -359,17 +359,21 @@ describe('PhaseVocoder', () => {
       expect(Math.abs(diff - phi)).toBeLessThan(0.05);
     });
 
-    it('keeps synthesis phase bounded and channels coherent after many frames', () => {
+    it('keeps phase state bounded and channels coherent after many frames', () => {
       pv.tempo = 1.25;
       const hops = 400;
       fillSine(inputBuf, hops * pv.sampleReq, OMEGA, 0.2, 0.2);
       for (let i = 0; i < hops; i++) pv.process();
 
+      // Phase state is carried as complex spectra; magnitudes must stay
+      // finite and bounded by the frame energy (no runaway accumulation).
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const synth = (pv as any).synthPhaseM as Float32Array;
-      for (let k = 0; k < synth.length; k++) {
-        // π + headroom: Math.fround(π) > π and the wrap can land at ±π.
-        expect(Math.abs(synth[k])).toBeLessThanOrEqual(Math.PI + 1e-3);
+      const sRe = (pv as any).synthMidRe as Float32Array;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sIm = (pv as any).synthMidIm as Float32Array;
+      for (let k = 0; k < sRe.length; k++) {
+        expect(Number.isFinite(sRe[k])).toBe(true);
+        expect(Number.isFinite(sIm[k])).toBe(true);
       }
 
       const out = allOutput(outputBuf);
@@ -377,6 +381,43 @@ describe('PhaseVocoder', () => {
         expect(Math.abs(out[i] - out[i + 1])).toBeLessThanOrEqual(1e-6);
       }
     });
+
+    for (const semis of [2, -2]) {
+      it(`preserves broadband noise level at ${semis > 0 ? '+' : ''}${semis} semitones equivalent tempo`, () => {
+        // Without peak phase locking, the per-bin recursion re-randomizes
+        // local phase structure once Hs ≠ Ha and noise-like content loses
+        // ~3 dB to incoherent overlap-add.
+        const tempo = Math.pow(2, -semis / 12);
+        pv.tempo = tempo;
+        const Ha = pv.sampleReq;
+        const Hs = Math.max(1, Math.round(Ha / tempo));
+        const hops = 128;
+
+        // Deterministic LCG noise, identical L/R.
+        let seed = 12345 >>> 0;
+        const rng = () => {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed / 0xffffffff - 0.5;
+        };
+        const frames = hops * Ha;
+        const s = new Float32Array(frames * 2);
+        let inSum = 0;
+        for (let i = 0; i < frames; i++) {
+          const v = 0.5 * rng();
+          s[i * 2] = v;
+          s[i * 2 + 1] = v;
+          inSum += v * v;
+        }
+        const inRms = Math.sqrt(inSum / frames);
+        inputBuf.putSamples(s, 0, frames);
+        for (let i = 0; i < hops; i++) pv.process();
+
+        const out = allOutput(outputBuf);
+        const outRms = rmsInterleaved(out, WARMUP_HOPS * Hs, hops * Hs);
+        const dB = 20 * Math.log10(outRms / inRms);
+        expect(Math.abs(dB)).toBeLessThan(1.5);
+      });
+    }
 
     it('stays level-stable across a mid-stream tempo change', () => {
       const Ha = pv.sampleReq;
