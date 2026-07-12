@@ -16,6 +16,16 @@ import type {
 import { fft, ifft } from './fft.js';
 import { makeHannWindow } from './windows.js';
 
+/**
+ * Floor for the per-sample overlap-add normalization divisor.
+ *
+ * @remarks
+ * Wherever the accumulated window-squared sum is below this floor, the
+ * numerator carries the same window factor (`O(w² · x)`), so dividing by the
+ * floor attenuates rather than amplifies — no noise blow-up at frame edges.
+ */
+const OLA_NORM_EPS = 1e-6;
+
 /** Valid FFT sizes for the phase vocoder. */
 export type PhaseVocoderFftSize = 512 | 1024 | 2048 | 4096;
 
@@ -62,12 +72,20 @@ export interface PhaseVocoderOptions {
  * **Algorithm overview:**
  * 1. Accumulate analysis frames into a sliding `fftSize`-sample window.
  * 2. Apply a Hann window and compute the FFT of each channel.
- * 3. Compute instantaneous frequency per bin and accumulate synthesis phase.
+ * 3. Run the phase-vocoder recursion once on the mid (L+R) spectrum — by FFT
+ *    linearity it is the sum of the channel spectra, so no third FFT is
+ *    needed — and resynthesize each channel as the shared mid synthesis phase
+ *    plus that channel's instantaneous offset from the mid. This preserves
+ *    the inter-channel phase difference exactly, keeping the stereo image
+ *    (and center content) intact.
  * 4. Reconstruct with IFFT, apply Hann window, and overlap-add into an output buffer.
  * 5. Extract `Hs = round(Ha / tempo)` frames per processing step.
  *
- * The normalization factor is `overlapFactor / 2` (for a Hann window, four
- * 75 %-overlapping windows sum to 2; factor-2 windows sum to 1).
+ * Both analysis and synthesis are Hann-windowed (WOLA). Overlap-add is
+ * normalized per sample by the accumulated sum of squared window values
+ * (≈ 1.5 at 75 % overlap), which is exact for any synthesis hop — including
+ * mid-stream tempo changes and hops large enough that windows no longer
+ * overlap.
  *
  * @example
  * import { SoundTouch } from '@soundtouchjs/core';
@@ -87,8 +105,6 @@ export class PhaseVocoder implements StretchPipe {
   private readonly overlapFactor: number;
   private readonly analysisHop: number;
   private readonly window: Float32Array;
-  /** Reciprocal of the OLA normalization constant (overlapFactor / 2). */
-  private readonly normInv: number;
 
   // Per-channel analysis ring buffers (fftSize samples each).
   private analysisL: Float32Array;
@@ -100,22 +116,34 @@ export class PhaseVocoder implements StretchPipe {
   private reR: Float32Array;
   private imR: Float32Array;
 
-  // Phase vocoder state (bins = fftSize/2 + 1).
-  private prevPhaseL: Float32Array;
-  private prevPhaseR: Float32Array;
-  private synthPhaseL: Float32Array;
-  private synthPhaseR: Float32Array;
+  // Phase vocoder state on the mid (L+R) reference (bins = fftSize/2 + 1).
+  // A single shared recursion keeps the channels phase-coherent; values are
+  // wrapped to (−π, π] so float32 storage never loses phase resolution.
+  private prevPhaseM: Float32Array;
+  private synthPhaseM: Float32Array;
 
-  // Overlap-add accumulator (fftSize samples).
+  // Overlap-add accumulators (fftSize samples): windowed synthesis output
+  // per channel, plus the squared-window sum used for exact normalization.
   private olaL: Float32Array;
   private olaR: Float32Array;
+  private olaNorm: Float32Array;
 
   // Scratch buffers for deinterleaving / reinterleaving.
   private inputScratch: Float32Array;
   private outputScratch: Float32Array;
 
-  /** Whether the phase accumulators hold valid state from a previous frame. */
-  private hasFrame = false;
+  /**
+   * Hops remaining before the phase recursion may be seeded.
+   *
+   * @remarks
+   * The sliding analysis window fills after `overlapFactor` hops. Seeding the
+   * phase accumulators from a partially-filled (zero-padded) window freezes
+   * the startup transient's arbitrary inter-bin phase relationships into the
+   * recursion permanently — a constant level loss and envelope corruption at
+   * every tempo ≠ 1. Frames pass through untouched until the window is
+   * primed; the first fully-valid frame seeds the recursion.
+   */
+  private hopsUntilPrimed: number;
 
   /**
    * Creates a PhaseVocoder instance.
@@ -126,8 +154,7 @@ export class PhaseVocoder implements StretchPipe {
     this.overlapFactor = options.overlapFactor ?? 4;
     this.analysisHop = this.fftSize / this.overlapFactor;
     this.window = makeHannWindow(this.fftSize);
-    // For Hann OLA with overlapFactor, sum of windows = overlapFactor / 2
-    this.normInv = 2.0 / this.overlapFactor;
+    this.hopsUntilPrimed = this.overlapFactor;
 
     const N = this.fftSize;
     const bins = N / 2 + 1;
@@ -139,12 +166,11 @@ export class PhaseVocoder implements StretchPipe {
     this.imL = new Float32Array(N);
     this.reR = new Float32Array(N);
     this.imR = new Float32Array(N);
-    this.prevPhaseL = new Float32Array(bins);
-    this.prevPhaseR = new Float32Array(bins);
-    this.synthPhaseL = new Float32Array(bins);
-    this.synthPhaseR = new Float32Array(bins);
+    this.prevPhaseM = new Float32Array(bins);
+    this.synthPhaseM = new Float32Array(bins);
     this.olaL = new Float32Array(N);
     this.olaR = new Float32Array(N);
+    this.olaNorm = new Float32Array(N);
     this.inputScratch = new Float32Array(Ha * 2);
     this.outputScratch = new Float32Array(N * 2);
   }
@@ -183,7 +209,10 @@ export class PhaseVocoder implements StretchPipe {
     this.analysisR.fill(0);
     this.olaL.fill(0);
     this.olaR.fill(0);
+    this.olaNorm.fill(0);
     this.clearMidBuffer();
+    // The analysis window was emptied, so it must refill before seeding.
+    this.hopsUntilPrimed = this.overlapFactor;
   }
 
   /**
@@ -194,11 +223,11 @@ export class PhaseVocoder implements StretchPipe {
    * continuity invariant is re-established on the next frame.
    */
   clearMidBuffer(): void {
-    this.prevPhaseL.fill(0);
-    this.prevPhaseR.fill(0);
-    this.synthPhaseL.fill(0);
-    this.synthPhaseR.fill(0);
-    this.hasFrame = false;
+    this.prevPhaseM.fill(0);
+    this.synthPhaseM.fill(0);
+    // The analysis window still holds valid samples; re-seed from the very
+    // next frame rather than waiting for a full refill.
+    this.hopsUntilPrimed = 1;
   }
 
   /**
@@ -293,129 +322,153 @@ export class PhaseVocoder implements StretchPipe {
       this.analysisR[N - Ha + i] = this.inputScratch[i * 2 + 1];
     }
 
-    // Process each channel independently.
-    this._processChannel(
-      this.analysisL,
-      this.reL,
-      this.imL,
-      this.prevPhaseL,
-      this.synthPhaseL,
-      Ha,
-      Hs,
-      bins,
-    );
-    this._processChannel(
-      this.analysisR,
-      this.reR,
-      this.imR,
-      this.prevPhaseR,
-      this.synthPhaseR,
-      Ha,
-      Hs,
-      bins,
-    );
+    // Window + FFT each channel, then run the shared phase-vocoder
+    // recursion on the mid (L+R) reference and resynthesize both spectra.
+    this._analyzeChannel(this.analysisL, this.reL, this.imL);
+    this._analyzeChannel(this.analysisR, this.reR, this.imR);
+    this._processSpectra(Ha, Hs, bins);
 
-    this.hasFrame = true;
+    ifft(this.reL, this.imL);
+    ifft(this.reR, this.imR);
 
-    // Overlap-add: accumulate synthesis frame then extract Hs frames.
-    const norm = this.normInv;
+    // WOLA: overlap-add the synthesis-windowed frame, accumulating the
+    // squared-window sum alongside for exact per-sample normalization.
     for (let i = 0; i < N; i++) {
-      this.olaL[i] += this.reL[i] * this.window[i] * norm;
-      this.olaR[i] += this.reR[i] * this.window[i] * norm;
+      const wi = this.window[i];
+      this.olaL[i] += this.reL[i] * wi;
+      this.olaR[i] += this.reR[i] * wi;
+      this.olaNorm[i] += wi * wi;
     }
 
+    // Extraction-time normalization is complete for [0..toExtract): the next
+    // frame's window lands at post-shift positions, so no future frame can
+    // contribute to the samples extracted here.
     const toExtract = Math.min(Hs, N);
     for (let i = 0; i < toExtract; i++) {
-      this.outputScratch[i * 2] = this.olaL[i];
-      this.outputScratch[i * 2 + 1] = this.olaR[i];
+      const norm = 1.0 / Math.max(this.olaNorm[i], OLA_NORM_EPS);
+      this.outputScratch[i * 2] = this.olaL[i] * norm;
+      this.outputScratch[i * 2 + 1] = this.olaR[i] * norm;
     }
     this.outputBuffer.putSamples(this.outputScratch, 0, toExtract);
 
-    // Shift OLA buffer left by Hs, zero the tail.
+    // Shift OLA buffers left by the extracted amount, zero the tails.
     this.olaL.copyWithin(0, toExtract);
     this.olaR.copyWithin(0, toExtract);
+    this.olaNorm.copyWithin(0, toExtract);
     this.olaL.fill(0, N - toExtract);
     this.olaR.fill(0, N - toExtract);
+    this.olaNorm.fill(0, N - toExtract);
   }
 
   /**
-   * Runs one FFT frame through the phase vocoder for a single channel.
-   *
-   * @remarks
-   * Reads from `analysis`, writes synthesized real output back into `re` (the
-   * imaginary output is discarded). Updates `prevPhase` and `synthPhase` in-place.
+   * Applies the analysis window and computes the forward FFT of one channel.
    *
    * @param analysis fftSize-sample sliding analysis window.
    * @param re FFT real working buffer (modified in-place).
    * @param im FFT imaginary working buffer (modified in-place).
-   * @param prevPhase Previous-frame phase per bin (modified in-place).
-   * @param synthPhase Accumulated synthesis phase per bin (modified in-place).
-   * @param Ha Analysis hop size.
-   * @param Hs Synthesis hop size.
-   * @param bins Number of positive-frequency bins (fftSize/2 + 1).
    */
-  private _processChannel(
+  private _analyzeChannel(
     analysis: Float32Array,
     re: Float32Array,
     im: Float32Array,
-    prevPhase: Float32Array,
-    synthPhase: Float32Array,
-    Ha: number,
-    Hs: number,
-    bins: number,
   ): void {
     const N = this.fftSize;
     const w = this.window;
 
-    // Apply analysis window.
     for (let i = 0; i < N; i++) {
       re[i] = analysis[i] * w[i];
       im[i] = 0.0;
     }
 
     fft(re, im);
+  }
 
-    // Phase accumulation (positive-frequency bins only).
-    const twoPiOverN = (2.0 * Math.PI) / N;
-    if (!this.hasFrame) {
-      // First frame: seed phases from analysis, no output correction.
+  /**
+   * Runs the phase-vocoder recursion on the mid (L+R) reference and
+   * resynthesizes both channel spectra in-place.
+   *
+   * @remarks
+   * The recursion (instantaneous-frequency estimate and synthesis-phase
+   * accumulation) is computed once per bin on the mid spectrum — by FFT
+   * linearity, `specL + specR` — and each channel's synthesis phase is the
+   * shared mid phase plus that channel's instantaneous offset from the mid:
+   * `synthC = synthM + (phaseC − phaseM)`. The inter-channel difference is
+   * therefore preserved exactly (`synthL − synthR = phaseL − phaseR`), so
+   * identical channels stay bit-identical and the stereo image is intact.
+   *
+   * For bins where the mid spectrum nearly vanishes (anti-phase content) the
+   * reference phase is noisy; the inter-channel difference is still exact and
+   * the worst case is temporal smearing on those bins only.
+   *
+   * @param Ha Analysis hop size.
+   * @param Hs Synthesis hop size.
+   * @param bins Number of positive-frequency bins (fftSize/2 + 1).
+   */
+  private _processSpectra(Ha: number, Hs: number, bins: number): void {
+    const N = this.fftSize;
+    const reL = this.reL;
+    const imL = this.imL;
+    const reR = this.reR;
+    const imR = this.imR;
+    const twoPi = 2.0 * Math.PI;
+    const twoPiOverN = twoPi / N;
+
+    if (this.hopsUntilPrimed > 0) {
+      // Pre-primed hops: (re-)seed the mid phase state and leave both
+      // spectra untouched so the IFFT reproduces the windowed input (the FFT
+      // of a real signal is already conjugate-symmetric — no fill needed).
+      // Seeding repeats each hop until the analysis window is full, so the
+      // recursion starts from the first fully-valid frame's structure rather
+      // than freezing the startup transient into the accumulators.
       for (let k = 0; k < bins; k++) {
-        const phase = Math.atan2(im[k], re[k]);
-        prevPhase[k] = phase;
-        synthPhase[k] = phase;
+        const phaseM = Math.atan2(imL[k] + imR[k], reL[k] + reR[k]);
+        this.prevPhaseM[k] = phaseM;
+        this.synthPhaseM[k] = phaseM;
       }
-    } else {
-      for (let k = 0; k < bins; k++) {
-        const mag = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
-        const phase = Math.atan2(im[k], re[k]);
-
-        // Instantaneous phase deviation from expected advance.
-        const expectedAdvance = k * twoPiOverN * Ha;
-        let delta = phase - prevPhase[k] - expectedAdvance;
-
-        // Wrap to (−π, π].
-        delta -= 2.0 * Math.PI * Math.round(delta / (2.0 * Math.PI));
-
-        // Accumulate synthesis phase scaled by the time-stretch ratio.
-        const trueFreq = k * twoPiOverN + delta / Ha;
-        synthPhase[k] += trueFreq * Hs;
-        prevPhase[k] = phase;
-
-        // Resynthesize: keep magnitude, use accumulated phase.
-        re[k] = mag * Math.cos(synthPhase[k]);
-        im[k] = mag * Math.sin(synthPhase[k]);
-      }
-
-      // Fill conjugate-symmetric bins for real output.
-      for (let k = bins; k < N; k++) {
-        const mirror = N - k;
-        re[k] = re[mirror];
-        im[k] = -im[mirror];
-      }
+      this.hopsUntilPrimed--;
+      return;
     }
 
-    ifft(re, im);
-    // Imaginary part is discarded; re holds the real synthesis output.
+    for (let k = 0; k < bins; k++) {
+      const phaseM = Math.atan2(imL[k] + imR[k], reL[k] + reR[k]);
+
+      // Instantaneous phase deviation from expected advance, on the mid.
+      const expectedAdvance = k * twoPiOverN * Ha;
+      let delta = phaseM - this.prevPhaseM[k] - expectedAdvance;
+
+      // Wrap to (−π, π].
+      delta -= twoPi * Math.round(delta / twoPi);
+
+      // Accumulate synthesis phase scaled by the time-stretch ratio, wrapping
+      // so the float32 accumulator never loses phase resolution.
+      const trueFreq = k * twoPiOverN + delta / Ha;
+      let synthM = this.synthPhaseM[k] + trueFreq * Hs;
+      synthM -= twoPi * Math.round(synthM / twoPi);
+      this.synthPhaseM[k] = synthM;
+      this.prevPhaseM[k] = phaseM;
+
+      // Resynthesize each channel: keep its magnitude, use the shared mid
+      // synthesis phase plus the channel's offset from the mid. Offsets are
+      // differences of atan2 results, bounded in (−2π, 2π) — safe for cos/sin.
+      const magL = Math.sqrt(reL[k] * reL[k] + imL[k] * imL[k]);
+      const phL = synthM + (Math.atan2(imL[k], reL[k]) - phaseM);
+      reL[k] = magL * Math.cos(phL);
+      imL[k] = magL * Math.sin(phL);
+
+      const magR = Math.sqrt(reR[k] * reR[k] + imR[k] * imR[k]);
+      const phR = synthM + (Math.atan2(imR[k], reR[k]) - phaseM);
+      reR[k] = magR * Math.cos(phR);
+      imR[k] = magR * Math.sin(phR);
+    }
+
+    // Fill conjugate-symmetric bins for real output, both channels.
+    for (let k = bins; k < N; k++) {
+      const mirror = N - k;
+      reL[k] = reL[mirror];
+      imL[k] = -imL[mirror];
+      reR[k] = reR[mirror];
+      imR[k] = -imR[mirror];
+    }
   }
 }
 
