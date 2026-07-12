@@ -382,6 +382,29 @@ describe('PhaseVocoder', () => {
       }
     });
 
+    it('preserves level and polarity for purely anti-phase channels', () => {
+      // L = −R makes the mid (L+R) spectrum vanish; a mid-only phase
+      // reference turns noisy and costs several dB on such content. The
+      // mid/side dual reference must keep it exact.
+      const tempo = Math.pow(2, -2 / 12);
+      pv.tempo = tempo;
+      const Ha = pv.sampleReq;
+      const Hs = Math.max(1, Math.round(Ha / tempo));
+      const hops = 64;
+      fillSine(inputBuf, hops * Ha, OMEGA, 0, Math.PI); // R inverted
+      for (let i = 0; i < hops; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      const outRms = rmsInterleaved(out, WARMUP_HOPS * Hs, hops * Hs);
+      const dB = 20 * Math.log10(outRms / (0.5 / Math.SQRT2));
+      expect(Math.abs(dB)).toBeLessThan(0.5);
+
+      // Rigid rotation must preserve the exact anti-phase relationship.
+      for (let i = 0; i < out.length; i += 2) {
+        expect(Math.abs(out[i] + out[i + 1])).toBeLessThanOrEqual(1e-6);
+      }
+    });
+
     for (const semis of [2, -2]) {
       it(`preserves broadband noise level at ${semis > 0 ? '+' : ''}${semis} semitones equivalent tempo`, () => {
         // Without peak phase locking, the per-bin recursion re-randomizes
