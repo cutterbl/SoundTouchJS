@@ -227,6 +227,10 @@ describe('SoundTouch', () => {
   });
 
   describe('runtime interpolation strategy controls', () => {
+    it('defaults to the only strategy registered out of the box', () => {
+      expect(new SoundTouch().interpolationStrategy).toBe('lanczos');
+    });
+
     it('switches interpolation strategy through SoundTouch API', () => {
       const st = new SoundTouch({ interpolationStrategy: 'lanczos' });
 

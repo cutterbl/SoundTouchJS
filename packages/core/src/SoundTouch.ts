@@ -67,7 +67,12 @@ export interface SoundTouchOptions {
   /**
    * Interpolation strategy used by the rate transposer stage.
    *
-   * @defaultValue 'linear'
+   * @remarks
+   * Only `lanczos` is registered out of the box. Every other id — including
+   * `linear` — comes from an `@soundtouchjs/interpolation-strategy-*` package
+   * and must be registered before it can be named here, or construction throws.
+   *
+   * @defaultValue 'lanczos'
    */
   interpolationStrategy?: RateTransposerInterpolationStrategy;
 
