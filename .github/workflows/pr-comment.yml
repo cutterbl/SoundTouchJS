@@ -1,0 +1,67 @@
+name: Post PR coverage comment
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    # Only runs for PR-triggered CI runs; skipped for direct workflow_dispatch
+    if: github.event.workflow_run.event == 'pull_request'
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download coverage artifact
+        id: download
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-summary
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Post coverage summary as PR comment
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+
+            const prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim());
+            const outcome = fs.readFileSync('outcome.txt', 'utf8').trim();
+            if (!prNumber) return;
+
+            const status = outcome === 'success' ? '✅ passed' : '❌ failed';
+            let body = `## Coverage check\n\nResult: ${status}\n`;
+            try {
+              body += '\n' + fs.readFileSync('summary.md', 'utf8');
+            } catch {
+              body += '\n_(Coverage report not available.)_';
+            }
+            const marker = '<!-- coverage-summary -->';
+            body = marker + '\n' + body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
