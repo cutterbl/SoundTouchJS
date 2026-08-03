@@ -1,3 +1,14 @@
+## 2.1.1 (2026-08-03)
+
+### Bug Fixes
+
+- phase vocoder worklet ([#84](https://github.com/cutterbl/SoundTouchJS/pull/84))
+
+### ❤️ Thank You
+
+- Brandon Jones @bhj
+- Claude Fable 5
+
 ## 2.1.0 (2026-07-08)
 
 ### Features
