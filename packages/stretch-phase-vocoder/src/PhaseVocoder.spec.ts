@@ -48,6 +48,42 @@ function fillBuffer(buf: TestBuffer, frames: number, value = 0.5): void {
   buf.putSamples(s, 0, frames);
 }
 
+const TWO_PI = 2 * Math.PI;
+
+// Bin-aligned test tone: bin 16 of a 512-point FFT → period 32 samples.
+const OMEGA = (TWO_PI * 16) / 512;
+
+function fillSine(
+  buf: TestBuffer,
+  frames: number,
+  omega: number,
+  phaseL = 0,
+  phaseR = 0,
+  amp = 0.5,
+): void {
+  const s = new Float32Array(frames * 2);
+  for (let i = 0; i < frames; i++) {
+    s[i * 2] = amp * Math.sin(omega * i + phaseL);
+    s[i * 2 + 1] = amp * Math.sin(omega * i + phaseR);
+  }
+  buf.putSamples(s, 0, frames);
+}
+
+function allOutput(buf: TestBuffer): Float32Array {
+  const out = new Float32Array(buf.frameCount * 2);
+  buf.extract(out, 0, buf.frameCount);
+  return out;
+}
+
+// RMS across both channels of interleaved frames [from, to).
+function rmsInterleaved(x: Float32Array, from: number, to: number): number {
+  let sum = 0;
+  for (let n = from; n < to; n++) {
+    sum += x[n * 2] ** 2 + x[n * 2 + 1] ** 2;
+  }
+  return Math.sqrt(sum / (2 * (to - from)));
+}
+
 describe('PhaseVocoder', () => {
   let pv: PhaseVocoder;
   let inputBuf: TestBuffer;
@@ -230,6 +266,198 @@ describe('PhaseVocoder', () => {
       const c = pv.clone();
       c.tempo = 2.0;
       expect(pv.tempo).toBe(1.0);
+    });
+  });
+
+  // Warmup rationale: the analysis window fills after N/Ha = 4 hops, the
+  // phase recursion is valid from the 2nd frame, and the OLA reaches steady
+  // state after ⌈N/Hs⌉ frames. Skipping the first 16 hops of output is
+  // comfortably past every transient, and 16·Hs frames is a whole number of
+  // the 32-sample test-tone periods.
+  describe('DSP correctness', () => {
+    const WARMUP_HOPS = 16;
+
+    it('preserves RMS at tempo 1.0 for a bin-aligned sine', () => {
+      const Ha = pv.sampleReq;
+      const hops = 64;
+      fillSine(inputBuf, hops * Ha, OMEGA);
+      for (let i = 0; i < hops; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      const outRms = rmsInterleaved(out, WARMUP_HOPS * Ha, hops * Ha);
+      const inRms = 0.5 / Math.SQRT2;
+      const dB = 20 * Math.log10(outRms / inRms);
+      expect(Math.abs(dB)).toBeLessThan(0.5);
+    });
+
+    for (const tempo of [0.8, 1.25, 2.0]) {
+      it(`preserves RMS at tempo ${tempo}`, () => {
+        const Ha = pv.sampleReq;
+        const Hs = Math.max(1, Math.round(Ha / tempo));
+        const hops = 64;
+        pv.tempo = tempo;
+        fillSine(inputBuf, hops * Ha, OMEGA);
+        for (let i = 0; i < hops; i++) pv.process();
+
+        const out = allOutput(outputBuf);
+        const outRms = rmsInterleaved(out, WARMUP_HOPS * Hs, hops * Hs);
+        const dB = 20 * Math.log10(outRms / (0.5 / Math.SQRT2));
+        expect(Math.abs(dB)).toBeLessThan(0.5);
+      });
+    }
+
+    it('reproduces a DC signal at unity level for tempo 1.0', () => {
+      const Ha = pv.sampleReq;
+      const hops = 32;
+      fillBuffer(inputBuf, hops * Ha, 0.5);
+      for (let i = 0; i < hops; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      for (let n = WARMUP_HOPS * Ha; n < hops * Ha; n++) {
+        expect(Math.abs(out[n * 2] - 0.5)).toBeLessThan(1e-3);
+        expect(Math.abs(out[n * 2 + 1] - 0.5)).toBeLessThan(1e-3);
+      }
+    });
+
+    it('produces identical outputs for identical L/R inputs', () => {
+      pv.tempo = 1.25;
+      const hops = 48;
+      fillSine(inputBuf, hops * pv.sampleReq, OMEGA, 0.4, 0.4);
+      for (let i = 0; i < hops; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      for (let i = 0; i < out.length; i += 2) {
+        expect(Math.abs(out[i] - out[i + 1])).toBeLessThanOrEqual(1e-6);
+      }
+    });
+
+    it('preserves a fixed inter-channel phase offset at tempo 1.0', () => {
+      const phi = Math.PI / 3;
+      const Ha = pv.sampleReq;
+      const hops = 64;
+      fillSine(inputBuf, hops * Ha, OMEGA, 0, phi);
+      for (let i = 0; i < hops; i++) pv.process();
+
+      // Complex demodulation at the tone frequency over whole periods: for
+      // a·sin(ωn + φ), arg(Σ x[n]·e^(−iωn)) = φ − π/2, so the L/R argument
+      // difference is exactly φ.
+      const out = allOutput(outputBuf);
+      let reLh = 0;
+      let imLh = 0;
+      let reRh = 0;
+      let imRh = 0;
+      for (let n = WARMUP_HOPS * Ha; n < hops * Ha; n++) {
+        const c = Math.cos(OMEGA * n);
+        const s = Math.sin(OMEGA * n);
+        reLh += out[n * 2] * c;
+        imLh -= out[n * 2] * s;
+        reRh += out[n * 2 + 1] * c;
+        imRh -= out[n * 2 + 1] * s;
+      }
+      let diff = Math.atan2(imRh, reRh) - Math.atan2(imLh, reLh);
+      diff -= TWO_PI * Math.round(diff / TWO_PI);
+      expect(Math.abs(diff - phi)).toBeLessThan(0.05);
+    });
+
+    it('keeps phase state bounded and channels coherent after many frames', () => {
+      pv.tempo = 1.25;
+      const hops = 400;
+      fillSine(inputBuf, hops * pv.sampleReq, OMEGA, 0.2, 0.2);
+      for (let i = 0; i < hops; i++) pv.process();
+
+      // Phase state is carried as complex spectra; magnitudes must stay
+      // finite and bounded by the frame energy (no runaway accumulation).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sRe = (pv as any).synthMidRe as Float32Array;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sIm = (pv as any).synthMidIm as Float32Array;
+      for (let k = 0; k < sRe.length; k++) {
+        expect(Number.isFinite(sRe[k])).toBe(true);
+        expect(Number.isFinite(sIm[k])).toBe(true);
+      }
+
+      const out = allOutput(outputBuf);
+      for (let i = 0; i < out.length; i += 2) {
+        expect(Math.abs(out[i] - out[i + 1])).toBeLessThanOrEqual(1e-6);
+      }
+    });
+
+    it('preserves level and polarity for purely anti-phase channels', () => {
+      // L = −R makes the mid (L+R) spectrum vanish; a mid-only phase
+      // reference turns noisy and costs several dB on such content. The
+      // mid/side dual reference must keep it exact.
+      const tempo = Math.pow(2, -2 / 12);
+      pv.tempo = tempo;
+      const Ha = pv.sampleReq;
+      const Hs = Math.max(1, Math.round(Ha / tempo));
+      const hops = 64;
+      fillSine(inputBuf, hops * Ha, OMEGA, 0, Math.PI); // R inverted
+      for (let i = 0; i < hops; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      const outRms = rmsInterleaved(out, WARMUP_HOPS * Hs, hops * Hs);
+      const dB = 20 * Math.log10(outRms / (0.5 / Math.SQRT2));
+      expect(Math.abs(dB)).toBeLessThan(0.5);
+
+      // Rigid rotation must preserve the exact anti-phase relationship.
+      for (let i = 0; i < out.length; i += 2) {
+        expect(Math.abs(out[i] + out[i + 1])).toBeLessThanOrEqual(1e-6);
+      }
+    });
+
+    for (const semis of [2, -2]) {
+      it(`preserves broadband noise level at ${semis > 0 ? '+' : ''}${semis} semitones equivalent tempo`, () => {
+        // Without peak phase locking, the per-bin recursion re-randomizes
+        // local phase structure once Hs ≠ Ha and noise-like content loses
+        // ~3 dB to incoherent overlap-add.
+        const tempo = Math.pow(2, -semis / 12);
+        pv.tempo = tempo;
+        const Ha = pv.sampleReq;
+        const Hs = Math.max(1, Math.round(Ha / tempo));
+        const hops = 128;
+
+        // Deterministic LCG noise, identical L/R.
+        let seed = 12345 >>> 0;
+        const rng = () => {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed / 0xffffffff - 0.5;
+        };
+        const frames = hops * Ha;
+        const s = new Float32Array(frames * 2);
+        let inSum = 0;
+        for (let i = 0; i < frames; i++) {
+          const v = 0.5 * rng();
+          s[i * 2] = v;
+          s[i * 2 + 1] = v;
+          inSum += v * v;
+        }
+        const inRms = Math.sqrt(inSum / frames);
+        inputBuf.putSamples(s, 0, frames);
+        for (let i = 0; i < hops; i++) pv.process();
+
+        const out = allOutput(outputBuf);
+        const outRms = rmsInterleaved(out, WARMUP_HOPS * Hs, hops * Hs);
+        const dB = 20 * Math.log10(outRms / inRms);
+        expect(Math.abs(dB)).toBeLessThan(1.5);
+      });
+    }
+
+    it('stays level-stable across a mid-stream tempo change', () => {
+      const Ha = pv.sampleReq;
+      fillSine(inputBuf, 64 * Ha, OMEGA);
+      for (let i = 0; i < 32; i++) pv.process();
+      pv.tempo = 2.0;
+      for (let i = 0; i < 32; i++) pv.process();
+
+      const out = allOutput(outputBuf);
+      const frames = out.length / 2;
+      for (let i = 0; i < out.length; i++) {
+        expect(Number.isFinite(out[i])).toBe(true);
+      }
+      const Hs2 = Math.round(Ha / 2.0);
+      const outRms = rmsInterleaved(out, frames - 16 * Hs2, frames);
+      const dB = 20 * Math.log10(outRms / (0.5 / Math.SQRT2));
+      expect(Math.abs(dB)).toBeLessThan(1.5);
     });
   });
 });

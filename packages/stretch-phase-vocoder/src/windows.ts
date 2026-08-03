@@ -12,8 +12,10 @@
  * @remarks
  * Uses the symmetric form `0.5 * (1 − cos(2πn / (N−1)))` for N > 1.
  * For `size = 1` the single coefficient is `1.0`.
- * When used with overlap-add, 75 % overlap (factor 4) yields a normalization
- * constant of 2 (sum of four Hann windows = 2).
+ * The phase vocoder applies this window at both analysis and synthesis
+ * (WOLA), where the accumulated squared-window sum at 75 % overlap is ≈ 1.5;
+ * it normalizes per sample from that accumulated sum rather than by a
+ * constant, so the symmetric (non-COLA) form's ripple is normalized out.
  *
  * @param size Number of coefficients.
  * @returns Float32Array of length `size`.
