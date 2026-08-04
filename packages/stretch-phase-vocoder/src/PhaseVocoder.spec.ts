@@ -434,9 +434,7 @@ describe('PhaseVocoder', () => {
 
       // Phase state is carried as complex spectra; magnitudes must stay
       // finite and bounded by the frame energy (no runaway accumulation).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sRe = (pv as any).synthMidRe as Float32Array;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sIm = (pv as any).synthMidIm as Float32Array;
       for (let k = 0; k < sRe.length; k++) {
         expect(Number.isFinite(sRe[k])).toBe(true);
