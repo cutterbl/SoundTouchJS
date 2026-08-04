@@ -251,8 +251,10 @@ export default class SoundTouch {
    * Sets the pitch multiplier and recomputes the derived pipeline rate and tempo.
    *
    * @remarks
-   * Internally sets `_rate = pitch` and `_tempo = 1 / pitch`, rewiring the
-   * Transposer→Stretch stage order when pitch > 1.
+   * Requests `_tempo = 1 / pitch` of the Stretch stage and derives `_rate` from
+   * the tempo it reports back — `pitch` itself unless the stage rounded it —
+   * then rewires the Transposer→Stretch stage order when pitch > 1. See
+   * {@link SoundTouch.calculateEffectiveRateAndTempo}.
    */
   set pitch(pitch: number) {
     this.virtualPitch = pitch;
@@ -294,19 +296,34 @@ export default class SoundTouch {
    * Recomputes the effective pipeline rate/tempo from `virtualPitch` and rewires stage order when needed.
    *
    * @remarks
-   * `_rate` is set to `virtualPitch`; `_tempo` to `1 / virtualPitch`. When `_rate > 1` the
-   * Stretch stage feeds the Transposer; otherwise the order is reversed.
+   * `1 / virtualPitch` is requested of the Stretch stage, and `_rate` is taken
+   * from the tempo that stage reports back rather than from `virtualPitch`
+   * directly. A `StretchPipe` is only obliged to approximate the tempo it is
+   * given — a phase vocoder can advance its window by whole frames only — and
+   * the Transposer has to compress by whatever the stage actually stretched by.
+   * Reading it back keeps the two exact inverses; deriving both from
+   * `virtualPitch` independently lets them disagree about duration, which
+   * accumulates as output drifting against input for as long as the pipeline
+   * runs. The built-in `Stretch` honours any tempo through its fractional skip
+   * accumulator, so `_rate` stays exactly `virtualPitch` there.
+   *
+   * When `_rate > 1` the Stretch stage feeds the Transposer; otherwise the order
+   * is reversed.
    */
   calculateEffectiveRateAndTempo(): void {
     const previousTempo = this._tempo;
     const previousRate = this._rate;
+    const requestedTempo = 1.0 / this.virtualPitch;
 
-    this._tempo = 1.0 / this.virtualPitch;
-    this._rate = this.virtualPitch;
-
-    if (isFloatDifferent(this._tempo, previousTempo)) {
-      this.stretch.tempo = this._tempo;
+    if (isFloatDifferent(requestedTempo, previousTempo)) {
+      this.stretch.tempo = requestedTempo;
     }
+
+    this._tempo = this.stretch.tempo;
+    this._rate = isFloatDifferent(this._tempo, requestedTempo)
+      ? 1.0 / this._tempo
+      : this.virtualPitch;
+
     if (isFloatDifferent(this._rate, previousRate)) {
       this.transposer.rate = this._rate;
     }

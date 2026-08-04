@@ -59,6 +59,29 @@ class TestSampleBuffer implements SampleBuffer {
   }
 }
 
+/** A StretchPipe that can only realize tempos on a multiple of `step`. */
+function makeSnappingStretch(step: number): StretchPipe {
+  let tempo = 1;
+
+  return {
+    inputBuffer: null,
+    outputBuffer: null,
+    get tempo() {
+      return tempo;
+    },
+    set tempo(t: number) {
+      tempo = Math.round(t / step) * step;
+    },
+    sampleReq: 128,
+    clear: vi.fn(),
+    clearMidBuffer: vi.fn(),
+    process: vi.fn(),
+    setParameters: vi.fn(),
+    setStretchParameters: vi.fn(),
+    clone: vi.fn().mockReturnThis(),
+  };
+}
+
 describe('SoundTouch', () => {
   describe('constructor', () => {
     it('initializes with default values', () => {
@@ -209,6 +232,43 @@ describe('SoundTouch', () => {
       const st = new SoundTouch({});
       st.pitch = 0.5;
       expect(st.stretch.outputBuffer).toBe(st.outputBuffer);
+    });
+
+    it('takes the rate from the tempo the stretch stage reports', () => {
+      // A stage that can only deliver tempos in quarter steps, standing in for a
+      // phase vocoder that advances its window by whole frames. The Transposer
+      // has to compress by whatever the stage actually stretched by, not by the
+      // pitch that was asked for, or the two disagree about duration.
+      const rateSpy = vi.spyOn(RateTransposer.prototype, 'rate', 'set');
+
+      try {
+        const st = new SoundTouch({
+          stretchFactory: () => makeSnappingStretch(0.25),
+        });
+
+        st.pitch = 1.05; // tempo 0.952… snaps to 1.0
+
+        expect(st.stretch.tempo).toBe(1.0);
+        expect(rateSpy.mock.lastCall?.[0]).toBeCloseTo(1.0, 10);
+      } finally {
+        rateSpy.mockRestore();
+      }
+    });
+
+    it('leaves the rate at the requested pitch when the stage honours it', () => {
+      // The built-in Stretch takes any tempo through its fractional skip
+      // accumulator, so reading the tempo back must not perturb the rate.
+      const rateSpy = vi.spyOn(RateTransposer.prototype, 'rate', 'set');
+
+      try {
+        const st = new SoundTouch({});
+
+        st.pitch = 1.05;
+
+        expect(rateSpy.mock.lastCall?.[0]).toBe(1.05);
+      } finally {
+        rateSpy.mockRestore();
+      }
     });
   });
 

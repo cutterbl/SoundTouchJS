@@ -217,13 +217,28 @@ export class PhaseVocoder implements StretchPipe {
    * Matches the convention of the WSOLA `Stretch` stage: values greater than 1
    * speed up playback (shorter output) and values less than 1 slow it down
    * (longer output). The synthesis hop is derived as `round(Ha / tempo)`.
+   *
+   * Because that hop is a whole number of frames, the only tempos this stage can
+   * actually deliver are `Ha / k` for integer `k`. The setter snaps to the
+   * nearest of them and the getter reports the snapped value, so a caller — or
+   * `SoundTouch`, which reads it back to set its Transposer rate — sees what the
+   * stage will really do rather than assuming the request was met exactly. Left
+   * unsnapped, the stage stretches by up to `1 / (2 * Ha)` more or less than the
+   * Transposer compresses by, and the pipeline's output drifts against its input
+   * for as long as it runs. Snapping costs that same fraction of pitch accuracy,
+   * roughly 0.02 semitones at the default settings.
+   *
+   * Absorbing the remainder by varying the hop from frame to frame is the other
+   * way to close the gap, and a worse one: it jitters the synthesis rotation and
+   * measurably decoheres the phase recursion.
    */
   get tempo(): number {
     return this._tempo;
   }
 
   set tempo(t: number) {
-    this._tempo = t;
+    const hop = Math.round(this.analysisHop / t);
+    this._tempo = this.analysisHop / Math.max(1, Math.min(hop, this.fftSize));
   }
 
   /**

@@ -106,9 +106,14 @@ describe('PhaseVocoder', () => {
       expect(pv.tempo).toBe(1.0);
     });
 
-    it('tempo setter updates the value', () => {
+    it('tempo setter snaps to the nearest realizable tempo', () => {
+      const Ha = pv.sampleReq;
+
       pv.tempo = 0.75;
-      expect(pv.tempo).toBe(0.75);
+
+      // only Ha / k is deliverable, so 0.75 lands on 128 / 171
+      expect(pv.tempo).toBe(Ha / Math.round(Ha / 0.75));
+      expect(pv.tempo).toBeCloseTo(0.75, 2);
     });
 
     it('uses fftSize 2048 and overlapFactor 4 by default', () => {
@@ -259,7 +264,7 @@ describe('PhaseVocoder', () => {
     it('clone inherits current tempo', () => {
       pv.tempo = 1.5;
       const c = pv.clone();
-      expect(c.tempo).toBe(1.5);
+      expect(c.tempo).toBe(pv.tempo);
     });
 
     it('clone is independent — setting tempo does not affect original', () => {
@@ -267,6 +272,68 @@ describe('PhaseVocoder', () => {
       c.tempo = 2.0;
       expect(pv.tempo).toBe(1.0);
     });
+  });
+
+  describe('realizable tempo', () => {
+    // The synthesis hop is a whole number of frames, so the stage can only
+    // deliver tempos of the form Ha / k. Reporting the snapped value is what
+    // lets SoundTouch match its Transposer rate to the stretch actually
+    // applied rather than to the pitch that was requested.
+    const requests = [0.7, 0.75, 0.9, 1.1, 1.25, 1.4, 1.5, 1.9];
+
+    it.each(requests)('reports a hop-aligned tempo for %f', (requested) => {
+      pv.tempo = requested;
+
+      const hop = pv.sampleReq / pv.tempo;
+
+      expect(hop).toBeCloseTo(Math.round(hop), 9);
+    });
+
+    it.each(requests)('stays within half a frame of %f', (requested) => {
+      pv.tempo = requested;
+
+      const Ha = pv.sampleReq;
+
+      expect(Math.abs(Ha / pv.tempo - Ha / requested)).toBeLessThanOrEqual(0.5);
+    });
+
+    it('is idempotent', () => {
+      pv.tempo = 1.37;
+      const once = pv.tempo;
+
+      pv.tempo = once;
+
+      expect(pv.tempo).toBe(once);
+    });
+
+    it.each([0.5, 1.0, 2.0])(
+      'leaves exactly realizable tempo %f alone',
+      (t) => {
+        pv.tempo = t;
+
+        expect(pv.tempo).toBe(t);
+      },
+    );
+
+    it.each(requests)(
+      'emits exactly the frames its reported tempo implies at %f',
+      (requested) => {
+        pv.tempo = requested;
+
+        const Ha = pv.sampleReq;
+        const expectedPerHop = Ha / pv.tempo;
+        const hops = 24;
+
+        for (let h = 0; h < hops; h++) {
+          fillBuffer(inputBuf, Ha);
+          pv.process();
+        }
+
+        // exact, not approximate: this is the invariant SoundTouch relies on to
+        // keep the Transposer rate matched to the stretch
+        expect(outputBuf.frameCount).toBe(expectedPerHop * hops);
+      },
+    );
   });
 
   // Warmup rationale: the analysis window fills after N/Ha = 4 hops, the
@@ -367,9 +434,7 @@ describe('PhaseVocoder', () => {
 
       // Phase state is carried as complex spectra; magnitudes must stay
       // finite and bounded by the frame energy (no runaway accumulation).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sRe = (pv as any).synthMidRe as Float32Array;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sIm = (pv as any).synthMidIm as Float32Array;
       for (let k = 0; k < sRe.length; k++) {
         expect(Number.isFinite(sRe[k])).toBe(true);
