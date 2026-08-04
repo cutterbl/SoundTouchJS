@@ -97,6 +97,14 @@ class PhaseVocoderProcessor extends SoundTouchProcessorBase {
     });
   }
 
+  /**
+   * The vocoder emits output in analysis-hop-sized bursts, so one held block
+   * gives the output buffer a permanent 128-frame underrun cushion.
+   */
+  protected override get startupHoldBlocks(): number {
+    return 1;
+  }
+
   protected onProcessComplete(result: ProcessCoreResult): void {
     if (this._blockCount % 100 === 0) {
       this.port.postMessage({

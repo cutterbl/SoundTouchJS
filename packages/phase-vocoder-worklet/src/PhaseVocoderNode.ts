@@ -114,7 +114,8 @@ export interface PhaseVocoderNodeConstructorOptions extends PhaseVocoderNodeOpti
  * `fftSize` and `overlapFactor` constructor options for tuning the FFT stage.
  *
  * The phase vocoder produces smoother results than WSOLA at extreme ratios (> 2×)
- * at the cost of higher per-frame computation and inherent `fftSize`-sample latency.
+ * at the cost of higher per-frame computation. Latency is `fftSize` samples
+ * plus one render block (128 samples) of output priming.
  *
  * @example
  * ```ts

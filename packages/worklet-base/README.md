@@ -50,6 +50,7 @@ registerProcessor('my-processor', MyProcessor);
 |---|---|
 | `beforePipeProcess(left, right, frameCount, params)` | Pre-pipe analysis (e.g. LPC analysis for formant correction). Default is a no-op. |
 | `extractSamples(leftOutput, rightOutput, frameCount)` | Full extraction/write-back override (e.g. formant synthesis). Default writes both channels and returns RMS/peak metrics. |
+| `startupHoldBlocks` (getter) | Override to return `N` when the stretch stage produces output in bursts: the processor emits `N` extra render blocks of leading silence once the output buffer first fills a block, adding `N × 128` frames of latency and the same amount of underrun cushion. Default `0`. |
 
 ### Runtime messages
 

@@ -93,6 +93,22 @@ function makeConcreteClass() {
   return { TestProcessor, onProcessComplete };
 }
 
+function makeGatedClass(hold = 1) {
+  const onProcessComplete = vi.fn();
+
+  class GatedProcessor extends (ProcessorBase as unknown as typeof SoundTouchProcessorBase) {
+    protected override get startupHoldBlocks(): number {
+      return hold;
+    }
+
+    protected onProcessComplete(result: ProcessCoreResult): void {
+      onProcessComplete(result);
+    }
+  }
+
+  return { GatedProcessor, onProcessComplete };
+}
+
 function makeInputs(frameCount = 128, channels = 2): Float32Array[][] {
   return [Array.from({ length: channels }, () => new Float32Array(frameCount))];
 }
@@ -162,6 +178,75 @@ describe('SoundTouchProcessorBase', () => {
       const { TestProcessor } = makeConcreteClass();
       const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
       expect(proc.port.onmessage).toBeTypeOf('function');
+    });
+  });
+
+  describe('startup gate', () => {
+    it('extracts from the first block when startupHoldBlocks is 0', () => {
+      const { TestProcessor } = makeConcreteClass();
+      const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 64;
+      const result = proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(result!.toExtract).toBe(64);
+      expect(extract).toHaveBeenCalledWith(proc['_outputSamples'], 0, 64);
+    });
+
+    it('stays silent until the output buffer first fills a block', () => {
+      const { GatedProcessor } = makeGatedClass();
+      const proc = new GatedProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 64;
+      const result = proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(result!.toExtract).toBe(0);
+      expect(extract).not.toHaveBeenCalled();
+      expect(proc['_underrunCount']).toBe(0);
+    });
+
+    it('holds one more block after the first full block, then extracts', () => {
+      const { GatedProcessor } = makeGatedClass();
+      const proc = new GatedProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 512;
+      const held = proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(held!.toExtract).toBe(0);
+      expect(extract).not.toHaveBeenCalled();
+
+      const open = proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(open!.toExtract).toBe(128);
+      expect(extract).toHaveBeenCalledWith(proc['_outputSamples'], 0, 128);
+    });
+
+    it('holds startupHoldBlocks blocks when greater than one', () => {
+      const { GatedProcessor } = makeGatedClass(2);
+      const proc = new GatedProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 512;
+      expect(proc['processCore'](makeInputs(), makeOutputs(), makeParams())!.toExtract).toBe(0);
+      expect(proc['processCore'](makeInputs(), makeOutputs(), makeParams())!.toExtract).toBe(0);
+      expect(proc['processCore'](makeInputs(), makeOutputs(), makeParams())!.toExtract).toBe(128);
+    });
+
+    it('counts underruns only after the gate opens', () => {
+      const { GatedProcessor } = makeGatedClass();
+      const proc = new GatedProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 64;
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams()); // waiting
+      expect(proc['_underrunCount']).toBe(0);
+
+      outputFrameCount = 128;
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams()); // held
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams()); // open
+      expect(proc['_underrunCount']).toBe(0);
+
+      outputFrameCount = 64;
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(proc['_underrunCount']).toBe(1);
+    });
+
+    it('keeps counting blocks while gated', () => {
+      const { GatedProcessor } = makeGatedClass();
+      const proc = new GatedProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 0;
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      proc['processCore'](makeInputs(), makeOutputs(), makeParams());
+      expect(proc['_blockCount']).toBe(2);
     });
   });
 

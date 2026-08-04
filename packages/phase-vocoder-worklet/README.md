@@ -102,6 +102,8 @@ Top-level exports:
 
 Extends `AudioWorkletNode`. Same API as `SoundTouchNode` with additional `fftSize` / `overlapFactor` options.
 
+Output starts one render block (128 samples) after the pipeline warms up; include it when compensating latency.
+
 #### Static methods
 
 | Method | Description |
@@ -168,7 +170,7 @@ node.addEventListener('metrics', (e) => {
 | Quality at extreme ratios | Artifacts above 2× | Smooth at all ratios |
 | Transient preservation | Better (time-domain) | Worse (frequency smearing) |
 | Computation | Lower | Higher (FFT per hop) |
-| Startup latency | Lower | `fftSize` samples |
+| Startup latency | Lower | `fftSize` + 128 samples |
 | Artifacts | Clicks / repeats | "Phasiness" / smearing |
 
 ## Architecture
