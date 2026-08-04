@@ -378,8 +378,18 @@ describe('phase-vocoder-processor', () => {
         playbackRate: new Float32Array([1]),
       };
 
+      // two blocks open the startup gate and do not count as underruns
+      outputFrameCount = 128;
+      for (let i = 0; i < 2; i++) {
+        instance.process(
+          [[new Float32Array(128)]],
+          [[new Float32Array(128), new Float32Array(128)]],
+          params,
+        );
+      }
+
       outputFrameCount = 64;
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 98; i++) {
         instance.process(
           [[new Float32Array(128)]],
           [[new Float32Array(128), new Float32Array(128)]],
@@ -390,7 +400,8 @@ describe('phase-vocoder-processor', () => {
       expect(instance.port.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'metrics',
-          underrunCount: 100,
+          blockCount: 100,
+          underrunCount: 98,
         }),
       );
     });
@@ -416,15 +427,23 @@ describe('phase-vocoder-processor', () => {
       const inputRight = new Float32Array([2, 4]);
       const outputLeft = new Float32Array(2);
       const outputRight = new Float32Array(2);
+      const params = {
+        pitch: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      };
+
+      // first block is held by the startup gate
+      instance.process(
+        [[inputLeft, inputRight]],
+        [[new Float32Array(2), new Float32Array(2)]],
+        params,
+      );
 
       const result = instance.process(
         [[inputLeft, inputRight]],
         [[outputLeft, outputRight]],
-        {
-          pitch: new Float32Array([1]),
-          pitchSemitones: new Float32Array([0]),
-          playbackRate: new Float32Array([1]),
-        },
+        params,
       );
 
       expect(result).toBe(true);
@@ -435,6 +454,37 @@ describe('phase-vocoder-processor', () => {
       expect(outputLeft[1]).toBeCloseTo(0.3, 6);
       expect(outputRight[0]).toBeCloseTo(0.2, 6);
       expect(outputRight[1]).toBeCloseTo(0.4, 6);
+    });
+  });
+
+  describe('startup gate', () => {
+    it('holds output for one render block after the buffer first fills', async () => {
+      await import('./phase-vocoder-processor.js');
+      outputFrameCount = 512;
+
+      const instance = new registeredCtor!({
+        processorOptions: { sampleBufferType: 'circular' },
+      });
+
+      const params = {
+        pitch: new Float32Array([1]),
+        pitchSemitones: new Float32Array([0]),
+        playbackRate: new Float32Array([1]),
+      };
+
+      instance.process(
+        [[new Float32Array(128)]],
+        [[new Float32Array(128), new Float32Array(128)]],
+        params,
+      );
+      expect(extract).not.toHaveBeenCalled();
+
+      instance.process(
+        [[new Float32Array(128)]],
+        [[new Float32Array(128), new Float32Array(128)]],
+        params,
+      );
+      expect(extract).toHaveBeenCalledWith(expect.any(Float32Array), 0, 128);
     });
   });
 });

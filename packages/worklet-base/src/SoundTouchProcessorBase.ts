@@ -46,8 +46,35 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
     null;
   private _pendingStretchParameters: StretchParameters | null = null;
 
+  /**
+   * Render blocks left in the startup gate: `-1` = waiting for the output
+   * buffer's first full block, `> 0` = holding, `0` = open.
+   */
+  private _startupHoldRemaining = -1;
+
   /** Label used in console messages (e.g. `'[SoundTouchProcessor]'`). */
   protected readonly processorLabel: string;
+
+  /**
+   * Render blocks the processor stays silent after the output buffer first
+   * holds a full block, before extraction begins.
+   *
+   * @remarks
+   * A bursty stretch stage refills the output buffer one hop at a time while
+   * `process` drains one block per quantum, so the buffer's trough rides at
+   * exactly one render block — any fractional-carry shortfall then comes up
+   * short and is zero-filled, which is an audible click. Each held block is
+   * emitted before any real output (so the added silence is inaudible) and
+   * leaves one block's worth of unconsumed frames as a permanent cushion
+   * under that trough, at the cost of one render block (128 frames) of
+   * output latency.
+   *
+   * Override in subclasses whose stretch stage produces in bursts. The
+   * default `0` disables the gate and keeps legacy timing.
+   */
+  protected get startupHoldBlocks(): number {
+    return 0;
+  }
 
   /**
    * Validates and resolves an interpolation strategy id, falling back to
@@ -291,10 +318,31 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
 
     const outputBuffer = this._pipe.outputBuffer;
     const available = outputBuffer.frameCount;
-    const toExtract = Math.min(available, frameCount);
+
+    // Startup gate: while active, the block stays silent and nothing is
+    // consumed — see startupHoldBlocks.
+    let gated = false;
+    if (this._startupHoldRemaining !== 0) {
+      const hold = this.startupHoldBlocks;
+      if (hold <= 0) {
+        this._startupHoldRemaining = 0;
+      } else if (this._startupHoldRemaining < 0) {
+        // waiting for the pipe to fill its first full block; the block where
+        // it does is the first held one
+        gated = true;
+        if (available >= frameCount) {
+          this._startupHoldRemaining = hold - 1;
+        }
+      } else {
+        this._startupHoldRemaining--;
+        gated = true;
+      }
+    }
+
+    const toExtract = gated ? 0 : Math.min(available, frameCount);
 
     this._blockCount++;
-    if (available < frameCount) {
+    if (!gated && available < frameCount) {
       this._underrunCount++;
     }
 
