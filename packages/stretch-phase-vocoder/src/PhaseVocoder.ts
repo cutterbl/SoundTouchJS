@@ -325,20 +325,31 @@ export class PhaseVocoder implements StretchPipe {
   }
 
   /**
-   * Processes one analysis hop from `inputBuffer` and writes the synthesis
-   * result to `outputBuffer`.
+   * Processes every whole analysis hop buffered in `inputBuffer`, writing the
+   * synthesis result to `outputBuffer`.
    *
    * @remarks
-   * Reads exactly `sampleReq` frames from `inputBuffer` and produces
-   * `round(sampleReq / tempo)` frames into `outputBuffer`. Does nothing if
-   * either buffer is unset or if `inputBuffer` contains fewer than `sampleReq`
-   * frames.
+   * Consumes `sampleReq` frames and produces `round(sampleReq / tempo)` frames
+   * per hop, looping until fewer than `sampleReq` frames remain — the same
+   * drain-the-input contract as the WSOLA `Stretch` stage. Callers that feed
+   * fixed-size blocks (the worklet processors feed 128-frame render quanta)
+   * rely on this when one block spans more than one hop, e.g. at hop sizes at
+   * or below the render quantum. Does nothing if either buffer is unset or if
+   * `inputBuffer` contains fewer than `sampleReq` frames.
    */
   process(): void {
     if (!this.inputBuffer || !this.outputBuffer) return;
-    const Ha = this.analysisHop;
-    if (this.inputBuffer.frameCount < Ha) return;
+    while (this.inputBuffer.frameCount >= this.analysisHop) {
+      this._processHop();
+    }
+  }
 
+  /** Consumes one analysis hop and synthesizes one hop of output. */
+  private _processHop(): void {
+    // process() guarantees both buffers are set before looping
+    const inputBuffer = this.inputBuffer!;
+    const outputBuffer = this.outputBuffer!;
+    const Ha = this.analysisHop;
     const N = this.fftSize;
     const bins = N / 2 + 1;
     const Hs = Math.max(1, Math.round(Ha / this._tempo));
@@ -352,8 +363,8 @@ export class PhaseVocoder implements StretchPipe {
     }
 
     // Consume Ha frames from inputBuffer.
-    this.inputBuffer.extract(this.inputScratch, 0, Ha);
-    this.inputBuffer.receive(Ha);
+    inputBuffer.extract(this.inputScratch, 0, Ha);
+    inputBuffer.receive(Ha);
 
     // Slide analysis window: discard oldest Ha frames, append new ones.
     this.analysisL.copyWithin(0, Ha);
@@ -390,7 +401,7 @@ export class PhaseVocoder implements StretchPipe {
       this.outputScratch[i * 2] = this.olaL[i] * norm;
       this.outputScratch[i * 2 + 1] = this.olaR[i] * norm;
     }
-    this.outputBuffer.putSamples(this.outputScratch, 0, toExtract);
+    outputBuffer.putSamples(this.outputScratch, 0, toExtract);
 
     // Shift OLA buffers left by the extracted amount, zero the tails.
     this.olaL.copyWithin(0, toExtract);

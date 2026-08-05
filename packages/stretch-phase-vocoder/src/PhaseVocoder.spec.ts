@@ -163,12 +163,39 @@ describe('PhaseVocoder', () => {
       expect(outputBuf.frameCount).toBeGreaterThan(0);
     });
 
-    it('consumes exactly sampleReq frames per call', () => {
-      const total = pv.sampleReq * 3;
-      fillBuffer(inputBuf, total);
-      const before = inputBuf.frameCount;
+    it('drains every whole hop per call, leaving the remainder', () => {
+      const Ha = pv.sampleReq;
+      fillBuffer(inputBuf, Ha * 3 + 10);
       pv.process();
-      expect(before - inputBuf.frameCount).toBe(pv.sampleReq);
+      expect(inputBuf.frameCount).toBe(10);
+      expect(outputBuf.frameCount).toBe(Ha * 3);
+    });
+
+    it('produces identical output whether input arrives batched or per hop', () => {
+      const Ha = pv.sampleReq;
+      const hops = 8;
+      const s = new Float32Array(hops * Ha * 2);
+      for (let i = 0; i < hops * Ha; i++) {
+        const v = Math.sin(OMEGA * i) * 0.5;
+        s[i * 2] = v;
+        s[i * 2 + 1] = v;
+      }
+
+      inputBuf.putSamples(s, 0, hops * Ha);
+      pv.process();
+      const batched = allOutput(outputBuf);
+
+      const pv2 = new PhaseVocoder({ fftSize: 512, overlapFactor: 4 });
+      const in2 = new TestBuffer();
+      const out2 = new TestBuffer();
+      pv2.inputBuffer = in2 as unknown as import('@soundtouchjs/core').SampleBuffer;
+      pv2.outputBuffer = out2 as unknown as import('@soundtouchjs/core').SampleBuffer;
+      for (let h = 0; h < hops; h++) {
+        in2.putSamples(s, h * Ha, Ha);
+        pv2.process();
+      }
+
+      expect(batched).toEqual(allOutput(out2));
     });
 
     it('produces finite output values', () => {
