@@ -45,6 +45,7 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
   private _pendingInterpolationStrategyParams: Partial<InterpolationStrategyParams> | null =
     null;
   private _pendingStretchParameters: StretchParameters | null = null;
+  private _disposed = false;
 
   /** Label used in console messages (e.g. `'[SoundTouchProcessor]'`). */
   protected readonly processorLabel: string;
@@ -96,6 +97,10 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
     if (port !== undefined) {
       port.onmessage = (event: MessageEvent<ProcessorMessage>) => {
         const message = event.data;
+        if (message.type === 'dispose') {
+          this._disposed = true;
+          return;
+        }
         if (message.type === 'set-interpolation-strategy') {
           this._pendingInterpolationStrategy = message.strategy;
           return;
@@ -331,23 +336,32 @@ export abstract class SoundTouchProcessorBase extends AudioWorkletProcessor {
   protected abstract onProcessComplete(result: ProcessCoreResult): void;
 
   /**
-   * AudioWorkletProcessor render callback. Keeps the processor alive by always returning `true`.
+   * AudioWorkletProcessor render callback. Keeps the processor alive by returning
+   * `true` until a `dispose` message arrives.
    *
    * @remarks
    * The default implementation calls `applyPendingRuntimeUpdates`, `processCore`,
    * and `onProcessComplete`. Override only when the execution order must differ
    * (e.g. pre-pipe analysis steps not covered by `beforePipeProcess`).
    *
+   * A processor that keeps returning `true` is never released by the browser,
+   * even once every connection to its node is gone. After `{ type: 'dispose' }`
+   * is posted to the port, this returns `false` from the next render quantum so
+   * the processor can be garbage-collected.
+   *
    * @param inputs - AudioWorklet input buses.
    * @param outputs - AudioWorklet output buses.
    * @param parameters - k-rate AudioParam values.
-   * @returns Always `true` to keep the processor alive.
+   * @returns `true` while the processor is live, `false` once disposed.
    */
   process(
     inputs: Float32Array[][],
     outputs: Float32Array[][],
     parameters: Record<string, Float32Array>,
   ): boolean {
+    if (this._disposed) {
+      return false;
+    }
     this.applyPendingRuntimeUpdates();
     const result = this.processCore(inputs, outputs, parameters);
     if (result !== null) {

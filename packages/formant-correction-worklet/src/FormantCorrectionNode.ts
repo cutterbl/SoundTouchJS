@@ -235,4 +235,19 @@ export class FormantCorrectionNode extends AudioWorkletNode {
       params,
     });
   }
+
+  /**
+   * Stops the render-thread processor and disconnects the node.
+   *
+   * @remarks
+   * An `AudioWorkletProcessor` is kept alive for as long as its `process()`
+   * returns `true`, which this one does until told otherwise — so a node that
+   * is merely disconnected and dropped keeps rendering, and keeps its buffers,
+   * until the `AudioContext` closes. Call this when the node is no longer
+   * needed. The node cannot be reused afterwards.
+   */
+  dispose(): void {
+    this.port.postMessage({ type: 'dispose' });
+    this.disconnect();
+  }
 }

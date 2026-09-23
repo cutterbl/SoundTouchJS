@@ -149,6 +149,7 @@ Extends `AudioWorkletNode`. Provides the same API as `SoundTouchNode` plus a `fo
 | `setInterpolationStrategy(strategy)` | Switches interpolation strategy at runtime. |
 | `setInterpolationStrategyParams(params)` | Updates parameters for the active strategy. |
 | `setStretchParameters(params)` | Applies WSOLA timing parameters. |
+| `dispose()` | Stops the render-thread processor and disconnects the node. The node cannot be reused. |
 
 #### Processor observability
 

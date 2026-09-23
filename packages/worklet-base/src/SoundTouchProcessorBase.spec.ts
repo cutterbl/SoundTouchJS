@@ -195,6 +195,13 @@ describe('SoundTouchProcessorBase', () => {
       } as never);
       expect(proc['_pendingStretchParameters']).toEqual({ sequenceMs: 100 });
     });
+
+    it('marks the processor disposed', () => {
+      const { TestProcessor } = makeConcreteClass();
+      const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
+      proc.port.onmessage!({ data: { type: 'dispose' } } as never);
+      expect(proc['_disposed']).toBe(true);
+    });
   });
 
   describe('applyPendingRuntimeUpdates', () => {
@@ -456,7 +463,7 @@ describe('SoundTouchProcessorBase', () => {
   });
 
   describe('process (default implementation)', () => {
-    it('returns true always', () => {
+    it('returns true while live', () => {
       const { TestProcessor } = makeConcreteClass();
       const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
       const result = proc.process([], makeOutputs(), makeParams());
@@ -478,6 +485,17 @@ describe('SoundTouchProcessorBase', () => {
       const { TestProcessor, onProcessComplete } = makeConcreteClass();
       const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
       proc.process([], makeOutputs(), makeParams());
+      expect(onProcessComplete).not.toHaveBeenCalled();
+    });
+
+    it('returns false and skips the pipe once disposed', () => {
+      const { TestProcessor, onProcessComplete } = makeConcreteClass();
+      const proc = new TestProcessor('[Test]', { sampleRate: 44100 });
+      outputFrameCount = 128;
+      proc.port.onmessage!({ data: { type: 'dispose' } } as never);
+      const result = proc.process(makeInputs(), makeOutputs(), makeParams());
+      expect(result).toBe(false);
+      expect(putSamples).not.toHaveBeenCalled();
       expect(onProcessComplete).not.toHaveBeenCalled();
     });
   });

@@ -340,6 +340,16 @@ import type { ProcessorMetrics } from '@soundtouchjs/audio-worklet';
 | `outputPeak` | Peak absolute value of the last output block (both channels) |
 | `timestamp` | `performance.now()` on the main thread when metrics arrived |
 
+## Disposing a node
+
+An `AudioWorkletProcessor` stays alive for as long as its `process()` returns `true`, and the SoundTouch processor does until it is told to stop — so a node you `disconnect()` and drop keeps rendering, and keeps its buffers, until the `AudioContext` closes. If you create a fresh node per track, dispose of the old one:
+
+```ts
+stNode.dispose();
+```
+
+`dispose()` posts a `dispose` message to the processor and disconnects the node. The processor returns `false` from its next render quantum and can be garbage-collected; the node cannot be reused.
+
 ## Mono input and output
 
 The processor supports both mono input and mono output without extra configuration.

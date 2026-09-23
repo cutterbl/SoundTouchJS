@@ -170,6 +170,30 @@ describe('processor', () => {
     });
   });
 
+  it('stops rendering after a dispose message', async () => {
+    await import('./processor.js');
+    const instance = new registeredCtor!({
+      processorOptions: { sampleBufferType: 'circular' },
+    }) as unknown as {
+      port: { onmessage: ((event: { data: unknown }) => void) | null };
+      process: RegisteredProcessorCtor['prototype']['process'];
+    };
+    const params = {
+      pitch: new Float32Array([1]),
+      pitchSemitones: new Float32Array([0]),
+      playbackRate: new Float32Array([1]),
+    };
+    const inputLeft = new Float32Array([1, 2]);
+    const outputs = [[new Float32Array(2), new Float32Array(2)]];
+    outputFrameCount = 0;
+
+    expect(instance.process([[inputLeft]], outputs, params)).toBe(true);
+
+    instance.port.onmessage?.({ data: { type: 'dispose' } });
+
+    expect(instance.process([[inputLeft]], outputs, params)).toBe(false);
+  });
+
   it('logs and recovers when runtime strategy update handlers throw', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
     setInterpolationStrategy.mockImplementationOnce(() => {

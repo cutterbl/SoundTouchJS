@@ -136,6 +136,7 @@ Extends `AudioWorkletNode`. Same API as `SoundTouchNode` with additional `fftSiz
 | `setInterpolationStrategy(strategy)` | Switches interpolation strategy at runtime. |
 | `setInterpolationStrategyParams(params)` | Updates parameters for the active strategy. |
 | `setStretchParameters(params)` | No-op for the phase vocoder (accepted for API parity with `SoundTouchNode`). |
+| `dispose()` | Stops the render-thread processor and disconnects the node. The node cannot be reused. |
 
 #### Processor observability
 
