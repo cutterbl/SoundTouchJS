@@ -64,6 +64,9 @@ node.port.postMessage({ type: 'setInterpolationStrategyParams', value: { ... } }
 
 // Update stretch parameters
 node.port.postMessage({ type: 'setStretchParameters', value: { ... } });
+
+// Stop the processor for good: process() returns false from the next render quantum
+node.port.postMessage({ type: 'dispose' });
 ```
 
 ## API
@@ -113,7 +116,8 @@ Array of `AudioParamDescriptor` objects for the three standard k-rate parameters
 | `SetInterpolationStrategyMessage` | `{ type: 'setInterpolationStrategy', value: RateTransposerInterpolationStrategy }` |
 | `SetInterpolationStrategyParamsMessage` | `{ type: 'setInterpolationStrategyParams', value: InterpolationStrategyParams }` |
 | `SetStretchParametersMessage` | `{ type: 'setStretchParameters', value: StretchParameters }` |
-| `ProcessorMessage` | Union of the three message types above. |
+| `DisposeMessage` | `{ type: 'dispose' }` — stops the processor; `process()` returns `false` from the next render quantum. |
+| `ProcessorMessage` | Union of the message types above. |
 | `ProcessCoreResult` | `{ outputRms: number, outputPeak: number }` |
 
 ## License

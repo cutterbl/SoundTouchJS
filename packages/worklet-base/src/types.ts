@@ -56,10 +56,19 @@ export interface SetStretchParametersMessage {
   params: StretchParameters;
 }
 
+/**
+ * Tells the processor to stop for good: `process()` returns `false` from the
+ * next render quantum so the browser can release it.
+ */
+export interface DisposeMessage {
+  type: 'dispose';
+}
+
 export type ProcessorMessage =
   | SetInterpolationStrategyMessage
   | SetInterpolationStrategyParamsMessage
-  | SetStretchParametersMessage;
+  | SetStretchParametersMessage
+  | DisposeMessage;
 
 /**
  * Data returned by {@link SoundTouchProcessorBase.processCore} after a render block.

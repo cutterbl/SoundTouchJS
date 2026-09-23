@@ -13,6 +13,7 @@ const lastCtorOptions: { value: MockNodeOptions | undefined } = {
 type MessageListener = (event: MessageEvent) => void;
 
 class MockAudioWorkletNode {
+  disconnect = vi.fn();
   parameters: Map<string, unknown>;
   port: {
     postMessage: ReturnType<typeof vi.fn>;
@@ -150,6 +151,20 @@ describe('SoundTouchNode', () => {
       type: 'set-stretch-parameters',
       params: { overlapMs: 12, quickSeek: false },
     });
+  });
+
+  it('sends dispose message and disconnects the node', async () => {
+    const { SoundTouchNode } = await import('./index.js');
+    const node = new SoundTouchNode({ context: {} as BaseAudioContext });
+
+    node.dispose();
+
+    const mock = node as unknown as {
+      port: { postMessage: ReturnType<typeof vi.fn> };
+      disconnect: ReturnType<typeof vi.fn>;
+    };
+    expect(mock.port.postMessage).toHaveBeenCalledWith({ type: 'dispose' });
+    expect(mock.disconnect).toHaveBeenCalledOnce();
   });
 
   describe('outputChannelCount option', () => {
